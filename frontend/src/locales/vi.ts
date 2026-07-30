@@ -36,6 +36,7 @@ const vi: Record<string, any> = {
 
   "dashboard.title": "Khu vực huấn luyện",
   "dashboard.welcome": "Chào mừng",
+  "dashboard.pickChallenge": "Hãy chọn một thử thách để bắt đầu.",
   "dashboard.labs": "bài Lab",
   "dashboard.search": "Tìm kiếm bài Lab...",
   "dashboard.filtered": "(đã lọc)",

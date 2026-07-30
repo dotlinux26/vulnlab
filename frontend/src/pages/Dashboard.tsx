@@ -92,7 +92,7 @@ const Dashboard = () => {
           <div className="mb-8" style={{ animation: "fade-in-up 0.6s ease-out" }}>
             <h1 className="text-3xl font-bold text-foreground mb-2">{t("dashboard.title")}</h1>
             <p className="text-muted-foreground">
-              Chào mừng <span className="text-primary font-medium">{userName}</span>. Hãy chọn một thử thách để bắt đầu.
+              {t("dashboard.welcome")} <span className="text-primary font-medium">{userName}</span>. {t("dashboard.pickChallenge")}
             </p>
           </div>
 

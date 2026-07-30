@@ -8,7 +8,7 @@ interface LanguageContextType {
   lang: Lang;
   setLang: (lang: Lang) => void;
   toggleLang: () => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType>(null!);
@@ -31,9 +31,15 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     document.documentElement.setAttribute("lang", lang);
   }, [lang]);
 
-  const t = (key: string): string => {
+  const t = (key: string, params?: Record<string, string>): string => {
     const dict = translations[lang];
-    return dict && typeof dict[key] === "string" ? dict[key] : key;
+    let val = dict && typeof dict[key] === "string" ? dict[key] : key;
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        val = val.replace(new RegExp(`\\{${k}\\}`, "g"), v);
+      });
+    }
+    return val;
   };
   const toggleLang = () => setLang((prev) => (prev === "vi" ? "en" : "vi"));
 

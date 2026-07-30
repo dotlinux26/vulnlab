@@ -36,6 +36,7 @@ const en: Record<string, any> = {
 
   "dashboard.title": "Training Area",
   "dashboard.welcome": "Welcome",
+  "dashboard.pickChallenge": "Pick a challenge to start.",
   "dashboard.labs": "Labs",
   "dashboard.search": "Search Labs...",
   "dashboard.filtered": "(filtered)",
