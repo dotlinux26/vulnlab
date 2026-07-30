@@ -5,11 +5,6 @@ import { Send, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const socket = io("https://vuln.ghedahaui.online", {
-  withCredentials: true,
-  autoConnect: false 
-});
-
 const Chat = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -18,6 +13,10 @@ const Chat = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const socketRef = useRef(io("https://vuln.ghedahaui.online", {
+    withCredentials: true,
+    autoConnect: false
+  }));
 
   useEffect(() => {
     fetch("/api/me", { credentials: "include" })
@@ -50,17 +49,17 @@ const Chat = () => {
       alert(`[Hệ thống cảnh báo] ${msg}`);
     };
 
-    socket.on("load_history", handleLoadHistory);
-    socket.on("receive_message", handleReceive);
-    socket.on("error_msg", handleError);
+    socketRef.current.on("load_history", handleLoadHistory);
+    socketRef.current.on("receive_message", handleReceive);
+    socketRef.current.on("error_msg", handleError);
 
-    if (!socket.connected) socket.connect();
+    socketRef.current.connect();
 
     return () => { 
-      socket.off("load_history", handleLoadHistory);
-      socket.off("receive_message", handleReceive); 
-      socket.off("error_msg", handleError); 
-      if (socket.connected) socket.disconnect(); 
+      socketRef.current.off("load_history", handleLoadHistory);
+      socketRef.current.off("receive_message", handleReceive); 
+      socketRef.current.off("error_msg", handleError); 
+      socketRef.current.disconnect();
     };
   }, [user]);
 
@@ -72,7 +71,7 @@ const Chat = () => {
   const sendMessage = () => {
     if (!input.trim() || !user) return;
 
-    socket.emit("send_message", {
+    socketRef.current.emit("send_message", {
       sessionToken: user.id,
       content: input
     });

@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import Navbar from '@/components/Navbar';
 import { Gem, CheckCircle, ShieldCheck, Zap, ExternalLink, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const socket = io("https://vuln.ghedahaui.online", {
-  withCredentials: true,
-  autoConnect: false
-});
-
 const Subscription = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const socketRef = useRef(io("https://vuln.ghedahaui.online", {
+    withCredentials: true,
+    autoConnect: false
+  }));
   const [user, setUser] = useState<any>(null);
   const [isBuying, setIsBuying] = useState(false);
   const [voucherData, setVoucherData] = useState<{orderCode: string, code: string} | null>(null);
@@ -26,19 +25,19 @@ const Subscription = () => {
       })
       .then(userData => {
         setUser(userData);
-        if (!socket.connected) socket.connect();
+        socketRef.current.connect();
       })
       .catch(() => navigate('/login'));
 
     // Lắng nghe tín hiệu tiền về từ Socket
-    socket.on("payment_success", (data: any) => {
+    socketRef.current.on("payment_success", (data: any) => {
         setVoucherData({ orderCode: data.orderCode, code: data.voucherCode });
         setIsBuying(false);
     });
 
     return () => {
-      socket.off("payment_success");
-      if (socket.connected) socket.disconnect();
+      socketRef.current.off("payment_success");
+      socketRef.current.disconnect();
     };
   }, [navigate]);
 
