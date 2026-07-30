@@ -156,7 +156,7 @@ const LearningDetail = () => {
                   }`}
                 >
                   {progressStatus === 'completed' ? <CheckCircle size={14} /> : <Circle size={14} />}
-                  {progressStatus === 'completed' ? '{t("learning.doneLabel")}' : '{t("learning.markDone")}'}
+                  {progressStatus === 'completed' ? t("learning.doneLabel") : t("learning.markDone")}
                 </button>
               )}
             </div>
