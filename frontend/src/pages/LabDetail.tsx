@@ -16,7 +16,7 @@ const LabDetail = () => {
   const [result, setResult] = useState<"success" | "fail" | null>(null);
   const [descLang, setDescLang] = useState<"vi" | "en">("vi");
 
-  const { lang, setLang } = useLanguage();
+  const { lang, setLang, t } = useLanguage();
   const userName = localStorage.getItem("user_name") || "Học viên";
 
   useEffect(() => {
@@ -57,7 +57,7 @@ const LabDetail = () => {
   };
 
   if (isLoadingLab) return <div className="min-h-screen bg-background flex justify-center items-center"><Loader2 className="animate-spin text-primary" size={48} /></div>;
-  if (!lab) return <div className="text-center py-20 bg-background min-h-screen text-foreground"><h1 className="text-2xl font-bold">Lab không tồn tại</h1><Link to="/dashboard" className="text-primary underline">Quay lại Dashboard</Link></div>;
+  if (!lab) return <div className="text-center py-20 bg-background min-h-screen text-foreground"><h1 className="text-2xl font-bold">{t("lab.detail.notFound")}</h1><Link to="/dashboard" className="text-primary underline">{t("lab.detail.backDash")}</Link></div>;
 
   const diffMap = { Easy: "text-neon-green", Medium: "text-yellow-400", Hard: "text-destructive" } as const;
   const diffColor = diffMap[lab.difficulty as keyof typeof diffMap] || "text-primary";
@@ -76,14 +76,14 @@ const LabDetail = () => {
             {result === "success" ? (
               <>
                 <Trophy size={64} className="mx-auto text-green-500 mb-4" />
-                <h2 className="text-3xl font-black uppercase text-green-500">🎉 CHÍNH XÁC!</h2>
+                <h2 className="text-3xl font-black uppercase text-green-500">🎉 {t("lab.detail.success")}</h2>
                 <p className="text-sm font-bold text-green-500/80 mt-2">+{lab.points} XP</p>
               </>
             ) : (
               <>
                 <XCircle size={64} className="mx-auto text-destructive mb-4" />
-                <h2 className="text-3xl font-black uppercase text-destructive">SAI RỒI!</h2>
-                <p className="text-muted-foreground font-mono">Flag không hợp lệ.</p>
+                <h2 className="text-3xl font-black uppercase text-destructive">{t("lab.detail.failTitle")}</h2>
+                <p className="text-muted-foreground font-mono">{t("lab.detail.failMsg")}</p>
               </>
             )}
           </div>
@@ -93,7 +93,7 @@ const LabDetail = () => {
       <main className="pt-28 pb-12 px-6">
         <div className="container mx-auto max-w-4xl relative z-10">
           <Link to="/dashboard" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors mb-6">
-            <ArrowLeft size={16} /> VỀ CĂN CỨ
+            <ArrowLeft size={16} /> {t("lab.detail.backBase")}
           </Link>
 
           <div className="bg-card border border-border rounded-[2rem] p-8 md:p-10 mb-8 shadow-xl">
@@ -124,7 +124,7 @@ const LabDetail = () => {
             {lab.downloadUrl && (
               <div className="mt-6 pt-6 border-t border-border">
                 <a href={lab.downloadUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm font-bold bg-primary text-primary-foreground px-6 py-3 rounded-xl hover:scale-105 transition-transform uppercase tracking-widest">
-                  TẢI TÀI LIỆU
+                  {t("lab.detail.download")}
                 </a>
               </div>
             )}
@@ -132,7 +132,7 @@ const LabDetail = () => {
 
           <div className="bg-card border border-border rounded-[2rem] p-8 md:p-10 mb-8 shadow-xl">
             <h2 className="text-lg font-black mb-6 uppercase tracking-widest text-muted-foreground flex items-center gap-3">
-              Nhiệm Vụ
+              {t("lab.detail.mission")}
             </h2>
             
             <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-foreground font-sans leading-relaxed
@@ -146,7 +146,7 @@ const LabDetail = () => {
                   {displayDesc}
                 </ReactMarkdown>
               ) : (
-                <p className="italic font-mono text-center">Nội dung nhiệm vụ đang được mã hóa...</p>
+                <p className="italic font-mono text-center">{t("lab.detail.missionEmpty")}</p>
               )}
               
             </div>
@@ -154,12 +154,12 @@ const LabDetail = () => {
 
           <div className="bg-card border border-border rounded-[2rem] p-8 shadow-xl">
             <h2 className="text-lg font-black mb-6 uppercase tracking-widest text-muted-foreground flex items-center gap-3">
-              <Flag size={20} className="text-primary" /> BÁO CÁO FLAG
+              <Flag size={20} className="text-primary" /> {t("lab.detail.reportFlag")}
             </h2>
             <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
               <input 
                 type="text" 
-                placeholder="FLAG{Mã_Của_Bạn}" 
+                placeholder={t("lab.detail.flagPlaceholder")} 
                 value={flagInput} 
                 onChange={(e) => setFlagInput(e.target.value)} 
                 className="flex-1 bg-background border border-border rounded-xl px-6 py-4 font-mono font-bold text-foreground focus:ring-2 focus:ring-primary outline-none transition-all shadow-inner" 
@@ -168,7 +168,7 @@ const LabDetail = () => {
                 type="submit" 
                 className="bg-primary text-primary-foreground px-8 py-4 rounded-xl font-black uppercase tracking-widest hover:scale-105 transition-transform"
               >
-                GỬI BÁO CÁO
+                {t("lab.detail.submitFlag")}
               </button>
             </form>
           </div>

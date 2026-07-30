@@ -51,7 +51,7 @@ const Learning = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   const userName = localStorage.getItem("user_name") || "Học viên";
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   const [progress, setProgress] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -118,9 +118,9 @@ const Learning = () => {
       <main className="pt-24 pb-12 px-4">
         <div className="container mx-auto">
           <div className="mb-8" style={{ animation: "fade-in-up 0.6s ease-out" }}>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Học tập</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">{t("learning.title")}</h1>
             <p className="text-muted-foreground">
-              Khám phá kiến thức từ cơ bản đến nâng cao về an ninh mạng.
+              {t("learning.desc")}
             </p>
           </div>
 
@@ -128,7 +128,7 @@ const Learning = () => {
             <div className="glass-card rounded-xl p-4 mb-6 flex items-center gap-4">
               <div className="flex-1">
                 <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                  <span>Tiến độ học tập</span>
+                  <span>{t("learning.progress")}</span>
                   <span>{Object.values(progress).filter(v => v === 'completed').length} / {lessons.length} bài</span>
                 </div>
                 <div className="w-full h-2 bg-accent rounded-full overflow-hidden">
@@ -146,7 +146,7 @@ const Learning = () => {
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Tìm kiếm bài học..."
+                placeholder={t("learning.search")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-card border border-border rounded-lg px-4 py-2.5 pl-10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
@@ -157,7 +157,7 @@ const Learning = () => {
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-colors ${showFilters ? "border-primary text-primary bg-primary/10" : "border-border text-muted-foreground hover:text-foreground"}`}
             >
               <Filter size={18} />
-              Bộ lọc
+              {t("common.filter")}
               {hasFilters && <span className="w-2 h-2 rounded-full bg-primary" />}
             </button>
           </div>
@@ -165,16 +165,16 @@ const Learning = () => {
           {showFilters && (
             <div className="glass-card rounded-xl p-4 mb-6 space-y-4" style={{ animation: "scale-in 0.3s ease-out" }}>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Bộ lọc</span>
+                <span className="text-sm font-medium text-foreground">{t("common.filter")}</span>
                 {hasFilters && (
                   <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-destructive hover:underline">
-                    <X size={12} /> Xóa bộ lọc
+                    <X size={12} /> {t("common.clear")}
                   </button>
                 )}
               </div>
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1.5 block">Độ khó</label>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">{t("filter.difficulty")}</label>
                   <div className="flex flex-wrap gap-2">
                     {difficulties.map((d) => (
                       <button
@@ -188,7 +188,7 @@ const Learning = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1.5 block">Thể loại</label>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">{t("filter.category")}</label>
                   <div className="flex flex-wrap gap-2">
                     {categories.map((c) => (
                       <button
@@ -202,7 +202,7 @@ const Learning = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1.5 block">Cấp độ</label>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">{t("filter.level")}</label>
                   <div className="flex flex-wrap gap-2">
                     {levels.map((l) => (
                       <button
@@ -220,7 +220,7 @@ const Learning = () => {
           )}
 
           <p className="text-sm text-muted-foreground mb-4">
-            {filtered.length} bài học {hasFilters && <span className="text-primary">(đã lọc)</span>}
+            {filtered.length} {hasFilters && <span className="text-primary">{t("learning.filtered")}</span>}
           </p>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -237,10 +237,10 @@ const Learning = () => {
                       <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{lang === "en" && lesson.title_en ? lesson.title_en : lesson.title}</h3>
                     </div>
                     {progress[lesson.id] === 'completed' && (
-                      <span className="text-xs text-green-500 bg-green-500/10 border border-green-500/30 px-2 py-0.5 rounded-full">Done</span>
+                      <span className="text-xs text-green-500 bg-green-500/10 border border-green-500/30 px-2 py-0.5 rounded-full">{t("learning.done")}</span>
                     )}
                     {progress[lesson.id] === 'reading' && (
-                      <span className="text-xs text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-2 py-0.5 rounded-full">Đang học</span>
+                      <span className="text-xs text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-2 py-0.5 rounded-full">{t("learning.learning")}</span>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{lang === "en" && lesson.description_en ? lesson.description_en : lesson.description}</p>
@@ -260,8 +260,8 @@ const Learning = () => {
 
           {filtered.length === 0 && (
             <div className="text-center py-20 text-muted-foreground">
-              <p className="text-lg mb-2">Không tìm thấy bài học nào</p>
-              <button onClick={clearFilters} className="text-primary hover:underline text-sm">Xóa bộ lọc</button>
+              <p className="text-lg mb-2">{t("learning.empty")}</p>
+              <button onClick={clearFilters} className="text-primary hover:underline text-sm">{t("common.clear")}</button>
             </div>
           )}
 
@@ -277,7 +277,7 @@ const Learning = () => {
                 ) : (
                   <ChevronDown size={18} />
                 )}
-                Tải thêm bài học
+                {t("learning.loadMore")}
               </button>
             </div>
           )}

@@ -43,7 +43,7 @@ const LearningDetail = () => {
   const [progressStatus, setProgressStatus] = useState<string | null>(null);
   const [contentLang, setContentLang] = useState<"vi" | "en">("vi");
 
-  const { lang, setLang } = useLanguage();
+  const { lang, setLang, t } = useLanguage();
   const userName = localStorage.getItem("user_name") || "Học viên";
 
   useEffect(() => {
@@ -88,8 +88,8 @@ const LearningDetail = () => {
   if (!lesson) {
     return (
       <div className="min-h-screen bg-background flex flex-col justify-center items-center gap-4">
-        <p className="text-muted-foreground text-lg">Không tìm thấy bài học</p>
-        <Link to="/learning" className="text-primary hover:underline">Quay lại danh sách</Link>
+        <p className="text-muted-foreground text-lg">{t("learning.notFound")}</p>
+        <Link to="/learning" className="text-primary hover:underline">{t("learning.backList")}</Link>
       </div>
     );
   }
@@ -108,7 +108,7 @@ const LearningDetail = () => {
         <div className="container mx-auto max-w-4xl">
           <Link to="/learning" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
             <ArrowLeft size={16} />
-            Quay lại danh sách
+            {t("learning.backList")}
           </Link>
 
           <div className="glass-card rounded-xl p-6 md:p-8 mb-6">
@@ -156,7 +156,7 @@ const LearningDetail = () => {
                   }`}
                 >
                   {progressStatus === 'completed' ? <CheckCircle size={14} /> : <Circle size={14} />}
-                  {progressStatus === 'completed' ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành'}
+                  {progressStatus === 'completed' ? '{t("learning.doneLabel")}' : '{t("learning.markDone")}'}
                 </button>
               )}
             </div>

@@ -131,7 +131,7 @@ const Dashboard = () => {
               </div>
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1.5 block">Độ khó</label>
+                    <label className="text-xs text-muted-foreground mb-1.5 block">{t("filter.difficulty")}</label>
                   <div className="flex flex-wrap gap-2">
                     {difficulties.map((d) => (
                       <button
@@ -145,7 +145,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1.5 block">Thể loại</label>
+                    <label className="text-xs text-muted-foreground mb-1.5 block">{t("filter.category")}</label>
                   <div className="flex flex-wrap gap-2">
                     {categories.map((c) => (
                       <button
@@ -159,7 +159,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1.5 block">Trạng thái</label>
+                    <label className="text-xs text-muted-foreground mb-1.5 block">{t("filter.status")}</label>
                   <div className="flex flex-wrap gap-2">
                     {statuses.map((s) => (
                       <button
@@ -177,7 +177,7 @@ const Dashboard = () => {
           )}
 
           <p className="text-sm text-muted-foreground mb-4">
-            {filtered.length} bài Lab {hasFilters && <span className="text-primary">(đã lọc)</span>}
+            {filtered.length} {t("dashboard.labs")}{hasFilters && <span className="text-primary"> {t("dashboard.filtered")}</span>}
           </p>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -190,8 +190,8 @@ const Dashboard = () => {
 
           {filtered.length === 0 && (
             <div className="text-center py-20 text-muted-foreground">
-              <p className="text-lg mb-2">Không tìm thấy bài Lab nào</p>
-              <button onClick={clearFilters} className="text-primary hover:underline text-sm">Xóa bộ lọc</button>
+              <p className="text-lg mb-2">{t("dashboard.empty")}</p>
+              <button onClick={clearFilters} className="text-primary hover:underline text-sm">{t("dashboard.clearFilter")}</button>
             </div>
           )}
 
@@ -207,7 +207,7 @@ const Dashboard = () => {
                 ) : (
                   <ChevronDown size={18} />
                 )}
-                Tải thêm Lab
+                {t("dashboard.loadMore")}
               </button>
             </div>
           )}

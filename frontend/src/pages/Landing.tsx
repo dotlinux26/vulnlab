@@ -5,14 +5,17 @@ import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
 import EclipseOrb from "@/components/EclipseOrb";
 import { fetchStats } from "@/services/api";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const features = [
-  { icon: <Terminal size={24} />, title: "Lab Thực Chiến", desc: "Môi trường lab an toàn mô phỏng các lỗ hổng thực tế: SQLi, XSS, Buffer Overflow..." },
-  { icon: <Target size={24} />, title: "Capture The Flag", desc: "Giải các thử thách CTF từ dễ đến khó, thu thập Flag và leo bảng xếp hạng." },
-  { icon: <Award size={24} />, title: "Theo Dõi Tiến Độ", desc: "Biểu đồ kỹ năng Radar, lịch sử lab, hệ thống level và XP chi tiết." },
-];
+
 
 const Landing = () => {
+  const { t } = useLanguage();
+  const features = [
+    { icon: <Terminal size={24} />, title: t("landing.feature1"), desc: t("landing.feature1Desc") },
+    { icon: <Target size={24} />, title: t("landing.feature2"), desc: t("landing.feature2Desc") },
+    { icon: <Award size={24} />, title: t("landing.feature3"), desc: t("landing.feature3Desc") },
+  ];
   const [statsData, setStatsData] = useState({ labs: "...", users: "...", categories: "..." });
   const isLoggedIn = localStorage.getItem("is_logged_in") === "true";
   const userName = localStorage.getItem("user_name") || "Học viên";
@@ -32,10 +35,10 @@ const Landing = () => {
   }, []);
 
   const stats = [
-    { value: statsData.labs, label: "Labs" },
-    { value: statsData.users, label: "Học viên" },
-    { value: statsData.categories, label: "Thể loại" },
-    { value: "24/7", label: "Online" },
+    { value: statsData.labs, label: t("landing.labs") },
+    { value: statsData.users, label: t("landing.students") },
+    { value: statsData.categories, label: t("landing.categories") },
+    { value: "24/7", label: t("landing.online") },
   ];
 
   return (
@@ -50,7 +53,7 @@ const Landing = () => {
             style={{ animation: "fade-in-up 0.8s ease-out" }}>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary text-sm">
               <Zap size={14} />
-              Nền tảng Lab An Ninh Mạng
+              {t("landing.badge")}
             </div>
             <h1 className="text-4xl md:text-6xl font-bold leading-tight">
               <span className="text-foreground">VULN</span>
@@ -61,20 +64,20 @@ const Landing = () => {
               </span>
             </h1>
             <p className="text-muted-foreground text-lg max-w-lg mx-auto lg:mx-0">
-              Hệ thống Lab thực chiến mô phỏng các lỗ hổng bảo mật thực tế, giúp học viên rèn luyện và nâng cao kỹ năng tấn công/phòng thủ.
+              {t("landing.hero")}
             </p>
             <div className="flex gap-4 justify-center lg:justify-start">
               <Link
                 to={isLoggedIn ? "/dashboard" : "/login"}
                 className="gradient-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity"
               >
-                {isLoggedIn ? "Vào Dashboard" : "Bắt đầu ngay"} <ChevronRight size={18} />
+                {isLoggedIn ? t("landing.dashboard") : t("landing.start")} <ChevronRight size={18} />
               </Link>
               <Link
                 to="/dashboard"
                 className="px-8 py-3 rounded-lg border border-border text-foreground font-semibold hover:bg-accent transition-colors"
               >
-                Xem Lab
+                {t("landing.viewLab")}
               </Link>
             </div>
           </div>
@@ -101,8 +104,8 @@ const Landing = () => {
       <section className="py-20 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-3">Tính năng nổi bật</h2>
-            <p className="text-muted-foreground">Mọi thứ bạn cần để trở thành chuyên gia bảo mật</p>
+            <h2 className="text-3xl font-bold text-foreground mb-3">{t("landing.features")}</h2>
+            <p className="text-muted-foreground">{t("landing.featuresDesc")}</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {features.map((f, i) => (
@@ -129,15 +132,15 @@ const Landing = () => {
             style={{ background: "radial-gradient(circle at center, hsl(var(--neon-purple)), transparent 70%)" }} />
           <div className="relative z-10">
             <Shield size={48} className="mx-auto text-primary mb-4" />
-            <h2 className="text-3xl font-bold text-foreground mb-3">Sẵn sàng thử thách?</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-3">{t("landing.cta")}</h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Đăng ký ngay để truy cập hàng chục bài Lab thực chiến miễn phí.
+              {t("landing.ctaDesc")}
             </p>
             <Link
               to={isLoggedIn ? "/dashboard" : "/login"}
               className="inline-flex gradient-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
             >
-              {isLoggedIn ? "Vào Dashboard" : "Đăng ký miễn phí"}
+              {isLoggedIn ? t("landing.dashboard") : t("landing.ctaBtn")}
             </Link>
           </div>
         </div>
@@ -147,29 +150,29 @@ const Landing = () => {
       <footer className="border-t border-border py-12 px-4">
         <div className="container mx-auto grid md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-primary font-bold text-lg mb-3">D.O.T Solutions</h3>
+            <h3 className="text-primary font-bold text-lg mb-3">{t("landing.footer")}</h3>
             <p className="text-muted-foreground text-sm">
-              ShellMap Protocol: A Lightweight Solution for Post-Quantum Cryptography at the Application Layer.
+              {t("landing.footerDesc")}
             </p>
           </div>
           <div>
-            <h3 className="text-primary font-bold text-lg mb-3">Contact</h3>
+            <h3 className="text-primary font-bold text-lg mb-3">{t("landing.contact")}</h3>
             <ul className="text-muted-foreground text-sm space-y-2">
-              <li>Address: Hà Nội, Việt Nam</li>
-              <li>Email: 0206canh2@gmail.com</li>
-              <li>Phone: (+84) 969 273 889</li>
+              <li>{t("landing.address")}</li>
+              <li>{t("landing.email")}</li>
+              <li>{t("landing.phone")}</li>
             </ul>
           </div>
           <div>
-            <h3 className="text-primary font-bold text-lg mb-3">Links</h3>
+            <h3 className="text-primary font-bold text-lg mb-3">{t("landing.links")}</h3>
             <ul className="text-muted-foreground text-sm space-y-2">
-              <li><Link to="/dashboard" className="hover:text-primary transition-colors">Dashboard</Link></li>
-              <li><Link to="/login" className="hover:text-primary transition-colors">Đăng nhập</Link></li>
+              <li><Link to="/dashboard" className="hover:text-primary transition-colors">{t("nav.dashboard")}</Link></li>
+              <li><Link to="/login" className="hover:text-primary transition-colors">{t("nav.login")}</Link></li>
             </ul>
           </div>
         </div>
         <div className="container mx-auto mt-8 pt-6 border-t border-border text-center text-muted-foreground text-sm">
-          © 2024 VULNLAB. All rights reserved.
+          {t("landing.copyright")}
         </div>
       </footer>
     </div>

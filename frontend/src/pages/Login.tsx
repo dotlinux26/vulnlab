@@ -4,6 +4,7 @@ import { Mail, Lock, Eye, EyeOff, ArrowLeft, AlertTriangle } from "lucide-react"
 import ShootingStars from "@/components/ShootingStars";
 import EclipseOrb from "@/components/EclipseOrb";
 import { useGoogleLogin } from "@react-oauth/google";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AuthResponse {
     success: boolean;
@@ -23,6 +24,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showTroll, setShowTroll] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -44,12 +46,12 @@ const Login = () => {
 	}        
 
         else {
-          alert(`Lỗi từ Server: ${data.message}`);
+          alert(`${t("login.serverError")} ${data.message}`);
           console.error("Lỗi chi tiết:", data);
         }
       } catch (error) {
         console.error("Lỗi kết nối mạng hoặc API:", error);
-        alert("Không thể kết nối đến máy chủ. Vui lòng kiểm tra console.");
+        alert(t("login.networkError"));
       }
     },
     flow: "implicit",
@@ -74,7 +76,7 @@ const Login = () => {
         className="absolute top-6 left-6 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors z-10"
       >
         <ArrowLeft size={18} />
-        <span className="text-sm">Trang chủ</span>
+        <span className="text-sm">{t("login.home")}</span>
       </Link>
 
       <div className="relative z-10 w-full max-w-md glass-card rounded-2xl p-8 border">
@@ -84,7 +86,7 @@ const Login = () => {
             <span className="text-primary">LAB</span>
           </h1>
           <p className="text-muted-foreground text-sm tracking-widest uppercase">
-            {isSignUp ? "Đăng ký tài khoản" : "Training System"}
+            {isSignUp ? t("login.signupTitle") : t("login.subtitle")}
           </p>
         </div>
 
@@ -92,7 +94,7 @@ const Login = () => {
           <div className="relative">
             <input
               type="email"
-              placeholder="Đừng đăng ký, hãy đăng nhập với Google"
+              placeholder={t("login.emailPlaceholder")}
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -104,7 +106,7 @@ const Login = () => {
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
-              placeholder="Đây là bẫy, hãy dùng Google bên dưới"
+              placeholder={t("login.passPlaceholder")}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -124,15 +126,15 @@ const Login = () => {
             type="submit"
             className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
           >
-            {isSignUp ? "Đăng ký" : "Đăng nhập"}
+            {isSignUp ? t("login.signup") : t("login.signin")}
           </button>
 
           {showTroll && (
             <div className="flex items-start gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-xs" style={{ animation: "fade-in-up 0.3s ease-out" }}>
               <AlertTriangle size={14} className="shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold mb-1">Tính năng này chỉ để troll thôi :))</p>
-                <p>Đăng ký email là giả đó, đừng nhập mật khẩu thật vào. Dùng <strong>Google</strong> bên dưới để đăng nhập thật nhé!</p>
+                <p className="font-semibold mb-1">{t("login.trollTitle")}</p>
+                <p>{t("login.trollMsg")}</p>
               </div>
             </div>
           )}
@@ -140,7 +142,7 @@ const Login = () => {
 
         <div className="flex items-center gap-3 my-6">
           <div className="flex-1 h-px bg-border" />
-          <span className="text-muted-foreground text-xs">HOẶC</span>
+          <span className="text-muted-foreground text-xs">{t("login.or")}</span>
           <div className="flex-1 h-px bg-border" />
         </div>
 
@@ -166,16 +168,16 @@ const Login = () => {
               d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6.2 5.2C37 39.1 44 34 44 24c0-1.3-.2-2.6-.4-3.9z"
             />
           </svg>
-          Đăng nhập với Google
+          {t("login.google")}
         </button>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          {isSignUp ? "Đã có tài khoản?" : "Chưa có tài khoản?"}{" "}
+          {isSignUp ? t("login.hasAccount") : t("login.noAccount")}{" "}
           <button
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-primary hover:underline font-medium"
           >
-            {isSignUp ? "Đăng nhập" : "Đăng ký ngay"}
+            {isSignUp ? t("login.signin") : t("login.signupNow")}
           </button>
         </p>
       </div>

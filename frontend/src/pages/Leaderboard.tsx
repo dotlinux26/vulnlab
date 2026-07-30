@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
 import { Trophy, Medal, Award, Zap, Search } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Leaderboard = () => {
+  const { t } = useLanguage();
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -30,10 +32,10 @@ const Leaderboard = () => {
       <main className="pt-32 pb-20 px-6 container mx-auto max-w-5xl relative z-10">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-black tracking-tighter uppercase italic mb-4">
-            Hall of Fame
+            {t("leaderboard.title")}
           </h1>
           <p className="text-muted-foreground font-mono text-lg tracking-[0.3em] uppercase">
-            Top Classified Agents
+            {t("leaderboard.subtitle")}
           </p>
         </div>
 
@@ -44,7 +46,7 @@ const Leaderboard = () => {
             <input 
               id="agent-search"
               type="text" 
-              placeholder="SEARCH_AGENT_IDENTITY..."
+              placeholder={t("leaderboard.search")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full p-4 pl-12 bg-card border border-border rounded-2xl focus:ring-2 focus:ring-primary outline-none font-mono text-lg transition-all"
@@ -57,10 +59,10 @@ const Leaderboard = () => {
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-muted/50 border-b border-border">
-                  <th className="p-8 text-xs font-black uppercase tracking-[0.2em] text-center w-24">Rank</th>
-                  <th className="p-8 text-xs font-black uppercase tracking-[0.2em]">Identity</th>
-                  <th className="p-8 text-xs font-black uppercase tracking-[0.2em] text-center">Level</th>
-                  <th className="p-8 text-xs font-black uppercase tracking-[0.2em] text-right">Score (XP)</th>
+                  <th className="p-8 text-xs font-black uppercase tracking-[0.2em] text-center w-24">{t("leaderboard.rank")}</th>
+                  <th className="p-8 text-xs font-black uppercase tracking-[0.2em]">{t("leaderboard.identity")}</th>
+                  <th className="p-8 text-xs font-black uppercase tracking-[0.2em] text-center">{t("leaderboard.level")}</th>
+                  <th className="p-8 text-xs font-black uppercase tracking-[0.2em] text-right">{t("leaderboard.score")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -113,7 +115,7 @@ const Leaderboard = () => {
             
             {filteredUsers.length === 0 && (
               <div className="py-20 text-center text-muted-foreground font-mono italic">
-                NO_RECORDS_FOUND_IN_DATABASE
+                {t("leaderboard.empty")}
               </div>
             )}
           </div>

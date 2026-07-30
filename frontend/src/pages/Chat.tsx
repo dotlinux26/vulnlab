@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 import Navbar from '@/components/Navbar';
 import { Send, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const socket = io("https://vuln.ghedahaui.online", {
   withCredentials: true,
@@ -11,6 +12,7 @@ const socket = io("https://vuln.ghedahaui.online", {
 
 const Chat = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -28,7 +30,7 @@ const Chat = () => {
         setIsLoading(false);
       })
       .catch(() => {
-        alert("Sếp phải đăng nhập mới được vào Phòng đàm đạo nhé!");
+        alert(t("chat.loginRequired"));
         navigate('/login');
       });
   }, [navigate]);
@@ -79,7 +81,7 @@ const Chat = () => {
   };
 
   if (isLoading) {
-    return <div className="min-h-screen bg-background pt-24 text-center">Đang kết nối hệ thống...</div>;
+    return <div className="min-h-screen bg-background pt-24 text-center">{t("chat.connecting")}</div>;
   }
 
   return (
@@ -90,15 +92,15 @@ const Chat = () => {
         <div className="flex items-center gap-3 mb-6 border-b border-border pb-4">
           <MessageSquare className="text-primary w-8 h-8" />
           <div>
-            <h1 className="text-2xl font-black uppercase tracking-widest text-foreground">Trao đổi cộng đồng</h1>
-            <p className="text-sm text-muted-foreground font-mono">Bảo mật // Thời gian thực</p>
+            <h1 className="text-2xl font-black uppercase tracking-widest text-foreground">{t("chat.title")}</h1>
+            <p className="text-sm text-muted-foreground font-mono">{t("chat.subtitle")}</p>
           </div>
         </div>
 
         <div className="flex-1 bg-card border border-border rounded-2xl overflow-y-auto p-6 space-y-6 shadow-sm mb-4">
           {messages.length === 0 && (
             <div className="text-center text-muted-foreground font-mono mt-10 opacity-50">
-              [SYSTEM] KÊNH CHAT ĐANG TRỐNG... GÁY ĐI SẾP!
+              {t("chat.empty")}
             </div>
           )}
 
@@ -135,7 +137,7 @@ const Chat = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="Nhập nội dung chia sẻ (Hỗ trợ nhúng Link)..."
+            placeholder={t("chat.placeholder")}
             className="flex-1 bg-background border border-input focus:border-primary focus:ring-1 focus:ring-primary rounded-xl outline-none px-5 py-3 text-foreground font-medium transition-colors"
           />
           <button 

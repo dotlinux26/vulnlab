@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Lock, Unlock, Ticket, Timer, Play, ChevronLeft, RotateCcw } from 'lucide-react';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ExamDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   const [exam, setExam] = useState<any>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -28,7 +30,7 @@ const ExamDetailPage = () => {
                 fetch(foundExam.contentUrl)
                   .then(res => res.text())
                   .then(html => setExternalHtml(html))
-                  .catch(() => setExternalHtml("<div style='padding: 20px; color: red;'>Lỗi: Không thể tải nội dung chứng chỉ.</div>"));
+                  .catch(() => setExternalHtml(`<div style='padding: 20px; color: red;'>${t("exam.certLoadError")}</div>`));
             }
           }
         }
@@ -42,12 +44,12 @@ const ExamDetailPage = () => {
   }, [id]);
 
   const handleUnlock = async () => {
-    if (window.confirm(`Xác nhận trừ ${exam.price} Voucher để mở khóa chứng chỉ này?`)) {
+    if (window.confirm(t("exam.confirmUnlock").replace("{price}", exam.price))) {
       try {
         const res = await fetch(`/api/exams/${exam.id}/unlock`, { method: 'POST', credentials: 'include' });
         const data = await res.json();
         if (data.success) {
-          alert("Mở khóa thành công!");
+          alert(t("exam.unlockSuccess"));
           fetchExamDetails();
         } else {
           alert(`Lỗi: ${data.message}`);
@@ -57,7 +59,7 @@ const ExamDetailPage = () => {
   };
 
   const handleStartExam = async () => {
-    if (!window.confirm("Bấm BẮT ĐẦU THI hệ thống sẽ khóa mốc thời gian ngay lập tức. Đã sẵn sàng chưa?")) return;
+    if (!window.confirm(t("exam.confirmStart"))) return;
     try {
       const res = await fetch(`/api/exams/${exam.id}/start`, { method: 'POST', credentials: 'include' });
       const data = await res.json();
@@ -70,12 +72,12 @@ const ExamDetailPage = () => {
   };
 
   const handleRetry = async () => {
-    if (window.confirm("Bạn có chắc chắn muốn làm lại bài thi này?\nToàn bộ kết quả cũ sẽ bị xóa và bạn cần phải tốn Voucher để mở khóa lại từ đầu!")) {
+    if (window.confirm(t("exam.confirmRetry"))) {
       try {
         const res = await fetch(`/api/exams/${exam.id}/retry`, { method: 'POST', credentials: 'include' });
         const data = await res.json();
         if (data.success) {
-          alert("Đã reset trạng thái thành công! Hãy chuẩn bị Voucher để phục thù nhé.");
+          alert(t("exam.retrySuccess"));
           fetchExamDetails();
         } else {
           alert(`Lỗi: ${data.message}`);
@@ -84,8 +86,8 @@ const ExamDetailPage = () => {
     }
   };
 
-  if (isLoading) return <div className="min-h-screen bg-background pt-24 text-center text-foreground">Đang tải cấu trúc chứng chỉ...</div>;
-  if (!exam) return <div className="min-h-screen bg-background pt-24 text-center text-foreground">Không tìm thấy bài thi!</div>;
+  if (isLoading) return <div className="min-h-screen bg-background pt-24 text-center text-foreground">{t("exam.loadingCert")}</div>;
+  if (!exam) return <div className="min-h-screen bg-background pt-24 text-center text-foreground">{t("exam.notFound")}</div>;
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans pb-20 transition-colors duration-300">
@@ -94,7 +96,7 @@ const ExamDetailPage = () => {
       <div className="bg-card border-b border-border pt-24 pb-8">
         <div className="max-w-5xl mx-auto px-6">
           <button onClick={() => navigate('/exams')} className="text-primary hover:text-primary/80 flex items-center gap-1 text-sm font-bold mb-6 transition-colors">
-            <ChevronLeft size={16} /> QUAY LẠI DANH SÁCH
+            <ChevronLeft size={16} /> {t("exam.backList")}
           </button>
           <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6">
             <div>
@@ -107,27 +109,27 @@ const ExamDetailPage = () => {
             <div className="flex-shrink-0 w-full md:w-auto">
               {!status && (
                 <button onClick={handleUnlock} className="w-full md:w-auto bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2 transition-all">
-                  <Ticket size={18} className="text-yellow-500"/> MỞ KHÓA ({exam.price} VOUCHER)
+                  <Ticket size={18} className="text-yellow-500"/> {t("exam.unlock").replace("{price}", exam.price)}
                 </button>
               )}
               {status === 'unlocked' && (
                 <button onClick={handleStartExam} className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm">
-                  <Play size={18} /> BẮT ĐẦU KỲ THI NGAY
+                  <Play size={18} /> {t("exam.start")}
                 </button>
               )}
               {status === 'taking' && (
                 <button onClick={() => navigate('/exams')} className="w-full md:w-auto bg-destructive hover:bg-destructive/90 text-destructive-foreground font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2 animate-pulse">
-                  <Timer size={18} /> ĐANG TRONG PHÒNG THI (QUAY LẠI)
+                  <Timer size={18} /> {t("exam.resume")}
                 </button>
               )}
               {(status === 'passed' || status === 'pending') && (
                 <button disabled className="w-full md:w-auto bg-muted text-muted-foreground border border-border font-bold py-3 px-8 rounded-lg cursor-not-allowed">
-                  ĐÃ HOÀN THÀNH
+                  {t("exam.completed")}
                 </button>
               )}
               {status === 'failed' && (
                 <button onClick={handleRetry} className="w-full md:w-auto bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm">
-                  <RotateCcw size={18} /> THỬ SỨC LẠI (TỐN VOUCHER)
+                  <RotateCcw size={18} /> {t("exam.retry")}
                 </button>
               )}
             </div>
