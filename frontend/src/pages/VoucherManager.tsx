@@ -25,7 +25,7 @@ const VoucherManager = () => {
     setAdminAvatar(avatar);
 
     // ✅ Load users
-    fetch("https://vuln.ghedahaui.online/api/admin/users", { credentials: "include" })
+    fetch("/api/admin/users", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => { if (Array.isArray(data)) setUsers(data); })
       .catch(() => {});
@@ -41,7 +41,7 @@ const VoucherManager = () => {
   const fetchSubmissions = async () => {
     setIsLoadingSubmissions(true);
     try {
-      const res = await fetch("https://vuln.ghedahaui.online/api/admin/submissions", {
+      const res = await fetch("/api/admin/submissions", {
         credentials: "include"
       });
       const data = await res.json();
@@ -74,7 +74,7 @@ const VoucherManager = () => {
     const reason = prompt("Lý do thay đổi XP:");
 
     try {
-      const res = await fetch(`https://vuln.ghedahaui.online/api/admin/users/${userId}/adjust-xp`, {
+      const res = await fetch(`/api/admin/users/${userId}/adjust-xp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -106,7 +106,7 @@ const VoucherManager = () => {
     const reason = prompt("Lý do thay đổi Voucher:");
 
     try {
-      const res = await fetch(`https://vuln.ghedahaui.online/api/admin/users/${userId}/adjust-voucher`, {
+      const res = await fetch(`/api/admin/users/${userId}/adjust-voucher`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -127,7 +127,7 @@ const VoucherManager = () => {
   const handleResetVoucher = async (userId: string) => {
     if (!window.confirm("Chắc chắn muốn xóa sạch Voucher của học viên này về 0?")) return;
     try {
-      const res = await fetch(`https://vuln.ghedahaui.online/api/admin/users/${userId}/voucher`, {
+      const res = await fetch(`/api/admin/users/${userId}/voucher`, {
         method: "DELETE",
         credentials: "include"
       });
@@ -149,7 +149,7 @@ const VoucherManager = () => {
     if (adminComment === null) return;
 
     try {
-      const res = await fetch(`https://vuln.ghedahaui.online/api/admin/submissions/${subId}`, {
+      const res = await fetch(`/api/admin/submissions/${subId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -360,7 +360,7 @@ const VoucherManager = () => {
                           <td className="p-3 flex justify-center gap-2">
                             {sub.fileUrl && (
                               <a
-                                href={`https://vuln.ghedahaui.online${sub.fileUrl}`}
+                                href={sub.fileUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="bg-blue-600/20 text-blue-500 hover:bg-blue-600 hover:text-white px-3 py-1 rounded flex items-center gap-1 border border-blue-500/50 transition-colors"

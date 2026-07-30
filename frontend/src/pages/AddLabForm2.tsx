@@ -22,7 +22,7 @@ const AddLabForm = () => {
 
   const fetchLabs = async () => {
     try {
-      const res = await fetch('https://vuln.ghedahaui.online/api/admin/labs', {
+      const res = await fetch('/api/admin/labs', {
         credentials: 'include',
       });
       const data = await res.json();
@@ -51,8 +51,8 @@ const AddLabForm = () => {
     setMessage({ type: '', text: '' });
 
     const url = isEditing
-      ? `https://vuln.ghedahaui.online/api/admin/labs/${formData.id}`
-      : 'https://vuln.ghedahaui.online/api/admin/labs';
+      ? `/api/admin/labs/${formData.id}`
+      : '/api/admin/labs';
     const method = isEditing ? 'PUT' : 'POST';
 
     try {
@@ -106,7 +106,7 @@ const AddLabForm = () => {
 
     try {
       const res = await fetch(
-        `https://vuln.ghedahaui.online/api/admin/labs/${id}`,
+        `/api/admin/labs/${id}`,
         {
           method: 'DELETE',
           credentials: 'include',

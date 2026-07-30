@@ -18,7 +18,7 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://vuln.ghedahaui.online/api/me", { credentials: "include" })
+    fetch("/api/me", { credentials: "include" })
       .then(res => {
         if (!res.ok) throw new Error("Chưa đăng nhập");
         return res.json();

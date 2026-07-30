@@ -23,7 +23,7 @@ const VoucherManager = () => {
     setAdminName(storedName);
     setAdminAvatar(avatar);
 
-    fetch("https://vuln.ghedahaui.online/api/admin/users", { credentials: "include" })
+    fetch("/api/admin/users", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => { if (Array.isArray(data)) setUsers(data); })
       .catch(() => {});
@@ -44,7 +44,7 @@ const VoucherManager = () => {
     const reason = prompt("Lý do thay đổi XP:");
 
     try {
-      const res = await fetch(`https://vuln.ghedahaui.online/api/admin/users/${userId}/adjust-xp`, {
+      const res = await fetch(`/api/admin/users/${userId}/adjust-xp`, {
         method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ amount, reason }),
       });
@@ -74,7 +74,7 @@ const VoucherManager = () => {
     const reason = prompt("Lý do thay đổi Voucher:");
 
     try {
-      const res = await fetch(`https://vuln.ghedahaui.online/api/admin/users/${userId}/adjust-voucher`, {
+      const res = await fetch(`/api/admin/users/${userId}/adjust-voucher`, {
         method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ amount, reason }),
       });
@@ -92,7 +92,7 @@ const VoucherManager = () => {
   const handleResetVoucher = async (userId: string) => {
     if (!window.confirm("Chắc chắn muốn xóa sạch Voucher của học viên này về 0?")) return;
     try {
-      const res = await fetch(`https://vuln.ghedahaui.online/api/admin/users/${userId}/voucher`, {
+      const res = await fetch(`/api/admin/users/${userId}/voucher`, {
         method: "DELETE", credentials: "include"
       });
       const data = await res.json();

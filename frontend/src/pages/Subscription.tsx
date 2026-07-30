@@ -4,7 +4,6 @@ import Navbar from '@/components/Navbar';
 import { Gem, CheckCircle, ShieldCheck, Zap, ExternalLink, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-// Kết nối đến Server Payment (Port 6668)
 const socket = io("https://vuln.ghedahaui.online", {
   withCredentials: true,
   autoConnect: false
@@ -18,7 +17,7 @@ const Subscription = () => {
 
   useEffect(() => {
     // Check login
-    fetch("https://vuln.ghedahaui.online/api/me", { credentials: "include" })
+    fetch("/api/me", { credentials: "include" })
       .then(res => {
         if (!res.ok) throw new Error();
         return res.json();

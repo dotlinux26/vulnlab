@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Filter, X, Loader2, BookOpen } from "lucide-react";
+import { Search, Filter, X, Loader2, BookOpen, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
-import { fetchLessons, type Lesson } from "@/services/api";
+import { fetchLessons, fetchLessonProgress, type Lesson, type PaginatedResponse } from "@/services/api";
 
 const difficulties = ["Easy", "Medium", "Hard"];
 const categories = ["Web", "Pwn", "Forensics", "Crypto", "Reverse", "OSINT", "Network"];
@@ -34,6 +34,9 @@ const categoryColors: Record<string, string> = {
 const Learning = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [selectedDiff, setSelectedDiff] = useState<string>("");
   const [selectedCat, setSelectedCat] = useState<string>("");
@@ -41,20 +44,41 @@ const Learning = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   const userName = localStorage.getItem("user_name") || "Học viên";
+  const [progress, setProgress] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await fetchLessons();
-        setLessons(data);
-      } catch (error) {
-        console.error("Lỗi lấy danh sách bài học:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    load();
+    fetchLessonProgress().then(setProgress).catch(() => {});
   }, []);
+
+  const loadPage = async (pageNum: number, append = false) => {
+    try {
+      const result = await fetchLessons({ page: pageNum, limit: 12 }) as PaginatedResponse<Lesson>;
+      if (append) {
+        setLessons(prev => [...prev, ...result.items]);
+      } else {
+        setLessons(result.items);
+      }
+      setTotalPages(result.totalPages);
+      setPage(pageNum);
+    } catch (error) {
+      console.error("Lỗi lấy danh sách bài học:", error);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    setIsLoading(true);
+    loadPage(1);
+  }, []);
+
+  const loadMore = () => {
+    if (page < totalPages && !isLoadingMore) {
+      setIsLoadingMore(true);
+      loadPage(page + 1, true);
+    }
+  };
 
   const filtered = useMemo(() => {
     return lessons.filter((lesson) => {
@@ -91,6 +115,23 @@ const Learning = () => {
               Khám phá kiến thức từ cơ bản đến nâng cao về an ninh mạng.
             </p>
           </div>
+
+          {Object.keys(progress).length > 0 && (
+            <div className="glass-card rounded-xl p-4 mb-6 flex items-center gap-4">
+              <div className="flex-1">
+                <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                  <span>Tiến độ học tập</span>
+                  <span>{Object.values(progress).filter(v => v === 'completed').length} / {lessons.length} bài</span>
+                </div>
+                <div className="w-full h-2 bg-accent rounded-full overflow-hidden">
+                  <div
+                    className="h-full gradient-primary rounded-full transition-all duration-500"
+                    style={{ width: `${lessons.length > 0 ? (Object.values(progress).filter(v => v === 'completed').length / lessons.length) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-3 mb-6" style={{ animation: "fade-in-up 0.6s ease-out 0.1s both" }}>
             <div className="relative flex-1">
@@ -159,7 +200,7 @@ const Learning = () => {
                       <button
                         key={l}
                         onClick={() => setSelectedLevel(selectedLevel === l ? "" : l)}
-                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${selectedLevel === l ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${selectedLevel === l ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground}"`}
                       >
                         {levelLabels[l]}
                       </button>
@@ -181,12 +222,18 @@ const Learning = () => {
                   to={`/learning/${lesson.id}`}
                   className="group glass-card p-5 rounded-xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 block"
                 >
-                  <div className="absolute left-0 top-0 w-1 h-full gradient-primary rounded-l-xl" />
+                  <div className={`absolute left-0 top-0 w-1 h-full rounded-l-xl ${progress[lesson.id] === 'completed' ? 'bg-green-500' : progress[lesson.id] === 'reading' ? 'bg-yellow-500' : 'gradient-primary'}`} />
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <BookOpen size={18} className="text-primary" />
+                      <BookOpen size={18} className={progress[lesson.id] === 'completed' ? 'text-green-500' : 'text-primary'} />
                       <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{lesson.title}</h3>
                     </div>
+                    {progress[lesson.id] === 'completed' && (
+                      <span className="text-xs text-green-500 bg-green-500/10 border border-green-500/30 px-2 py-0.5 rounded-full">Done</span>
+                    )}
+                    {progress[lesson.id] === 'reading' && (
+                      <span className="text-xs text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-2 py-0.5 rounded-full">Đang học</span>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{lesson.description}</p>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -207,6 +254,23 @@ const Learning = () => {
             <div className="text-center py-20 text-muted-foreground">
               <p className="text-lg mb-2">Không tìm thấy bài học nào</p>
               <button onClick={clearFilters} className="text-primary hover:underline text-sm">Xóa bộ lọc</button>
+            </div>
+          )}
+
+          {page < totalPages && (
+            <div className="text-center mt-8">
+              <button
+                onClick={loadMore}
+                disabled={isLoadingMore}
+                className="inline-flex items-center gap-2 bg-card border border-border hover:border-primary/50 text-foreground px-6 py-3 rounded-lg transition-all disabled:opacity-50"
+              >
+                {isLoadingMore ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <ChevronDown size={18} />
+                )}
+                Tải thêm bài học
+              </button>
             </div>
           )}
         </div>

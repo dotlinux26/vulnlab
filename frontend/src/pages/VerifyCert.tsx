@@ -10,7 +10,7 @@ const VerifyCert = () => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    fetch(`https://vuln.ghedahaui.online/api/verify/${hash}`)
+    fetch(`/api/verify/${hash}`)
       .then((res) => res.json())
       .then((d) => setData(d.success ? d.cert : null))
       .catch(() => setData(null))

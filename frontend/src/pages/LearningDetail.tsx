@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Loader2, ArrowLeft, BookOpen } from "lucide-react";
+import { Loader2, ArrowLeft, BookOpen, CheckCircle, Circle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
-import { fetchLesson, type Lesson } from "@/services/api";
+import { fetchLesson, updateLessonProgress, type Lesson } from "@/services/api";
 
 const difficultyColors: Record<string, string> = {
   Easy: "text-neon-green bg-neon-green/10 border-neon-green/30",
@@ -33,6 +33,7 @@ const LearningDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [progressStatus, setProgressStatus] = useState<string | null>(null);
 
   const userName = localStorage.getItem("user_name") || "Học viên";
 
@@ -42,6 +43,7 @@ const LearningDetail = () => {
       try {
         const data = await fetchLesson(id);
         setLesson(data);
+        updateLessonProgress(id, 'reading').then(r => setProgressStatus(r.status)).catch(() => {});
       } catch (error) {
         console.error("Lỗi lấy bài học:", error);
       } finally {
@@ -50,6 +52,16 @@ const LearningDetail = () => {
     };
     load();
   }, [id]);
+
+  const handleMarkComplete = async () => {
+    if (!id) return;
+    try {
+      const res = await updateLessonProgress(id, 'completed');
+      if (res.success) setProgressStatus('completed');
+    } catch (error) {
+      console.error("Lỗi cập nhật tiến độ:", error);
+    }
+  };
 
   if (isLoading) {
     return <div className="min-h-screen bg-background flex justify-center items-center"><Loader2 className="animate-spin text-primary" size={48} /></div>;
@@ -94,6 +106,20 @@ const LearningDetail = () => {
               <span className="text-xs px-3 py-1.5 rounded-full border border-border text-muted-foreground">
                 {levelLabels[lesson.level] || lesson.level}
               </span>
+              {progressStatus && (
+                <button
+                  onClick={handleMarkComplete}
+                  disabled={progressStatus === 'completed'}
+                  className={`text-xs px-3 py-1.5 rounded-full border flex items-center gap-1.5 transition-colors ${
+                    progressStatus === 'completed'
+                      ? 'bg-green-500/10 border-green-500/30 text-green-500 cursor-default'
+                      : 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
+                  }`}
+                >
+                  {progressStatus === 'completed' ? <CheckCircle size={14} /> : <Circle size={14} />}
+                  {progressStatus === 'completed' ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành'}
+                </button>
+              )}
             </div>
           </div>
 

@@ -14,7 +14,7 @@ const ExamDetailPage = () => {
   const [externalHtml, setExternalHtml] = useState<string>("");
 
   const fetchExamDetails = () => {
-    fetch("https://vuln.ghedahaui.online/api/exams", { credentials: "include" })
+    fetch("/api/exams", { credentials: "include" })
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -44,7 +44,7 @@ const ExamDetailPage = () => {
   const handleUnlock = async () => {
     if (window.confirm(`Xác nhận trừ ${exam.price} Voucher để mở khóa chứng chỉ này?`)) {
       try {
-        const res = await fetch(`https://vuln.ghedahaui.online/api/exams/${exam.id}/unlock`, { method: 'POST', credentials: 'include' });
+        const res = await fetch(`/api/exams/${exam.id}/unlock`, { method: 'POST', credentials: 'include' });
         const data = await res.json();
         if (data.success) {
           alert("Mở khóa thành công!");
@@ -59,7 +59,7 @@ const ExamDetailPage = () => {
   const handleStartExam = async () => {
     if (!window.confirm("Bấm BẮT ĐẦU THI hệ thống sẽ khóa mốc thời gian ngay lập tức. Đã sẵn sàng chưa?")) return;
     try {
-      const res = await fetch(`https://vuln.ghedahaui.online/api/exams/${exam.id}/start`, { method: 'POST', credentials: 'include' });
+      const res = await fetch(`/api/exams/${exam.id}/start`, { method: 'POST', credentials: 'include' });
       const data = await res.json();
       if (data.success) {
         navigate('/exams'); 
@@ -72,7 +72,7 @@ const ExamDetailPage = () => {
   const handleRetry = async () => {
     if (window.confirm("Bạn có chắc chắn muốn làm lại bài thi này?\nToàn bộ kết quả cũ sẽ bị xóa và bạn cần phải tốn Voucher để mở khóa lại từ đầu!")) {
       try {
-        const res = await fetch(`https://vuln.ghedahaui.online/api/exams/${exam.id}/retry`, { method: 'POST', credentials: 'include' });
+        const res = await fetch(`/api/exams/${exam.id}/retry`, { method: 'POST', credentials: 'include' });
         const data = await res.json();
         if (data.success) {
           alert("Đã reset trạng thái thành công! Hãy chuẩn bị Voucher để phục thù nhé.");

@@ -4,7 +4,7 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { OAuth2Client } from 'google-auth-library';
-import { initDb, User, Lab, Submission, Certificate, Lesson } from './src/db';
+import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress } from './src/db';
 import crypto from 'crypto'; // Dùng để gen mã Hash
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -375,21 +375,36 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
 
     app.get('/api/labs', authenticate, async (req: AuthenticatedRequest, res: Response) => {
 	    try {
-	        // ✅ FIX: Ép mảng attributes, TUYỆT ĐỐI không lấy 'flag', 'description', 'contentUrl'
-	        const labs = await Lab.findAll({ 
-	            where: { isExam: false },
-	            attributes: ['id', 'title', 'category', 'difficulty', 'points', 'solves'] 
-	        });
+	        const { page } = req.query;
+	        const where = { isExam: false };
+	        const attributes = ['id', 'title', 'category', 'difficulty', 'points', 'solves'] as any;
+
+	        let labs;
+	        let total: number;
+
+	        if (page) {
+	          const limit = Number(req.query.limit) || 12;
+	          const offset = (Number(page) - 1) * limit;
+	          labs = await Lab.findAll({ where, attributes, offset, limit });
+	          total = await Lab.count({ where });
+	        } else {
+	          labs = await Lab.findAll({ where, attributes });
+	          total = labs.length;
+	        }
 	        
 	        const submissions = await Submission.findAll({ where: { userId: req.user.id } });
 	        const solvedLabIds = new Set(submissions.map((s: any) => s.labId));
 	        
-	        const labsWithStatus = labs.map((lab: any) => ({
+	        const items = labs.map((lab: any) => ({
 	            ...lab.toJSON(),
 	            status: solvedLabIds.has(lab.id) ? 'solved' : 'unsolved',
 	        }));
+
+	        if (page) {
+	          return res.json({ items, total, page: Number(page), totalPages: Math.ceil(total / (Number(req.query.limit) || 12)) });
+	        }
 	        
-	        res.json(labsWithStatus);
+	        res.json(items);
 	    } catch (error) {
 	        res.status(500).json({ error: 'Lỗi tải Lab' });
 	    }
@@ -637,11 +652,25 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
     // =========================================================
     app.get('/api/lessons', authenticate, async (req: AuthenticatedRequest, res: Response) => {
       try {
-        const { category, difficulty, level } = req.query;
+        const { category, difficulty, level, page } = req.query;
         const where: any = {};
         if (category) where.category = category;
         if (difficulty) where.difficulty = difficulty;
         if (level) where.level = level;
+
+        if (page) {
+          const limit = Number(req.query.limit) || 12;
+          const offset = (Number(page) - 1) * limit;
+          const items = await Lesson.findAll({
+            where,
+            attributes: ['id', 'title', 'description', 'category', 'difficulty', 'level', 'imageUrl', 'orderIndex'],
+            order: [['orderIndex', 'ASC']],
+            offset,
+            limit
+          });
+          const total = await Lesson.count({ where });
+          return res.json({ items, total, page: Number(page), totalPages: Math.ceil(total / limit) });
+        }
 
         const lessons = await Lesson.findAll({
           where,
@@ -654,6 +683,20 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
       }
     });
 
+    app.get('/api/lessons/progress/mine', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const records = await LessonProgress.findAll({
+          where: { userId: req.user.id },
+          attributes: ['lessonId', 'status']
+        });
+        const progress: Record<string, string> = {};
+        records.forEach((r: any) => { progress[r.lessonId] = r.status; });
+        res.json(progress);
+      } catch (error) {
+        res.status(500).json({});
+      }
+    });
+
     app.get('/api/lessons/:id', authenticate, async (req: Request, res: Response) => {
       try {
         const lesson = await Lesson.findByPk(req.params.id);
@@ -661,6 +704,26 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         res.json(lesson);
       } catch (error) {
         res.status(500).json({ error: 'Lỗi server' });
+      }
+    });
+
+    app.post('/api/lessons/:id/progress', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { status } = req.body;
+        if (!['reading', 'completed'].includes(status)) {
+          return res.status(400).json({ success: false, message: 'Trạng thái không hợp lệ' });
+        }
+        const [record] = await LessonProgress.findOrCreate({
+          where: { userId: req.user.id, lessonId: req.params.id },
+          defaults: { status }
+        });
+        if (record.status !== status) {
+          record.status = status;
+          await record.save();
+        }
+        res.json({ success: true, status: record.status });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server' });
       }
     });
 
@@ -803,34 +866,6 @@ app.put('/api/admin/submissions/:id', authenticate, requireAdmin, async (req: Re
         res.status(500).json({ success: false, message: error.message });
     }
 });
-
-	// API Xác minh chứng chỉ công khai (Không cần token)
-	app.get('/api/verify/:hash', async (req: Request, res: Response) => {
-	    try {
-	        // ✅ LẤY TỪ CERTIFICATE TABLE (chứ không phải tính lại)
-	        const cert: any = await Certificate.findOne({
-	            where: { hash: req.params.hash },
-	            include: [
-	                { model: User, attributes: ['name', 'picture', 'email'] },
-	                { model: Lab, attributes: ['title', 'category', 'difficulty'] },
-	                { model: Submission, attributes: ['status', 'createdAt'] }
-	            ]
-	        });
-
-	        if (!cert) {
-	            return res.status(404).json({ success: false, message: 'Mã định danh không tồn tại trên hệ thống.' });
-	        }
-
-	        if (cert.submission?.status !== 'passed') {
-	            return res.status(400).json({ success: false, message: 'Chứng chỉ này đang bị tạm khóa hoặc thu hồi.' });
-	        }
-
-	        res.json({ success: true, cert });
-	    } catch (error) {
-	        console.error('❌ Lỗi Verify Cert:', error);
-	        res.status(500).json({ success: false, message: 'Lỗi server khi truy xuất dữ liệu.' });
-	    }
-	});
 
 app.get('/api/leaderboard', async (req, res) => {
     try {

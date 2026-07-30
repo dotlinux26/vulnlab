@@ -159,6 +159,22 @@ Lesson.init({
   orderIndex: { type: DataTypes.INTEGER, defaultValue: 0 },
 }, { sequelize, modelName: 'lesson' });
 
+export class LessonProgress extends Model {
+  declare id: number;
+  declare userId: string;
+  declare lessonId: string;
+  declare status: string;
+  declare updatedAt: Date;
+}
+
+LessonProgress.init({
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  userId: { type: DataTypes.STRING, allowNull: false },
+  lessonId: { type: DataTypes.STRING, allowNull: false },
+  status: { type: DataTypes.STRING, defaultValue: 'reading' },
+  updatedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+}, { sequelize, modelName: 'lesson_progress', timestamps: true });
+
 export const initDb = async () => {
   await sequelize.sync();
 };

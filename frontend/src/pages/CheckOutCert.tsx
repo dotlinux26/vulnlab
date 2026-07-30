@@ -15,7 +15,7 @@ const CheckOutCert = () => {
   const [isDownloading, setIsDownloading] = useState(false); // Tuỳ chọn: dùng để hiện loading lúc tải
 
   useEffect(() => {
-    fetch(`https://vuln.ghedahaui.online/api/verify/${hash}`)
+    fetch(`/api/verify/${hash}`)
       .then((res) => res.json())
       .then((d) => setData(d.success ? d.cert : null))
       .catch(() => setData(null))
@@ -383,7 +383,7 @@ const CheckOutCert = () => {
               </div>
             </div>
             <div className="signature-block">
-              <img src="https://vuln.ghedahaui.online/uploads/chuky.png" alt="Signature" className="signature-image" />
+              <img src="/uploads/chuky.png" alt="Signature" className="signature-image" />
               <div className="signature-line" />
               <div className="director-title">
                 CANH NGUYEN

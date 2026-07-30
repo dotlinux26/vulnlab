@@ -8,7 +8,7 @@ const Leaderboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchLeaderboard = () => {
-    fetch("https://vuln.ghedahaui.online/api/leaderboard")
+    fetch("/api/leaderboard")
       .then((res) => res.json())
       .then((data) => setUsers(data))
       .catch((err) => console.error(err));

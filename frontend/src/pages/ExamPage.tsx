@@ -22,7 +22,7 @@ const ExamPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchUserData = () => {
-    fetch("https://vuln.ghedahaui.online/api/me", { credentials: "include" })
+    fetch("/api/me", { credentials: "include" })
       .then(res => res.json())
       .then(user => {
         if (user && user.voucherXp !== undefined) setUserVoucher(user.voucherXp);
@@ -30,7 +30,7 @@ const ExamPage = () => {
   };
 
   const fetchExams = () => {
-    fetch("https://vuln.ghedahaui.online/api/exams", { credentials: "include" })
+    fetch("/api/exams", { credentials: "include" })
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -146,7 +146,7 @@ const handleSubmitExam = async (
     }
 
     const res = await fetch(
-      "https://vuln.ghedahaui.online/api/exams/submit",
+      "/api/exams/submit",
       {
         method: "POST",
         credentials: "include",

@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import MarkdownEditor from "@/components/MarkdownEditor";
 
 const AdminLessons = () => {
   const [lessons, setLessons] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const [formData, setFormData] = useState({
     id: "",
     title: "",
@@ -130,13 +128,12 @@ const AdminLessons = () => {
       orderIndex: 0,
     });
     setIsEditing(false);
-    setShowPreview(false);
   };
 
   return (
     <div className="space-y-8">
-      <div className="p-6 bg-gray-900 border border-gray-700 rounded-lg shadow-lg">
-        <h2 className="text-xl font-bold mb-4 text-white">
+      <div className="p-6 bg-card border border-border rounded-xl">
+        <h2 className="text-xl font-bold mb-4 text-foreground">
           {isEditing ? `CHỈNH SỬA: ${formData.id}` : "TẠO BÀI HỌC MỚI"}
         </h2>
 
@@ -144,18 +141,18 @@ const AdminLessons = () => {
           <div
             className={`p-3 mb-4 rounded font-mono text-sm ${
               message.type === "success"
-                ? "bg-green-900/50 text-green-300 border border-green-500"
-                : "bg-red-900/50 text-red-300 border border-red-500"
+                ? "bg-primary/10 text-primary border border-primary/30"
+                : "bg-destructive/10 text-destructive border border-destructive/30"
             }`}
           >
             {message.text}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-sm text-gray-300">
+        <form onSubmit={handleSubmit} className="space-y-4 text-sm text-muted-foreground">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block font-bold mb-1">ID (Mã bài học)*</label>
+              <label className="block font-bold mb-1 text-foreground">ID (Mã bài học)*</label>
               <input
                 type="text"
                 name="id"
@@ -163,30 +160,30 @@ const AdminLessons = () => {
                 value={formData.id}
                 onChange={handleChange}
                 disabled={isEditing}
-                className="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white disabled:opacity-50"
+                className="w-full p-2 bg-accent border border-border rounded text-foreground disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="block font-bold mb-1">Tiêu đề*</label>
+              <label className="block font-bold mb-1 text-foreground">Tiêu đề*</label>
               <input
                 type="text"
                 name="title"
                 required
                 value={formData.title}
                 onChange={handleChange}
-                className="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white"
+                className="w-full p-2 bg-accent border border-border rounded text-foreground"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block font-bold mb-1">Thể loại</label>
+              <label className="block font-bold mb-1 text-foreground">Thể loại</label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white"
+                className="w-full p-2 bg-accent border border-border rounded text-foreground"
               >
                 <option value="Web">Web</option>
                 <option value="Pwn">Pwn</option>
@@ -198,12 +195,12 @@ const AdminLessons = () => {
               </select>
             </div>
             <div>
-              <label className="block font-bold mb-1">Độ khó</label>
+              <label className="block font-bold mb-1 text-foreground">Độ khó</label>
               <select
                 name="difficulty"
                 value={formData.difficulty}
                 onChange={handleChange}
-                className="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white"
+                className="w-full p-2 bg-accent border border-border rounded text-foreground"
               >
                 <option value="Easy">Dễ</option>
                 <option value="Medium">Trung bình</option>
@@ -211,12 +208,12 @@ const AdminLessons = () => {
               </select>
             </div>
             <div>
-              <label className="block font-bold mb-1">Cấp độ</label>
+              <label className="block font-bold mb-1 text-foreground">Cấp độ</label>
               <select
                 name="level"
                 value={formData.level}
                 onChange={handleChange}
-                className="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white"
+                className="w-full p-2 bg-accent border border-border rounded text-foreground"
               >
                 <option value="beginner">Cơ bản</option>
                 <option value="intermediate">Trung cấp</option>
@@ -226,18 +223,18 @@ const AdminLessons = () => {
           </div>
 
           <div>
-            <label className="block font-bold mb-1">Mô tả</label>
+            <label className="block font-bold mb-1 text-foreground">Mô tả</label>
             <textarea
               name="description"
               rows={3}
               value={formData.description}
               onChange={handleChange}
-              className="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white"
+              className="w-full p-2 bg-accent border border-border rounded text-foreground"
             />
           </div>
 
           <div>
-            <label className="block font-bold mb-1">Image URL</label>
+            <label className="block font-bold mb-1 text-foreground">Image URL</label>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -245,10 +242,10 @@ const AdminLessons = () => {
                 value={formData.imageUrl}
                 onChange={handleChange}
                 placeholder="https://... hoặc upload ảnh"
-                className="flex-1 p-2 bg-gray-800 border border-gray-600 rounded text-white"
+                className="flex-1 p-2 bg-accent border border-border rounded text-foreground placeholder:text-muted-foreground"
               />
-              <label className="cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-bold text-xs flex items-center gap-1 transition-colors">
-                📷 Upload
+              <label className="cursor-pointer bg-primary hover:bg-primary/80 text-primary-foreground px-4 py-2 rounded font-bold text-xs flex items-center gap-1 transition-colors">
+                Upload
                 <input
                   type="file"
                   accept="image/*"
@@ -265,62 +262,41 @@ const AdminLessons = () => {
                       const data = await res.json();
                       if (data.success) {
                         setFormData(prev => ({ ...prev, imageUrl: data.url }));
-                        alert('✅ Upload thành công!');
-                      } else alert('❌ ' + data.message);
-                    } catch { alert('❌ Lỗi upload'); }
+                      } else alert('Lỗi: ' + data.message);
+                    } catch { alert('Lỗi upload'); }
                   }}
                 />
               </label>
             </div>
             {formData.imageUrl && (
-              <img src={formData.imageUrl} alt="preview" className="mt-2 h-24 rounded border border-gray-600 object-cover" />
+              <img src={formData.imageUrl} alt="preview" className="mt-2 h-24 rounded border border-border object-cover" />
             )}
           </div>
 
           <div>
-            <label className="block font-bold mb-1">Thứ tự hiển thị</label>
+            <label className="block font-bold mb-1 text-foreground">Thứ tự hiển thị</label>
             <input
               type="number"
               name="orderIndex"
               value={formData.orderIndex}
               onChange={handleChange}
-              className="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white w-32"
+              className="w-32 p-2 bg-accent border border-border rounded text-foreground"
             />
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block font-bold">Nội dung (Markdown)*</label>
-              <button
-                type="button"
-                onClick={() => setShowPreview(!showPreview)}
-                className="text-xs text-blue-400 hover:text-blue-300"
-              >
-                {showPreview ? "Ẩn preview" : "Xem preview"}
-              </button>
-            </div>
-            <textarea
-              name="content"
-              rows={16}
-              required
+            <label className="block font-bold mb-1 text-foreground">Nội dung (Markdown)*</label>
+            <MarkdownEditor
               value={formData.content}
-              onChange={handleChange}
-              className="w-full p-3 bg-gray-800 border border-gray-600 rounded text-white font-mono leading-relaxed"
+              onChange={(val) => setFormData(prev => ({ ...prev, content: val }))}
             />
-            {showPreview && (
-              <div className="mt-2 p-4 bg-gray-850 border border-gray-600 rounded prose prose-invert max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {formData.content || "*Chưa có nội dung*"}
-                </ReactMarkdown>
-              </div>
-            )}
           </div>
 
-          <div className="flex gap-4 pt-4 border-t border-gray-700">
+          <div className="flex gap-4 pt-4 border-t border-border">
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded transition text-lg shadow-lg disabled:opacity-50"
+              className="flex-1 bg-primary hover:bg-primary/80 text-primary-foreground font-bold py-3 rounded transition text-lg shadow-lg disabled:opacity-50"
             >
               {isLoading
                 ? "ĐANG XỬ LÝ..."
@@ -332,7 +308,7 @@ const AdminLessons = () => {
               <button
                 type="button"
                 onClick={resetForm}
-                className="bg-gray-600 hover:bg-gray-500 px-6 font-bold rounded text-white transition"
+                className="bg-accent hover:bg-accent/80 text-foreground px-6 font-bold rounded transition"
               >
                 HỦY
               </button>
@@ -341,13 +317,13 @@ const AdminLessons = () => {
         </form>
       </div>
 
-      <div className="p-6 bg-gray-900 border border-gray-700 rounded-lg shadow-lg">
-        <h2 className="text-xl font-bold mb-4 text-white">
+      <div className="p-6 bg-card border border-border rounded-xl">
+        <h2 className="text-xl font-bold mb-4 text-foreground">
           DANH SÁCH BÀI HỌC ({lessons.length})
         </h2>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-400">
-            <thead className="text-xs text-gray-300 uppercase bg-gray-800">
+          <table className="w-full text-sm text-left text-muted-foreground">
+            <thead className="text-xs text-foreground uppercase bg-accent">
               <tr>
                 <th className="px-4 py-3">ID / Tiêu đề</th>
                 <th className="px-4 py-3 text-center">Thể loại</th>
@@ -357,13 +333,13 @@ const AdminLessons = () => {
             </thead>
             <tbody>
               {lessons.map((lesson: any) => (
-                <tr key={lesson.id} className="border-b border-gray-700 hover:bg-gray-800">
+                <tr key={lesson.id} className="border-b border-border hover:bg-accent/50">
                   <td className="px-4 py-3">
-                    <div className="font-mono text-white font-bold">{lesson.id}</div>
+                    <div className="font-mono text-foreground font-bold">{lesson.id}</div>
                     <div className="text-xs truncate max-w-[200px]">{lesson.title}</div>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className="bg-blue-900/50 text-blue-300 px-2 py-1 rounded text-xs">
+                    <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs">
                       {lesson.category}
                     </span>
                   </td>
@@ -374,13 +350,13 @@ const AdminLessons = () => {
                   <td className="px-4 py-3 text-center space-x-2">
                     <button
                       onClick={() => handleEditClick(lesson)}
-                      className="text-blue-400 hover:text-white bg-blue-900/30 px-3 py-1 rounded transition"
+                      className="text-primary hover:text-primary-foreground bg-primary/10 hover:bg-primary px-3 py-1 rounded transition"
                     >
                       Sửa
                     </button>
                     <button
                       onClick={() => handleDeleteClick(lesson.id)}
-                      className="text-red-400 hover:text-white bg-red-900/30 px-3 py-1 rounded transition"
+                      className="text-destructive hover:text-destructive-foreground bg-destructive/10 hover:bg-destructive px-3 py-1 rounded transition"
                     >
                       Xóa
                     </button>
@@ -389,7 +365,7 @@ const AdminLessons = () => {
               ))}
               {lessons.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="text-center py-4">
+                  <td colSpan={4} className="text-center py-4 text-muted-foreground">
                     Chưa có bài học nào.
                   </td>
                 </tr>

@@ -21,7 +21,7 @@ const ExamPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchUserData = () => {
-    fetch("https://vuln.ghedahaui.online/api/me", { credentials: "include" })
+    fetch("/api/me", { credentials: "include" })
       .then(res => res.json())
       .then(user => {
         if (user && user.voucherXp !== undefined) setUserVoucher(user.voucherXp);
@@ -29,7 +29,7 @@ const ExamPage = () => {
   };
 
   const fetchExams = () => {
-    fetch("https://vuln.ghedahaui.online/api/exams", { credentials: "include" })
+    fetch("/api/exams", { credentials: "include" })
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -53,7 +53,7 @@ const ExamPage = () => {
                   } else {
                       alert("Bài thi trước đó của bạn đã hết hạn!");
                       // Gọi dummy submit để server ép về failed
-                      fetch('https://vuln.ghedahaui.online/api/exams/submit', {
+                      fetch('/api/exams/submit', {
                           method: 'POST', credentials: 'include', headers: {'Content-Type': 'application/json'},
                           body: JSON.stringify({ examId: activeExam.id, flags: '' })
                       }).then(() => window.location.reload());
@@ -96,7 +96,7 @@ const ExamPage = () => {
   const handleUnlock = async (exam: any) => {
     if (window.confirm(`Xác nhận trừ ${exam.price} Voucher để mở khóa '${exam.title}'?`)) {
       try {
-        const res = await fetch(`https://vuln.ghedahaui.online/api/exams/${exam.id}/unlock`, { method: 'POST', credentials: 'include' });
+        const res = await fetch(`/api/exams/${exam.id}/unlock`, { method: 'POST', credentials: 'include' });
         const data = await res.json();
         if (data.success) {
             fetchUserData(); fetchExams();
@@ -113,7 +113,7 @@ const ExamPage = () => {
     
     // GỌI API ĐỂ BACKEND KHÓA MỐC GIỜ THỰC TẾ
     try {
-        const res = await fetch(`https://vuln.ghedahaui.online/api/exams/${exam.id}/start`, { method: 'POST', credentials: 'include' });
+        const res = await fetch(`/api/exams/${exam.id}/start`, { method: 'POST', credentials: 'include' });
         const data = await res.json();
         
         if (data.success) {
@@ -171,7 +171,7 @@ const ExamPage = () => {
 
     console.log("📤 Đang gửi submission:", selectedExam.id);
 
-    const res = await fetch("https://vuln.ghedahaui.online/api/exams/submit", {
+    const res = await fetch("/api/exams/submit", {
       method: "POST",
       credentials: "include",
       body: formData,

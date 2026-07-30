@@ -1,13 +1,24 @@
 import { Lab } from '../data/labs';
 
-// Dòng này cực kỳ quan trọng: Ép trình duyệt luôn mang theo Cookie khi gọi API
 const fetchOptions = {
     credentials: 'include' as RequestCredentials,
     headers: { 'Content-Type': 'application/json' }
 };
 
-export const fetchLabs = async (): Promise<Lab[]> => {
-    const res = await fetch('/api/labs', { ...fetchOptions, method: 'GET' });
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface LabWithStatus extends Lab {
+  status: 'solved' | 'unsolved' | 'in-progress';
+}
+
+export const fetchLabs = async (page?: number, limit = 12): Promise<LabWithStatus[] | PaginatedResponse<LabWithStatus>> => {
+    const query = page ? `?page=${page}&limit=${limit}` : '';
+    const res = await fetch(`/api/labs${query}`, { ...fetchOptions, method: 'GET' });
     if (!res.ok) throw new Error('Failed to fetch labs');
     return res.json();
 };
@@ -68,7 +79,7 @@ export interface Lesson {
     orderIndex: number;
 }
 
-export const fetchLessons = async (params?: { category?: string; difficulty?: string; level?: string }): Promise<Lesson[]> => {
+export const fetchLessons = async (params?: { category?: string; difficulty?: string; level?: string; page?: number; limit?: number }): Promise<Lesson[] | PaginatedResponse<Lesson>> => {
     const query = params ? '?' + new URLSearchParams(params as any).toString() : '';
     const res = await fetch(`/api/lessons${query}`, { ...fetchOptions, method: 'GET' });
     if (!res.ok) throw new Error('Failed to fetch lessons');
@@ -78,5 +89,21 @@ export const fetchLessons = async (params?: { category?: string; difficulty?: st
 export const fetchLesson = async (id: string): Promise<Lesson> => {
     const res = await fetch(`/api/lessons/${id}`, { ...fetchOptions, method: 'GET' });
     if (!res.ok) throw new Error('Failed to fetch lesson');
+    return res.json();
+};
+
+export const fetchLessonProgress = async (): Promise<Record<string, string>> => {
+    const res = await fetch('/api/lessons/progress/mine', { ...fetchOptions, method: 'GET' });
+    if (!res.ok) return {};
+    return res.json();
+};
+
+export const updateLessonProgress = async (id: string, status: 'reading' | 'completed') => {
+    const res = await fetch(`/api/lessons/${id}/progress`, {
+        ...fetchOptions,
+        method: 'POST',
+        body: JSON.stringify({ status }),
+    });
+    if (!res.ok) throw new Error('Failed to update progress');
     return res.json();
 };

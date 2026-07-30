@@ -90,7 +90,7 @@ const Login = () => {
           <div className="relative">
             <input
               type="email"
-              placeholder="Email"
+              placeholder="Đừng đăng ký, hãy đăng nhập với Google"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -102,7 +102,7 @@ const Login = () => {
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
-              placeholder="Mật khẩu"
+              placeholder="Đây là bẫy, hãy dùng Google bên dưới"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
