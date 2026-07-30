@@ -196,11 +196,16 @@ const addColumnIfMissing = async (table: string, column: string, def: string) =>
 };
 
 export const initDb = async () => {
-  try { await sequelize.query(`DROP TABLE IF EXISTS users_backup`); } catch {}
-  await sequelize.sync();
-  await addColumnIfMissing('labs', 'title_en', 'STRING');
-  await addColumnIfMissing('labs', 'description_en', 'TEXT');
-  await addColumnIfMissing('lessons', 'title_en', 'STRING');
-  await addColumnIfMissing('lessons', 'description_en', 'TEXT');
-  await addColumnIfMissing('lessons', 'content_en', 'TEXT');
+  try {
+    await addColumnIfMissing('users', 'voucherXp', 'INTEGER DEFAULT 0');
+    try { await sequelize.query(`DROP TABLE IF EXISTS users_backup`); } catch {}
+    await sequelize.sync();
+    await addColumnIfMissing('labs', 'title_en', 'STRING');
+    await addColumnIfMissing('labs', 'description_en', 'TEXT');
+    await addColumnIfMissing('lessons', 'title_en', 'STRING');
+    await addColumnIfMissing('lessons', 'description_en', 'TEXT');
+    await addColumnIfMissing('lessons', 'content_en', 'TEXT');
+  } catch (e) {
+    console.error("[!] initDb error (non-fatal):", e);
+  }
 };

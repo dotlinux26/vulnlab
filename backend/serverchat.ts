@@ -74,7 +74,7 @@ function validateUrl(url: string) {
 // 2. KHỞI TẠO BẢNG
 // ==========================================
 async function startChatServer() {
-  await initDb();
+  try { await initDb(); } catch (e) { console.error("[!] initDb error (non-fatal):", e); }
   db.run(`CREATE TABLE IF NOT EXISTS GlobalChat (id INTEGER PRIMARY KEY AUTOINCREMENT, userId TEXT, userName TEXT, userAvatar TEXT, content TEXT, time TEXT, timestamp INTEGER)`);
   db.run(`CREATE TABLE IF NOT EXISTS PaymentLogs (id INTEGER PRIMARY KEY AUTOINCREMENT, orderCode TEXT, userId TEXT, amount INTEGER, status TEXT, description TEXT, timestamp INTEGER)`);
 
