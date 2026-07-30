@@ -116,7 +116,7 @@ const MarkdownEditor = ({ value, onChange, rows = 16, placeholder = "Nhập nộ
           />
         )}
         {(mode === "preview" || mode === "split") && (
-          <div className="p-4 bg-card border border-border rounded prose prose-invert max-w-none overflow-y-auto min-h-[200px]">
+          <div className="p-4 bg-card border border-border rounded prose dark:prose-invert max-w-none overflow-y-auto min-h-[200px]">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {value || "*Chưa có nội dung*"}
             </ReactMarkdown>
