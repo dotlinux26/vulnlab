@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
-import { fetchLesson, updateLessonProgress, type Lesson } from "@/services/api";
+import { fetchLesson, fetchLessonProgress, updateLessonProgress, type Lesson } from "@/services/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const difficultyColors: Record<string, string> = {
@@ -52,7 +52,13 @@ const LearningDetail = () => {
       try {
         const data = await fetchLesson(id);
         setLesson(data);
-        updateLessonProgress(id, 'reading').then(r => setProgressStatus(r.status)).catch(() => {});
+        const allProgress = await fetchLessonProgress();
+        const currentStatus = allProgress[id];
+        if (currentStatus === 'completed') {
+          setProgressStatus('completed');
+        } else {
+          updateLessonProgress(id, 'reading').then(r => setProgressStatus(r.status)).catch(() => {});
+        }
       } catch (error) {
         console.error("Lỗi lấy bài học:", error);
       } finally {
