@@ -147,18 +147,21 @@ const Profile = () => {
           </h2>
           {solvedLabs.length > 0 ? (
             <div className="space-y-3">
-              {solvedLabs.map((lab: any) => (
+              {solvedLabs.map((lab: any) => {
+                const labTitle = lang === "en" && lab.title_en ? lab.title_en : lab.title;
+                return (
                 <div key={lab.id} className="flex items-center justify-between p-4 rounded-xl bg-accent/30 hover:bg-accent/50 transition-colors border border-border/50">
                   <div className="flex items-center gap-4">
                     <CheckCircle size={24} className="text-green-500" />
                     <div>
-                      <p className="text-lg font-bold text-foreground">{lab.title}</p>
+                      <p className="text-lg font-bold text-foreground">{labTitle}</p>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">{lab.category} • {lab.difficulty}</p>
                     </div>
                   </div>
                   <span className="text-lg font-black text-primary font-mono">+{lab.points} XP</span>
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className="text-muted-foreground text-center py-8 font-mono italic">{t("profile.historyEmpty")}</p>
