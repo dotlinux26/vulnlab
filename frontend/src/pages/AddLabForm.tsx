@@ -6,7 +6,9 @@ const AddLabForm = () => {
   const [formData, setFormData] = useState({
     id: '',
     title: '',
+    title_en: '',
     description: '',
+    description_en: '',
     difficulty: 'Medium',
     category: 'Web',
     points: 100,
@@ -85,7 +87,9 @@ const AddLabForm = () => {
     setFormData({
       id: lab.id,
       title: lab.title,
+      title_en: lab.title_en || '',
       description: lab.description,
+      description_en: lab.description_en || '',
       difficulty: lab.difficulty,
       category: lab.category,
       points: lab.points,
@@ -130,7 +134,9 @@ const AddLabForm = () => {
     setFormData({
       id: '',
       title: '',
+      title_en: '',
       description: '',
+      description_en: '',
       difficulty: 'Medium',
       category: 'Web',
       points: 100,
@@ -198,12 +204,22 @@ const AddLabForm = () => {
               />
             </div>
             <div>
-              <label className="block font-bold mb-1 text-foreground">Tên bài*</label>
+              <label className="block font-bold mb-1 text-foreground">Tên bài (VI)*</label>
               <input
                 type="text"
                 name="title"
                 required
                 value={formData.title}
+                onChange={handleChange}
+                className="w-full p-2 bg-accent border border-border rounded text-foreground"
+              />
+            </div>
+            <div>
+              <label className="block font-bold mb-1 text-foreground">Title (EN)</label>
+              <input
+                type="text"
+                name="title_en"
+                value={formData.title_en}
                 onChange={handleChange}
                 className="w-full p-2 bg-accent border border-border rounded text-foreground"
               />
@@ -343,6 +359,20 @@ const AddLabForm = () => {
               value={formData.description}
               onChange={handleChange}
               placeholder="# Đề bài...\n\n- Yêu cầu 1\n- Yêu cầu 2"
+              className="w-full p-3 bg-accent border border-border rounded text-foreground font-mono leading-relaxed"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold mb-1 text-foreground">
+              Content (EN - Markdown)
+            </label>
+            <textarea
+              name="description_en"
+              rows={8}
+              value={formData.description_en}
+              onChange={handleChange}
+              placeholder="# Mission...\n\n- Requirement 1\n- Requirement 2"
               className="w-full p-3 bg-accent border border-border rounded text-foreground font-mono leading-relaxed"
             />
           </div>

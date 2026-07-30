@@ -894,12 +894,12 @@ app.get('/api/admin/labs', authenticate, requireAdmin, async (req: Request, res:
 
   app.post('/api/admin/labs', authenticate, requireAdmin, async (req: Request, res: Response) => {
         try {
-            const { id, title, description, difficulty, category, points, flag, contentUrl, isExam, downloadUrl, price, duration } = req.body;
+            const { id, title, title_en, description, description_en, difficulty, category, points, flag, contentUrl, isExam, downloadUrl, price, duration } = req.body;
             const existingLab = await Lab.findByPk(id);
             if (existingLab) return res.status(400).json({ success: false, message: 'ID Lab này đã tồn tại!' });
 
             const newLab = await Lab.create({
-                id, title, description, difficulty, category, points, flag, contentUrl, solves: 0,
+                id, title, title_en, description, description_en, difficulty, category, points, flag, contentUrl, solves: 0,
                 isExam: isExam || false, downloadUrl: downloadUrl || '',
                 price: price || 0, duration: duration || 60
             });
@@ -911,12 +911,12 @@ app.get('/api/admin/labs', authenticate, requireAdmin, async (req: Request, res:
 
     app.put('/api/admin/labs/:id', authenticate, requireAdmin, async (req: Request, res: Response) => {
         try {
-            const { title, description, difficulty, category, points, flag, contentUrl, isExam, downloadUrl, price, duration } = req.body;
+            const { title, title_en, description, description_en, difficulty, category, points, flag, contentUrl, isExam, downloadUrl, price, duration } = req.body;
             const lab: any = await Lab.findByPk(req.params.id);
             if (!lab) return res.status(404).json({ success: false, message: 'Không tìm thấy Lab!' });
 
             await lab.update({ 
-                title, description, difficulty, category, points, flag, contentUrl,
+                title, title_en, description, description_en, difficulty, category, points, flag, contentUrl,
                 isExam: isExam || false, downloadUrl: downloadUrl || '',
                 price: price || 0, duration: duration || 60
             });
