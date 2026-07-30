@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { CheckCircle, Clock, Circle, Shield, Bug, Search, Lock, Wifi, Globe, FileText } from "lucide-react";
 import type { Lab } from "@/data/labs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const difficultyColors = {
   Easy: "text-neon-green bg-neon-green/10 border-neon-green/30",
@@ -25,8 +26,11 @@ const statusConfig = {
 };
 
 const LabCard = ({ lab }: { lab: Lab }) => {
+  const { lang } = useLanguage();
   const status = statusConfig[lab.status];
-  
+  const displayTitle = lang === "en" && lab.title_en ? lab.title_en : lab.title;
+  const displayDesc = lang === "en" && lab.description_en ? lab.description_en : lab.description;
+
   return (
     <Link
       to={`/lab/${lab.id}`}
@@ -39,7 +43,7 @@ const LabCard = ({ lab }: { lab: Lab }) => {
       <div className="flex items-start justify-between mb-3 min-w-0">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <Shield size={18} className="text-primary shrink-0" />
-          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{lab.title}</h3>
+          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{displayTitle}</h3>
         </div>
         <div className={`flex items-center gap-1 text-xs shrink-0 ml-2 ${status.cls}`}>
           {status.icon}
@@ -48,7 +52,7 @@ const LabCard = ({ lab }: { lab: Lab }) => {
       </div>
 
       {/* Description */}
-      <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-1">{lab.description}</p>
+      <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-1">{displayDesc}</p>
 
       {/* Tags */}
       <div className="flex items-center gap-2 flex-wrap mt-auto">

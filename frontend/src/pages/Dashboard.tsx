@@ -62,7 +62,7 @@ const Dashboard = () => {
 
   const filtered = useMemo(() => {
     return labs.filter((lab) => {
-      if (search && !lab.title.toLowerCase().includes(search.toLowerCase()) && !lab.description.toLowerCase().includes(search.toLowerCase())) return false;
+      if (search && !lab.title.toLowerCase().includes(search.toLowerCase()) && !(lab.title_en || '').toLowerCase().includes(search.toLowerCase()) && !lab.description.toLowerCase().includes(search.toLowerCase()) && !(lab.description_en || '').toLowerCase().includes(search.toLowerCase())) return false;
       if (selectedDiff && lab.difficulty !== selectedDiff) return false;
       if (selectedCat && lab.category !== selectedCat) return false;
       if (selectedStatus && lab.status !== selectedStatus) return false;

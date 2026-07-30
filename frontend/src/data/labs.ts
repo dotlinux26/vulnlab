@@ -5,7 +5,9 @@ export type LabStatus = "solved" | "unsolved" | "in-progress";
 export interface Lab {
   id: string;
   title: string;
+  title_en?: string;
   description: string;
+  description_en?: string;
   difficulty: Difficulty;
   category: Category;
   status: LabStatus;
