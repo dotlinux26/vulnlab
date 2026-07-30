@@ -377,7 +377,7 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
 	    try {
 	        const { page } = req.query;
 	        const where = { isExam: false };
-	        const attributes = ['id', 'title', 'category', 'difficulty', 'points', 'solves'] as any;
+	        const attributes = ['id', 'title', 'title_en', 'description', 'description_en', 'category', 'difficulty', 'points', 'solves'] as any;
 
 	        let labs;
 	        let total: number;
@@ -663,7 +663,7 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
           const offset = (Number(page) - 1) * limit;
           const items = await Lesson.findAll({
             where,
-            attributes: ['id', 'title', 'description', 'category', 'difficulty', 'level', 'imageUrl', 'orderIndex'],
+            attributes: ['id', 'title', 'title_en', 'description', 'description_en', 'category', 'difficulty', 'level', 'imageUrl', 'orderIndex'],
             order: [['orderIndex', 'ASC']],
             offset,
             limit
@@ -674,7 +674,7 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
 
         const lessons = await Lesson.findAll({
           where,
-          attributes: ['id', 'title', 'description', 'category', 'difficulty', 'level', 'imageUrl', 'orderIndex'],
+          attributes: ['id', 'title', 'title_en', 'description', 'description_en', 'category', 'difficulty', 'level', 'imageUrl', 'orderIndex'],
           order: [['orderIndex', 'ASC']]
         });
         res.json(lessons);
@@ -748,12 +748,12 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
 
     app.post('/api/admin/lessons', authenticate, requireAdmin, async (req: Request, res: Response) => {
       try {
-        const { id, title, description, category, difficulty, level, content, imageUrl, orderIndex } = req.body;
+        const { id, title, title_en, description, description_en, category, difficulty, level, content, content_en, imageUrl, orderIndex } = req.body;
         const existing = await Lesson.findByPk(id);
         if (existing) return res.status(400).json({ success: false, message: 'ID bài học này đã tồn tại!' });
 
         const newLesson = await Lesson.create({
-          id, title, description, category, difficulty, level, content, imageUrl: imageUrl || '', orderIndex: orderIndex || 0
+          id, title, title_en, description, description_en, category, difficulty, level, content, content_en, imageUrl: imageUrl || '', orderIndex: orderIndex || 0
         });
         res.json({ success: true, message: 'Tạo bài học thành công!', lesson: newLesson });
       } catch (error) {
@@ -763,11 +763,11 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
 
     app.put('/api/admin/lessons/:id', authenticate, requireAdmin, async (req: Request, res: Response) => {
       try {
-        const { title, description, category, difficulty, level, content, imageUrl, orderIndex } = req.body;
+        const { title, title_en, description, description_en, category, difficulty, level, content, content_en, imageUrl, orderIndex } = req.body;
         const lesson: any = await Lesson.findByPk(req.params.id);
         if (!lesson) return res.status(404).json({ success: false, message: 'Không tìm thấy bài học!' });
 
-        await lesson.update({ title, description, category, difficulty, level, content, imageUrl: imageUrl || '', orderIndex: orderIndex || 0 });
+        await lesson.update({ title, title_en, description, description_en, category, difficulty, level, content, content_en, imageUrl: imageUrl || '', orderIndex: orderIndex || 0 });
         res.json({ success: true, message: 'Cập nhật thành công!', lesson });
       } catch (error) {
         res.status(500).json({ success: false, message: 'Lỗi server khi sửa.' });

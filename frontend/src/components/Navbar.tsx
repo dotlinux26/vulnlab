@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Settings, LogOut, Moon, Sun, Menu, X, FileText, LayoutDashboard, Trophy, MessageCircle, Zap, BookOpen } from "lucide-react";
+import { User, Settings, LogOut, Moon, Sun, Menu, X, FileText, LayoutDashboard, Trophy, MessageCircle, Zap, BookOpen, Languages } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface NavbarProps {
   isLoggedIn?: boolean;
@@ -10,20 +11,23 @@ interface NavbarProps {
 }
 
 const navLinks = [
-  { to: "/dashboard", label: "Dashboard", vn: "Trang chủ", icon: LayoutDashboard },
-  { to: "/learning", label: "Learning", vn: "Học tập", icon: BookOpen },
-  { to: "/exams", label: "Exam", vn: "Kiểm tra", icon: FileText },
-  { to: "/subscription", label: "Subscription", vn: "Đăng ký", icon: Zap },
-  { to: "/chat", label: "Chat", vn: "Trao đổi", icon: MessageCircle },
-  { to: "/leaderboard", label: "Leaderboard", vn: "BXH", icon: Trophy },
-  { to: "/profile", label: "Profile", vn: "Hồ sơ", icon: User },
+  { to: "/dashboard", icon: LayoutDashboard, key: "nav.dashboard" },
+  { to: "/learning", icon: BookOpen, key: "nav.learning" },
+  { to: "/exams", icon: FileText, key: "nav.exam" },
+  { to: "/subscription", icon: Zap, key: "nav.subscription" },
+  { to: "/chat", icon: MessageCircle, key: "nav.chat" },
+  { to: "/leaderboard", icon: Trophy, key: "nav.leaderboard" },
+  { to: "/profile", icon: User, key: "nav.profile" },
 ];
+
+const otherLang = { vi: "en", en: "vi" } as const;
 
 const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: NavbarProps) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { isDark, toggle } = useTheme();
+  const { lang, toggleLang, t } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,7 +46,8 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
     navigate("/");
   };
 
-  const avatarUrl = userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=a855f7&color=fff&rounded=true`;
+  const storedPicture = typeof window !== "undefined" ? localStorage.getItem("user_picture") : null;
+  const avatarUrl = userAvatar || storedPicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=a855f7&color=fff&rounded=true`;
 
   return (
     <header className="fixed top-0 w-full h-16 z-50 glass-card border-b border-border backdrop-blur-xl">
@@ -59,14 +64,22 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
               to={link.to}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
             >
-              {link.label}
+              {t(link.key)}
             </Link>
           ))}
 
           <button
+            onClick={toggleLang}
+            className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
+            title={lang === "vi" ? "Switch to English" : "Chuyển sang Tiếng Việt"}
+          >
+            <Languages size={18} />
+          </button>
+
+          <button
             onClick={toggle}
             className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
-            title={isDark ? "Chế độ sáng" : "Chế độ tối"}
+            title={t("theme." + (isDark ? "light" : "dark"))}
           >
             {isDark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
@@ -99,8 +112,7 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
                         onClick={() => setDropdownOpen(false)}
                       >
                         <Icon size={16} />
-                        <span>{link.label}</span>
-                        <span className="text-xs text-muted-foreground ml-auto">{link.vn}</span>
+                        <span>{t(link.key)}</span>
                       </Link>
                     );
                   })}
@@ -111,8 +123,7 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
                     onClick={() => setDropdownOpen(false)}
                   >
                     <Settings size={16} />
-                    Settings
-                    <span className="text-xs text-muted-foreground ml-auto">Cài đặt</span>
+                    {t("nav.settings")}
                   </Link>
                   <div className="border-t border-border" />
                   <button
@@ -120,15 +131,14 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
                     className="flex items-center gap-3 px-4 py-3 text-sm text-destructive hover:bg-destructive/10 transition-colors w-full"
                   >
                     <LogOut size={16} />
-                    Logout
-                    <span className="text-xs ml-auto">Đăng xuất</span>
+                    {t("nav.logout")}
                   </button>
                 </div>
               )}
             </div>
           ) : (
             <Link to="/login" className="gradient-primary text-primary-foreground px-5 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
-              Đăng nhập
+              {t("nav.login")}
             </Link>
           )}
         </nav>
@@ -151,25 +161,26 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Icon size={18} className="text-primary" />
-                  <span className="font-medium">{link.label}</span>
-                  <span className="text-xs text-muted-foreground ml-auto">{link.vn}</span>
+                  <span className="font-medium">{t(link.key)}</span>
                 </Link>
               );
             })}
             <div className="border-t border-border my-2" />
+            <button onClick={toggleLang} className="flex items-center gap-3 px-3 py-3 w-full rounded-lg text-foreground hover:bg-accent transition-colors">
+              <Languages size={18} />
+              <span>{lang === "vi" ? "English" : "Tiếng Việt"}</span>
+            </button>
             <button onClick={toggle} className="flex items-center gap-3 px-3 py-3 w-full rounded-lg text-foreground hover:bg-accent transition-colors">
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
-              <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
-              <span className="text-xs text-muted-foreground ml-auto">{isDark ? "Chế độ sáng" : "Chế độ tối"}</span>
+              <span>{t("theme." + (isDark ? "light" : "dark"))}</span>
             </button>
             {isLoggedIn ? (
               <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-3 w-full rounded-lg text-destructive hover:bg-destructive/10 transition-colors">
                 <LogOut size={18} />
-                <span>Logout</span>
-                <span className="text-xs ml-auto">Đăng xuất</span>
+                {t("nav.logout")}
               </button>
             ) : (
-              <Link to="/login" className="block px-3 py-3 text-primary font-semibold" onClick={() => setMobileMenuOpen(false)}>Đăng nhập</Link>
+              <Link to="/login" className="block px-3 py-3 text-primary font-semibold" onClick={() => setMobileMenuOpen(false)}>{t("nav.login")}</Link>
             )}
           </div>
         </div>

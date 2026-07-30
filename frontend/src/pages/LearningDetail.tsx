@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
 import { fetchLesson, updateLessonProgress, type Lesson } from "@/services/api";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const difficultyColors: Record<string, string> = {
   Easy: "text-neon-green bg-neon-green/10 border-neon-green/30",
@@ -29,12 +30,20 @@ const levelLabels: Record<string, string> = {
   advanced: "Nâng cao",
 };
 
+const levelLabelsEn: Record<string, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+};
+
 const LearningDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [progressStatus, setProgressStatus] = useState<string | null>(null);
+  const [contentLang, setContentLang] = useState<"vi" | "en">("vi");
 
+  const { lang, setLang } = useLanguage();
   const userName = localStorage.getItem("user_name") || "Học viên";
 
   useEffect(() => {
@@ -52,6 +61,15 @@ const LearningDetail = () => {
     };
     load();
   }, [id]);
+
+  useEffect(() => {
+    setContentLang(lang);
+  }, [lang]);
+
+  const handleLangChange = (l: "vi" | "en") => {
+    setContentLang(l);
+    setLang(l);
+  };
 
   const handleMarkComplete = async () => {
     if (!id) return;
@@ -76,6 +94,11 @@ const LearningDetail = () => {
     );
   }
 
+  const displayTitle = contentLang === "en" && lesson.title_en ? lesson.title_en : lesson.title;
+  const displayDesc = contentLang === "en" && lesson.description_en ? lesson.description_en : lesson.description;
+  const displayContent = contentLang === "en" && lesson.content_en ? lesson.content_en : (lesson.content || "");
+  const displayLevel = contentLang === "en" ? (levelLabelsEn[lesson.level] || lesson.level) : (levelLabels[lesson.level] || lesson.level);
+
   return (
     <div className="min-h-screen bg-background relative">
       <ShootingStars />
@@ -91,10 +114,10 @@ const LearningDetail = () => {
           <div className="glass-card rounded-xl p-6 md:p-8 mb-6">
             <div className="flex items-center gap-3 mb-4">
               <BookOpen size={24} className="text-primary" />
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground">{lesson.title}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground">{displayTitle}</h1>
             </div>
 
-            <p className="text-muted-foreground mb-6">{lesson.description}</p>
+            <p className="text-muted-foreground mb-6">{displayDesc}</p>
 
             <div className="flex items-center gap-3 flex-wrap">
               <span className={`text-xs px-3 py-1.5 rounded-full border ${difficultyColors[lesson.difficulty] || "text-muted-foreground border-border"}`}>
@@ -104,8 +127,24 @@ const LearningDetail = () => {
                 {lesson.category}
               </span>
               <span className="text-xs px-3 py-1.5 rounded-full border border-border text-muted-foreground">
-                {levelLabels[lesson.level] || lesson.level}
+                {displayLevel}
               </span>
+
+              <div className="flex items-center gap-1 ml-auto">
+                <button
+                  onClick={() => handleLangChange("vi")}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${contentLang === "vi" ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  VI
+                </button>
+                <button
+                  onClick={() => handleLangChange("en")}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${contentLang === "en" ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  EN
+                </button>
+              </div>
+
               {progressStatus && (
                 <button
                   onClick={handleMarkComplete}
@@ -125,7 +164,7 @@ const LearningDetail = () => {
 
           <div className="glass-card rounded-xl p-6 md:p-8 prose prose-invert max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {lesson.content || ""}
+              {displayContent}
             </ReactMarkdown>
           </div>
         </div>

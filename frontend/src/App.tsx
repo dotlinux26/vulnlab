@@ -1,3 +1,4 @@
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom"; // Thêm Navigate
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -49,6 +50,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }: { children: JSX.Elem
 const App = () => (
   <GoogleOAuthProvider clientId="781426076194-r24limofujo7la0biar2b15fbvcu00jl.apps.googleusercontent.com">
     <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -80,6 +82,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   </GoogleOAuthProvider>
 );

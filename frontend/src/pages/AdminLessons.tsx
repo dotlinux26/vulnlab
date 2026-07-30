@@ -7,11 +7,14 @@ const AdminLessons = () => {
   const [formData, setFormData] = useState({
     id: "",
     title: "",
+    title_en: "",
     description: "",
+    description_en: "",
     category: "Web",
     difficulty: "Easy",
     level: "beginner",
     content: "",
+    content_en: "",
     imageUrl: "",
     orderIndex: 0,
   });
@@ -80,11 +83,14 @@ const AdminLessons = () => {
     setFormData({
       id: lesson.id,
       title: lesson.title,
+      title_en: lesson.title_en || "",
       description: lesson.description,
+      description_en: lesson.description_en || "",
       category: lesson.category,
       difficulty: lesson.difficulty,
       level: lesson.level,
       content: lesson.content,
+      content_en: lesson.content_en || "",
       imageUrl: lesson.imageUrl || "",
       orderIndex: lesson.orderIndex || 0,
     });
@@ -119,11 +125,14 @@ const AdminLessons = () => {
     setFormData({
       id: "",
       title: "",
+      title_en: "",
       description: "",
+      description_en: "",
       category: "Web",
       difficulty: "Easy",
       level: "beginner",
       content: "",
+      content_en: "",
       imageUrl: "",
       orderIndex: 0,
     });
@@ -164,12 +173,22 @@ const AdminLessons = () => {
               />
             </div>
             <div>
-              <label className="block font-bold mb-1 text-foreground">Tiêu đề*</label>
+              <label className="block font-bold mb-1 text-foreground">Tiêu đề (VI)*</label>
               <input
                 type="text"
                 name="title"
                 required
                 value={formData.title}
+                onChange={handleChange}
+                className="w-full p-2 bg-accent border border-border rounded text-foreground"
+              />
+            </div>
+            <div>
+              <label className="block font-bold mb-1 text-foreground">Title (EN)</label>
+              <input
+                type="text"
+                name="title_en"
+                value={formData.title_en}
                 onChange={handleChange}
                 className="w-full p-2 bg-accent border border-border rounded text-foreground"
               />
@@ -223,11 +242,22 @@ const AdminLessons = () => {
           </div>
 
           <div>
-            <label className="block font-bold mb-1 text-foreground">Mô tả</label>
+            <label className="block font-bold mb-1 text-foreground">Mô tả (VI)</label>
             <textarea
               name="description"
               rows={3}
               value={formData.description}
+              onChange={handleChange}
+              className="w-full p-2 bg-accent border border-border rounded text-foreground"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold mb-1 text-foreground">Description (EN)</label>
+            <textarea
+              name="description_en"
+              rows={3}
+              value={formData.description_en}
               onChange={handleChange}
               className="w-full p-2 bg-accent border border-border rounded text-foreground"
             />
@@ -285,10 +315,18 @@ const AdminLessons = () => {
           </div>
 
           <div>
-            <label className="block font-bold mb-1 text-foreground">Nội dung (Markdown)*</label>
+            <label className="block font-bold mb-1 text-foreground">Nội dung (VI - Markdown)*</label>
             <MarkdownEditor
               value={formData.content}
               onChange={(val) => setFormData(prev => ({ ...prev, content: val }))}
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold mb-1 text-foreground">Content (EN - Markdown)</label>
+            <MarkdownEditor
+              value={formData.content_en}
+              onChange={(val) => setFormData(prev => ({ ...prev, content_en: val }))}
             />
           </div>
 

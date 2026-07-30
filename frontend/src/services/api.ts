@@ -70,11 +70,14 @@ export const logout = async () => {
 export interface Lesson {
     id: string;
     title: string;
+    title_en?: string;
     description: string;
+    description_en?: string;
     category: string;
     difficulty: string;
     level: string;
     content?: string;
+    content_en?: string;
     imageUrl?: string;
     orderIndex: number;
 }

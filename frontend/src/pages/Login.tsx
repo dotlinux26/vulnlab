@@ -11,6 +11,7 @@ interface AuthResponse {
     user: {
         name: string;
         email: string;
+        picture?: string;
         role?: string; 
     };
 }
@@ -35,6 +36,7 @@ const Login = () => {
         const data: AuthResponse = await res.json();
 	if (data.success) {
 	    localStorage.setItem("user_name", data.user.name);
+	    localStorage.setItem("user_picture", data.user.picture || "");
 	    localStorage.setItem("is_logged_in", "true");
 	    localStorage.setItem("user_role", data.user.role || "student"); 
 	    

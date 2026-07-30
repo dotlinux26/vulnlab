@@ -3,6 +3,7 @@ import { Search, Filter, X, Loader2, BookOpen, ChevronDown } from "lucide-react"
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { fetchLessons, fetchLessonProgress, type Lesson, type PaginatedResponse } from "@/services/api";
 
 const difficulties = ["Easy", "Medium", "Hard"];
@@ -13,6 +14,12 @@ const levelLabels: Record<string, string> = {
   beginner: "Cơ bản",
   intermediate: "Trung cấp",
   advanced: "Nâng cao",
+};
+
+const levelLabelsEn: Record<string, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
 };
 
 const difficultyColors: Record<string, string> = {
@@ -44,6 +51,7 @@ const Learning = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   const userName = localStorage.getItem("user_name") || "Học viên";
+  const { lang } = useLanguage();
   const [progress, setProgress] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -226,7 +234,7 @@ const Learning = () => {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <BookOpen size={18} className={progress[lesson.id] === 'completed' ? 'text-green-500' : 'text-primary'} />
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{lesson.title}</h3>
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{lang === "en" && lesson.title_en ? lesson.title_en : lesson.title}</h3>
                     </div>
                     {progress[lesson.id] === 'completed' && (
                       <span className="text-xs text-green-500 bg-green-500/10 border border-green-500/30 px-2 py-0.5 rounded-full">Done</span>
@@ -235,7 +243,7 @@ const Learning = () => {
                       <span className="text-xs text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-2 py-0.5 rounded-full">Đang học</span>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{lesson.description}</p>
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{lang === "en" && lesson.description_en ? lesson.description_en : lesson.description}</p>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={`text-xs px-2 py-1 rounded-full border ${difficultyColors[lesson.difficulty] || "text-muted-foreground border-border"}`}>
                       {lesson.difficulty}
@@ -243,7 +251,7 @@ const Learning = () => {
                     <span className={`text-xs px-2 py-1 rounded-full border ${categoryColors[lesson.category] || "text-muted-foreground border-border"}`}>
                       {lesson.category}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-auto">{levelLabels[lesson.level] || lesson.level}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">{lang === "en" ? (levelLabelsEn[lesson.level] || lesson.level) : (levelLabels[lesson.level] || lesson.level)}</span>
                   </div>
                 </Link>
               </div>

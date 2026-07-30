@@ -38,7 +38,9 @@ User.init({
 export class Lab extends Model {
   declare id: string;
   declare title: string;
+  declare title_en: string;
   declare description: string;
+  declare description_en: string;
   declare difficulty: string;
   declare category: string;
   declare points: number;
@@ -54,7 +56,9 @@ export class Lab extends Model {
 Lab.init({
   id: { type: DataTypes.STRING, primaryKey: true },
   title: { type: DataTypes.STRING, allowNull: false },
+  title_en: { type: DataTypes.STRING, allowNull: true },
   description: { type: DataTypes.TEXT },
+  description_en: { type: DataTypes.TEXT, allowNull: true },
   difficulty: { type: DataTypes.STRING },
   category: { type: DataTypes.STRING },
   points: { type: DataTypes.INTEGER, defaultValue: 0 },
@@ -138,11 +142,14 @@ Submission.belongsTo(Lab, { foreignKey: 'labId' });
 export class Lesson extends Model {
   declare id: string;
   declare title: string;
+  declare title_en: string;
   declare description: string;
+  declare description_en: string;
   declare category: string;
   declare difficulty: string;
   declare level: string;
   declare content: string;
+  declare content_en: string;
   declare imageUrl: string;
   declare orderIndex: number;
 }
@@ -150,11 +157,14 @@ export class Lesson extends Model {
 Lesson.init({
   id: { type: DataTypes.STRING, primaryKey: true },
   title: { type: DataTypes.STRING, allowNull: false },
+  title_en: { type: DataTypes.STRING, allowNull: true },
   description: { type: DataTypes.TEXT },
+  description_en: { type: DataTypes.TEXT, allowNull: true },
   category: { type: DataTypes.STRING },
   difficulty: { type: DataTypes.STRING },
   level: { type: DataTypes.STRING },
   content: { type: DataTypes.TEXT },
+  content_en: { type: DataTypes.TEXT, allowNull: true },
   imageUrl: { type: DataTypes.STRING },
   orderIndex: { type: DataTypes.INTEGER, defaultValue: 0 },
 }, { sequelize, modelName: 'lesson' });

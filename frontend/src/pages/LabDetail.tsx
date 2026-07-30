@@ -6,6 +6,7 @@ import ShootingStars from "@/components/ShootingStars";
 import { fetchLab, submitFlag } from "@/services/api";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const LabDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,7 +14,9 @@ const LabDetail = () => {
   const [isLoadingLab, setIsLoadingLab] = useState(true);
   const [flagInput, setFlagInput] = useState("");
   const [result, setResult] = useState<"success" | "fail" | null>(null);
+  const [descLang, setDescLang] = useState<"vi" | "en">("vi");
 
+  const { lang, setLang } = useLanguage();
   const userName = localStorage.getItem("user_name") || "Học viên";
 
   useEffect(() => {
@@ -30,6 +33,15 @@ const LabDetail = () => {
         });
     }
   }, [id]);
+
+  useEffect(() => {
+    setDescLang(lang);
+  }, [lang]);
+
+  const handleLangChange = (l: "vi" | "en") => {
+    setDescLang(l);
+    setLang(l);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +61,9 @@ const LabDetail = () => {
 
   const diffMap = { Easy: "text-neon-green", Medium: "text-yellow-400", Hard: "text-destructive" } as const;
   const diffColor = diffMap[lab.difficulty as keyof typeof diffMap] || "text-primary";
+
+  const displayTitle = descLang === "en" && lab.title_en ? lab.title_en : lab.title;
+  const displayDesc = descLang === "en" && lab.description_en ? lab.description_en : lab.description;
 
   return (
     <div className="min-h-screen bg-background text-foreground relative transition-colors duration-300">
@@ -82,13 +97,28 @@ const LabDetail = () => {
           </Link>
 
           <div className="bg-card border border-border rounded-[2rem] p-8 md:p-10 mb-8 shadow-xl">
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-4 uppercase">{lab.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-4 uppercase">{displayTitle}</h1>
             <div className="flex flex-wrap items-center gap-4 text-sm font-mono font-bold">
               <span className={`px-3 py-1 rounded-md bg-muted border border-border uppercase ${diffColor}`}>
                 {lab.difficulty}
               </span>
               <span className="text-muted-foreground">CATEGORY: {lab.category}</span>
               <span className="text-primary tracking-widest">+{lab.points} XP</span>
+
+              <div className="flex items-center gap-1 ml-auto">
+                <button
+                  onClick={() => handleLangChange("vi")}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${descLang === "vi" ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  VI
+                </button>
+                <button
+                  onClick={() => handleLangChange("en")}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${descLang === "en" ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  EN
+                </button>
+              </div>
             </div>
             
             {lab.downloadUrl && (
@@ -105,16 +135,15 @@ const LabDetail = () => {
               Nhiệm Vụ
             </h2>
             
-            {/* SỬA NGAY TẠI ĐÂY: DÙNG REACT MARKDOWN VÀ PROSE CHUẨN THEO THEME */}
             <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-foreground font-sans leading-relaxed
               prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight
               prose-p:text-muted-foreground prose-strong:text-foreground prose-a:text-primary
               prose-code:text-primary prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
               prose-pre:bg-[#0a0a0a] prose-pre:border prose-pre:border-border">
               
-              {lab.description ? (
+              {displayDesc ? (
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {lab.description}
+                  {displayDesc}
                 </ReactMarkdown>
               ) : (
                 <p className="italic font-mono text-center">Nội dung nhiệm vụ đang được mã hóa...</p>
