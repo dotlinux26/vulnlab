@@ -82,6 +82,21 @@ Users ← Shell ← Filesystem ← Kernel ← Hardware
 
 ### 1. Điều hướng & File
 
+**Bảng chú thích lệnh:**
+
+| Lệnh | Công dụng |
+|------|-----------|
+| `pwd` | In ra đường dẫn thư mục hiện tại |
+| `ls` | Liệt kê file/thư mục |
+| `ls -la` | Liệt kẻ chi tiết (gồm cả file ẩn) |
+| `cd` | Di chuyển đến thư mục khác |
+| `mkdir` | Tạo thư mục mới |
+| `touch` | Tạo file rỗng |
+| `cp` | Sao chép file |
+| `mv` | Di chuyển / đổi tên file |
+| `rm` | Xóa file |
+| `rm -rf` | Xóa thư mục (cẩn thận!) |
+
 ```bash
 user@linux:~$ pwd
 /home/user
@@ -114,6 +129,16 @@ user@linux:~/projects$ ls
 
 ### 2. Xem nội dung file
 
+**Bảng chú thích lệnh:**
+
+| Lệnh | Công dụng |
+|------|-----------|
+| `cat` | In toàn bộ nội dung file |
+| `less` | Xem nội dung từ từ (nhấn `q` để thoát) |
+| `head -n N` | Xem N dòng đầu tiên |
+| `tail -n N` | Xem N dòng cuối cùng |
+| `tail -f` | Theo dõi log realtime |
+
 ```bash
 user@linux:~$ cat hello.txt
 Hello, Linux!
@@ -131,6 +156,21 @@ nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
 
 ### 3. Quyền (Permission)
 
+**Bảng chú thích lệnh:**
+
+| Lệnh | Công dụng |
+|------|-----------|
+| `chmod` | Thay đổi quyền của file |
+| `chown` | Đổi chủ sở hữu file |
+
+**Quyền trong Linux:**
+
+| Ký hiệu | Ý nghĩa |
+|---------|---------|
+| `rwx` | Đọc, ghi, thực thi |
+| `r-x` | Đọc, thực thi |
+| `---` | Không có quyền |
+
 ```bash
 user@linux:~$ ls -l script.sh
 -rw-r--r-- 1 user user 0 Jul 30 10:20 script.sh
@@ -144,13 +184,18 @@ user@linux:~$ ls -l script.sh
 -rwxr-xr-x 1 user user 0 Jul 30 10:20 script.sh
 ```
 
-| Ký hiệu | Ý nghĩa |
-|---------|---------|
-| `rwx` | Đọc, ghi, thực thi |
-| `r-x` | Đọc, thực thi |
-| `---` | Không có quyền |
-
 ### 4. Tiến trình & Hệ thống
+
+**Bảng chú thích lệnh:**
+
+| Lệnh | Công dụng |
+|------|-----------|
+| `ps aux` | Xem danh sách tiến trình |
+| `top` / `htop` | Monitor hệ thống realtime |
+| `kill -9 PID` | Buộc dừng tiến trình |
+| `uname -a` | Xem thông tin kernel |
+| `df -h` | Xem dung lượng ổ cứng |
+| `free -h` | Xem dung lượng RAM |
 
 ```bash
 user@linux:~$ uname -a
@@ -174,6 +219,17 @@ user        1234  0.0  0.1  28764  6548 pts/0    Ss   10:15   0:00 -bash
 ```
 
 ### 5. Mạng
+
+**Bảng chú thích lệnh:**
+
+| Lệnh | Công dụng |
+|------|-----------|
+| `ip a` | Xem địa chỉ IP và network interface |
+| `ping` | Kiểm tra kết nối mạng |
+| `netstat -tulpn` | Xem cổng đang mở |
+| `ss -tulpn` | Thay thế hiện đại cho netstat |
+| `curl` | Gửi HTTP request |
+| `wget` | Tải file từ URL |
 
 ```bash
 user@linux:~$ ip a
@@ -205,6 +261,12 @@ Shell là chương trình nhận lệnh từ người dùng và giao tiếp vớ
 - **bash** – mặc định hầu hết distro
 - **zsh** – nâng cao hơn (Oh My Zsh!)
 - **fish** – friendly interactive, tự gợi ý
+
+| Lệnh | Công dụng |
+|------|-----------|
+| `echo $SHELL` | Xem shell đang dùng |
+| `which bash` | Xem đường dẫn bash |
+| `bash --version` | Xem phiên bản bash |
 
 ```bash
 user@linux:~$ echo $SHELL

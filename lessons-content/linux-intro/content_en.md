@@ -82,6 +82,21 @@ Users ← Shell ← Filesystem ← Kernel ← Hardware
 
 ### 1. Navigation & File Operations
 
+**Command Reference:**
+
+| Command | Description |
+|---------|-------------|
+| `pwd` | Print current working directory |
+| `ls` | List files and directories |
+| `ls -la` | List all files (including hidden) with details |
+| `cd` | Change directory |
+| `mkdir` | Create a new directory |
+| `touch` | Create an empty file |
+| `cp` | Copy a file |
+| `mv` | Move / rename a file |
+| `rm` | Delete a file |
+| `rm -rf` | Delete a directory (use with caution!) |
+
 ```bash
 user@linux:~$ pwd
 /home/user
@@ -114,6 +129,16 @@ user@linux:~/projects$ ls
 
 ### 2. Viewing File Contents
 
+**Command Reference:**
+
+| Command | Description |
+|---------|-------------|
+| `cat` | Print entire file content |
+| `less` | Scroll through file (press `q` to quit) |
+| `head -n N` | Show first N lines |
+| `tail -n N` | Show last N lines |
+| `tail -f` | Follow log file in real-time |
+
 ```bash
 user@linux:~$ cat hello.txt
 Hello, Linux!
@@ -131,6 +156,21 @@ nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
 
 ### 3. File Permissions
 
+**Command Reference:**
+
+| Command | Description |
+|---------|-------------|
+| `chmod` | Change file permissions |
+| `chown` | Change file owner |
+
+**Permission Symbols:**
+
+| Symbol | Meaning |
+|--------|---------|
+| `rwx` | Read, write, execute |
+| `r-x` | Read, execute |
+| `---` | No permissions |
+
 ```bash
 user@linux:~$ ls -l script.sh
 -rw-r--r-- 1 user user 0 Jul 30 10:20 script.sh
@@ -144,13 +184,18 @@ user@linux:~$ ls -l script.sh
 -rwxr-xr-x 1 user user 0 Jul 30 10:20 script.sh
 ```
 
-| Symbol | Meaning |
-|--------|---------|
-| `rwx` | Read, write, execute |
-| `r-x` | Read, execute |
-| `---` | No permissions |
-
 ### 4. Processes & System
+
+**Command Reference:**
+
+| Command | Description |
+|---------|-------------|
+| `ps aux` | List all running processes |
+| `top` / `htop` | Real-time system monitor |
+| `kill -9 PID` | Force kill a process |
+| `uname -a` | Show kernel information |
+| `df -h` | Show disk usage |
+| `free -h` | Show RAM usage |
 
 ```bash
 user@linux:~$ uname -a
@@ -174,6 +219,17 @@ user        1234  0.0  0.1  28764  6548 pts/0    Ss   10:15   0:00 -bash
 ```
 
 ### 5. Networking
+
+**Command Reference:**
+
+| Command | Description |
+|---------|-------------|
+| `ip a` | Show IP addresses and network interfaces |
+| `ping` | Test network connectivity |
+| `netstat -tulpn` | Show open ports |
+| `ss -tulpn` | Modern replacement for netstat |
+| `curl` | Send HTTP requests |
+| `wget` | Download files from URL |
 
 ```bash
 user@linux:~$ ip a
@@ -205,6 +261,14 @@ The shell is the program that interprets your commands and talks to the kernel.
 - **bash** – default on most distros
 - **zsh** – enhanced (Oh My Zsh!)
 - **fish** – friendly interactive shell with auto-suggestions
+
+**Command Reference:**
+
+| Command | Description |
+|---------|-------------|
+| `echo $SHELL` | Show current shell |
+| `which bash` | Show bash binary path |
+| `bash --version` | Show bash version |
 
 ```bash
 user@linux:~$ echo $SHELL
