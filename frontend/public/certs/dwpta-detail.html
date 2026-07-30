@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DWPTA Certification Detail</title>
+    <style>
+        :root {
+            --bg-base: #0d1117;
+            
+            --border-primary: #30363d;
+            
+            --text-muted: #8b949e;
+            --neon-purple: #a371f7;
+            --neon-red: #f85149;
+            --neon-blue: #58a6ff;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            --font-mono: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+        }
+
+        /* --- bn tail --- */
+	.badge-preview-area {
+	    display: flex;
+	    justify-content: center;
+	    align-items: center;
+	    padding: 30px 0;
+	}
+
+	.badge-wrapper {
+	    width: 250px;
+	    height: 250px;
+	    display: flex;
+	    justify-content: center;
+	    align-items: center;
+	    position: relative;
+	}
+
+	/* Vòng ngoài cùng */
+	.ring-3 {
+	    position: absolute;
+	    width: 240px;
+	    height: 240px;
+	    border-radius: 50%;
+	    border: 3px dashed rgba(255, 255, 255, 0.05);
+	    border-right: 3px dashed #a855f7;
+	    animation: badge-spin-reverse 20s linear infinite;
+	    z-index: 1;
+	}
+
+	/* Vòng bên trong */
+	.ring-ring {
+	    position: absolute;
+	    width: 190px;
+	    height: 190px;
+	    border-radius: 50%;
+	    border: 3px dashed rgba(255, 255, 255, 0.1);
+	    border-left: 3px dashed #a855f7;
+	    animation: badge-spin 15s linear infinite;
+	    z-index: 2;
+	}
+
+	/* Nhân vật chính ở giữa */
+	.badge-core {
+	    width: 130px;
+	    height: 130px;
+	    background: rgba(10, 10, 10, 0.9);
+	    border-radius: 50%;
+	    display: flex;
+	    justify-content: center;
+	    align-items: center;
+	    border: 4px solid #22c55e;
+	    box-shadow: 0 0 50px rgba(34, 197, 94, 0.4), inset 0 0 20px rgba(34, 197, 94, 0.2);
+	    z-index: 5;
+	}
+
+	.badge-core svg {
+	    width: 60px;
+	    height: 60px;
+	    stroke: #22c55e;
+	    stroke-width: 1.5;
+	    fill: none;
+	    filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.6));
+	}
+
+	@keyframes badge-spin {
+	    100% { transform: rotate(360deg); }
+	}
+
+	@keyframes badge-spin-reverse {
+	    100% { transform: rotate(-360deg); }
+	}
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-w-4xl: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Glitch/Neon Header */
+        .cert-header {
+            border-bottom: 1px solid var(--border-primary);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .cert-title {
+            color: var(--neon-purple);
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-align: center;
+            text-transform: uppercase;
+            margin: 0 0 10px 0;
+      	 
+            text-shadow: 0px 0px 10px rgba(88, 166, 255, 0.2); 
+        }
+
+        .quote {
+            font-family: var(--font-mono);
+            font-size: 18px;
+            color: black;
+            border-left: 3px solid var(--neon-purple);
+            padding-left: 15px;
+            margin: 15px 0;
+            font-style: italic;
+            background: #E0F2F7;
+        }
+
+        /* Warning Box */
+        .alert-box {
+            background-color: rgba(248, 81, 73, 0.05);
+            border: 1px solid rgba(248, 81, 73, 0.4);
+            border-left: 4px solid var(--neon-red);
+            padding: 20px;
+            border-radius: 6px;
+            margin: 30px 0;
+        }
+
+        .alert-title {
+            color: var(--neon-red);
+            font-family: var(--font-mono);
+            font-weight: bold;
+            font-size: 13px;
+            letter-spacing: 1px;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+        }
+
+        .alert-box p {
+            margin: 0;
+            font-size: 15px;
+        }
+
+        /* Section Styling */
+        h2 {
+            
+            font-size: 20px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--neon-blue);
+        }
+
+        h2::before {
+            content: "";
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            align-items:center;
+            background-color: var(--neon-blue);
+            box-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        /* Custom Lists */
+        ul.tech-list {
+            
+            list-style: none;
+
+
+            padding: 0;
+            margin-top: 10px;
+        }
+
+        ul.tech-list li {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+
+        ul.tech-list li:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px rgba(88, 166, 255, 0.1);
+        }
+
+        ul.tech-list strong {
+            color: var(--neon-blue);
+            font-family: var(--font-mono);
+            font-size: 15px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Compact List for Rules */
+        ul.rule-list {
+            padding-left: 20px;
+        }
+
+        ul.rule-list li {
+            margin-bottom: 10px;
+            padding-left: 5px;
+        }
+        
+        ul.rule-list li::marker {
+            color: var(--neon-red);
+            font-size: 1.2em;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border-primary);
+            text-align: right;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="cert-header">
+        <h1 class="cert-title">Dot Certified Associate <span style = "color:#22c55e;" > Web Penetration Tester</span> (DCA<span style = "color:#22c55e;" >WPT</span>)</h1>
+        <div class="quote">
+            "Hacker giỏi tìm ra lỗ hổng. Pentester xuất sắc biết cách tài liệu hóa để bảo vệ hệ thống."
+        </div>
+    </div>
+    <div class="badge-preview-area">
+	    <div class="badge-wrapper">
+	        <div class="ring-3"></div>
+	        <div class="ring-ring"></div>
+	        <div class="badge-core">
+	            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+	                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+	            </svg>
+	        </div>
+	    </div>
+	</div>
+
+    <p>Chào mừng bạn đến với kỳ sát hạch đánh giá năng lực Web Penetration Tester cấp độ khởi điểm thuộc hệ thống của <strong>Distributed Offensive Technology Solutions Group</strong>.</p>
+
+    <div class="alert-box">
+        <h3 class="alert-title">[THÔNG BÁO QUAN TRỌNG]</h3>
+        <p>Chúng tôi không cung cấp danh tiếng hay giá trị thương hiệu hào nhoáng cho bạn như các loại chứng chỉ quốc tế ngoài thị trường. <strong>DCAWPT</strong> không cấp chứng nhận dựa trên lý thuyết hay bài trắc nghiệm. Đây là một <strong>chứng chỉ minh chứng năng lực thực chiến</strong>.</p>
+        <p style="margin-top: 10px;">
+            Hệ thống yêu cầu bạn phải thoát khỏi tư duy của một học viên thông thường chỉ biết tìm kiếm cờ (flag). 
+            Thay vào đó, bạn bắt buộc phải hoàn thành một hợp đồng kiểm thử xâm nhập thực thụ, với những quy tắc khắt khe và tài liệu báo cáo chuẩn mực dành cho khách hàng. 
+            Chúng tôi không cấp bằng dựa trên việc bạn "biết" lỗ hổng, chúng tôi chứng nhận khi bạn chứng minh được mình có khả năng "xử lý" và "tài liệu hóa" lỗ hổng đó trong môi trường doanh nghiệp.
+        </p>
+    </div>
+
+    <h2>1. Cấu trúc Dự án Thực tế</h2>
+    <p>Ứng viên đảm nhận vai trò Pentester độc lập thực hiện đánh giá một nền tảng chuẩn bị Go-live. Kỳ thi đánh giá năng lực qua 03 hạng mục cốt lõi:</p>
+    
+    <ul class="tech-list">
+        <li>
+            <strong>[01] Security Control Validation</strong>
+            Đánh giá chốt chặn. Tấn công thử nghiệm vào các hệ thống phòng thủ đã được thiết lập (Sanitize, Parameterized Queries, Rate Limit) nhằm xác nhận tính hiệu quả của chúng.
+        </li>
+        <li>
+            <strong>[02] Advanced Exploitation</strong>
+            Khai thác chuyên sâu. Vận dụng tư duy Black-box để tìm kiếm các lỗ hổng ẩn, nối chuỗi chúng lại (Vulnerability Chaining) để chiếm quyền điều khiển cao nhất.
+        </li>
+        <li>
+            <strong>[03] Professional Reporting</strong>
+            Viết báo cáo bảo mật. Toàn bộ phát hiện phải được tài liệu hóa thành một bản báo cáo chuyên nghiệp theo Template chỉ định (bao gồm Root Cause, Impact, Remediation và PoC).
+        </li>
+    </ul>
+
+    <h2>2. Tiêu chuẩn Kỹ năng</h2>
+    <ul class="rule-list">
+        <li><strong>Kỹ năng kỹ thuật:</strong> Khai thác lỗ hổng OWASP TOP 10, chainning vulnerability.</li>
+        <li><strong>Tư duy tuân thủ:</strong> Kỷ luật tuân thủ Rules of Engagement (RoE), tuyệt đối không tấn công ngoài phạm vi (Out of Scope) hay sử dụng tool cấm.</li>
+        <li><strong>Kỹ năng lập tài liệu:</strong> Khả năng mô tả luồng tấn công logic, minh chứng trực quan bằng ảnh chụp (PoC) rõ nét.</li>
+    </ul>
+
+    <h2>3. Quy tắc Sát hạch</h2>
+    <ul class="rule-list">
+        <li><strong>Giới hạn thời gian:</strong> 24 giờ liên tục để kiểm thử và báo cáo. Hợp đồng kiểm thử hoạt động theo cơ chế đếm ngược nghiêm ngặt. Hệ thống sẽ đóng băng ngay khi hết giờ.</li>
+        <li><strong>Tiêu chí Đạt (Pass):</strong> Trích xuất thành công Flag chỉ là điều kiện cần. Quyết định cấp chứng chỉ phụ thuộc hoàn toàn vào mức độ hoàn thiện và chính xác của bản Báo cáo đánh giá (Report) được tải lên hệ thống.</li>
+    </ul>
+    
+    <div style="margin-top: 60px; padding-top: 30px; border-top: 1px solid var(--border-primary);">
+        <h2>MẪU CHỨNG CHỈ SỐ</h2>
+        <p style="font-size: 14px;  margin-bottom: 20px;">
+            Hệ thống cấp phát chứng chỉ số định danh thông qua mã băm (Hash) duy nhất, có thể tra cứu công khai:
+        </p>
+        <div style="width: 100%; height: 800px; border: 1px solid var(--border-primary); border-radius: 8px; overflow: hidden; background: #fff;">
+            <iframe 
+                src="https://vuln.ghedahaui.online/checkout-cert/1b22eab0eed605514b1b4a6e5c38fc06d57e01f88b2a059df20e09ee36c980c5" 
+                style="width: 100%; height: 100%; border: none;"
+                scrolling="no">
+            </iframe>
+        </div>
+        <p style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 10px;">
+            (Bản xem trước giao diện chứng chỉ kỹ thuật số)
+        </p>
+    </div>
+
+    <div class="footer">
+        [SYS_LOG] GENERATED BY D.O.T SOLUTIONS GROUP<br>
+        SECURE_CONNECTION_ESTABLISHED
+    </div>
+
+</div>
+
+</body>
+</html>

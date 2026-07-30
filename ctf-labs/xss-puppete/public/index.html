@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>D.O.T Support Center</title>
+    <style>
+        :root { --primary: #00f3ff; --bg: #050a15; --card: #0f172a; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; }
+        .support-box { background: var(--card); padding: 30px; border-radius: 12px; border: 1px solid #1e293b; width: 100%; max-width: 500px; }
+        h2 { color: var(--primary); text-align: center; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .footer { margin-top: 20px; font-size: 0.8rem; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div class="support-box">
+        <h2>📩 Gửi Khiếu Nại</h2>
+        <p style="font-size: 0.9rem; color: #94a3b8;">Hệ thống đang lỗi? Hãy gửi báo cáo, Phán Quan sẽ kiểm tra ngay!</p>
+        <input type="text" id="name" placeholder="Tên của bạn">
+        <input type="email" id="email" placeholder="Email liên hệ">
+        <textarea id="message" rows="5" placeholder="Nội dung khiếu nại (Chấp nhận HTML)"></textarea>
+        <button onclick="send()">GỬI YÊU CẦU</button>
+    </div>
+
+    <div class="support-box" style="margin-top: 20px;">
+        <h2>🚩 Nộp Flag</h2>
+        <input type="text" id="flagInput" placeholder="FLAG{...}">
+        <button style="background: #22c55e;" onclick="checkFlag()">KIỂM TRA</button>
+    </div>
+
+    <script>
+        async function send() {
+            const data = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                message: document.getElementById('message').value
+            };
+            const res = await fetch('/labs-env/xss/api/submit-ticket', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            alert(result.msg);
+        }
+
+        async function checkFlag() {
+            const res = await fetch('/labs-env/xss/api/verify-flag', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ flag: document.getElementById('flagInput').value })
+            });
+            const result = await res.json();
+            alert(result.msg);
+        }
+    </script>
+</body>
+</html>

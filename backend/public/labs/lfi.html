@@ -1,0 +1,31 @@
+<p>The Poisoned Log: Hành trình từ LFI đến RCE</p>
+<p><strong>Mức độ:</strong> Trung bình (Medium)</p>
+<p><strong>Kỹ năng yêu cầu:</strong> Local File Inclusion (LFI), PHP Wrappers, Thao túng HTTP Header, Log Poisoning, Remote Code Execution (RCE).</p>
+<p><strong>Mục tiêu tối thượng:</strong> Leo thang đặc quyền, chiếm quyền điều khiển máy chủ (RCE) và đọc nội dung tệp <code>/flag.txt</code>.</p>
+<h2 id="b-i-c-nh-nhi-m-v-">Bối cảnh nhiệm vụ</h2>
+<p>Lập trình viên của Ghedahaui Group lại vừa &quot;tạo nét&quot; bằng cách tự code một tính năng đa ngôn ngữ và xem nhật ký (log) hệ thống. Vấn đề là anh ta tin tưởng tuyệt đối vào mọi dữ liệu người dùng nhập vào.</p>
+<p><strong><a href="https://vuln.ghedahaui.online/labs-env/lfi">TRUY CẬP BÀI LAB</a></strong></p>
+<h2 id="-br-br-"><br><br></h2>
+<h3 id="-l-u-sinh-t-t-admin">⚠️ LƯU Ý SINH TỬ TỪ ADMIN</h3>
+<p>Trong kỹ thuật Log Poisoning, việc tiêm sai cú pháp (Syntax Error) vào tệp Log sẽ dẫn đến hiệu ứng <strong>&quot;Poisoned the well&quot;</strong> - Nghĩa là tệp Log bị hỏng hoàn toàn. Lúc này, bất kỳ ai kích hoạt LFI cũng sẽ chỉ nhận được thông báo lỗi <code>Parse error</code> trắng trang và hệ thống sẽ đóng băng chuỗi thực thi mã.</p>
+<p><strong>Nếu bạn (hoặc ai đó) lỡ tay làm hỏng tệp Log:</strong>
+Đừng hoảng loạn! Hệ thống đã trang bị sẵn &quot;Hộp cứu thương&quot;. Hãy truy cập ngay vào Endpoint dưới đây để &quot;rửa ruột&quot; Server, dọn sạch bãi rác do payload lỗi gây ra và bắt đầu lại từ đầu:</p>
+<h2 id="-h-i-sinh-t-p-log-t-i-y-labs-env-lfi-reset_log-php-"><strong><a href="/labs-env/lfi/reset_log.php">HỒI SINH TỆP LOG TẠI ĐÂY</a></strong></h2>
+<p><br><br></p>
+<p>Lý thuyết về Web Security các bạn đã nắm được, bây giờ là lúc chứng minh kỹ năng thực hành. Hệ thống này đang tồn tại một lỗ hổng cho phép bạn &quot;đầu độc&quot; chính những tệp nhật ký mà nó ghi lại để chiếm quyền điều khiển toàn bộ máy chủ.
+<br><br></p>
+<h2 id="l-tr-nh-x-m-nh-p-d-nh-cho-h-c-vi-n-">Lộ trình xâm nhập (Dành cho học viên)</h2>
+<p>Hãy chứng minh năng lực của bạn qua 4 giai đoạn sinh tử:
+<br><br>
+<strong>1. Trinh sát &amp; Dò dẫm (Reconnaissance):</strong> Đừng vội vã. Hãy tìm kiếm các điểm tiếp nhận tệp tin thông qua tham số trên URL. Thử sử dụng kỹ thuật Path Traversal (<code>../</code>) để thoát khỏi thư mục gốc của Web. Bài test đầu tiên: Bạn có đọc được tệp <code>/etc/passwd</code> của Linux không?</p>
+<p><strong>2. Bóc tách mã nguồn ẩn:</strong> Hàm <code>include()</code> của PHP sẽ luôn <em>thực thi</em> mã. Vậy làm sao để <em>đọc</em> được các tệp tin cấu hình nhạy cảm mà không bị máy chủ chạy mất? Hãy tận dụng các PHP Wrappers (như <code>php://filter</code>) để ép máy chủ trả về mã nguồn dưới dạng Base64.</p>
+<p><strong>3. Tiêm nọc độc (Log Poisoning):</strong> Tìm đường dẫn đến tệp tin nhật ký truy cập (Access Log) của máy chủ Web. Bật Burp Suite lên, tìm cách nhồi một đoạn mã độc PHP (Webshell) vào tệp tin này thông qua việc thao túng các trường thông tin trong HTTP Request (ví dụ: trường <code>User-Agent</code>).</p>
+<p><strong>4. Kích nổ bom (RCE):</strong> Mã độc đã nằm im lìm trong file Log. Giờ hãy quay lại lỗ hổng LFI ban đầu, ép hệ thống load chính cái file Log đó. Nếu làm đúng, mã độc sẽ được thực thi. Hãy dùng nó để gõ lệnh hệ điều hành và tìm kiếm Flag.</p>
+<h2 id="-br-br-"><br><br></h2>
+<p><strong>💡 Gợi ý từ Hệ thống:</strong> * Tệp nhật ký của máy chủ Apache thường nằm ở <code>/var/log/apache2/access.log</code>.</p>
+<ul>
+<li>Hãy chú ý cú pháp truyền tham số. Lệnh RCE của bạn phải đi kèm với Payload LFI.</li>
+<li>Đừng nhồi <code>../</code> một cách vô tội vạ, hãy đếm số cấp thư mục cẩn thận.</li>
+</ul>
+<p><strong>Đích đến cuối cùng:</strong> Một chuỗi Flag duy nhất đang nằm chờ bạn tại đường dẫn <code>...????/flag_???.txt</code> của máy chủ. Chúc may mắn!</p>
+

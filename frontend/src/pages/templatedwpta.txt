@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D.O.T Solutions Group Certificate</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Inter:wght@400;700;900&display=swap');
+
+        @keyframes shooting-star {
+            0% { transform: translate(0, 0) rotate(45deg) scale(0); opacity: 0; }
+            5% { opacity: 1; }
+            15% { transform: translate(-300px, 300px) rotate(45deg) scale(1); opacity: 0; }
+            100% { transform: translate(-300px, 300px) rotate(45deg) scale(0); opacity: 0; }
+        }
+
+        .star {
+            position: absolute;
+            height: 2px;
+            width: 100px;
+            background: linear-gradient(45deg, rgba(168, 85, 247, 0.8), rgba(34, 197, 94, 0.2), transparent);
+            filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.5));
+            opacity: 0;
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+              
+            background-image: 
+                linear-gradient(rgba(168,85,247,0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(168,85,247,0.08) 1px, transparent 1px);
+
+            background-size: 40px 40px;
+            
+        }
+      
+        .grid-bg::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+
+            background: linear-gradient(
+                120deg,
+                transparent 0%,
+                rgba(168,85,247,0.15) 50%,
+                rgba(34,197,94,0.2) 100%,
+                
+                transparent 100%
+            );
+            
+        }
+      
+        @page { size: A4 landscape; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+            width: 297mm;
+            height: 210mm;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: radial-gradient(circle at 100% 0%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+                              radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.1) 0%, transparent 40%);
+        }
+
+        .cert-container {
+            width: 277mm;
+            height: 190mm;
+            position: relative;
+            background: rgba(10, 10, 10, 0.75);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 2px;
+            padding: 40px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            backdrop-filter: blur(15px);
+            z-index: 10;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+        }
+
+        .cert-container::before, .cert-container::after { content: ''; position: absolute; width: 40px; height: 40px; border: 3px solid #a855f7; pointer-events: none; }
+        .cert-container::before { top: -2px; left: -2px; border-right: none; border-bottom: none; border-top-left-radius: 2px; }
+        .cert-container::after { bottom: -2px; right: -2px; border-left: none; border-top: none; border-bottom-right-radius: 2px; }
+        .corner-tr { position: absolute; top: -2px; right: -2px; width: 40px; height: 40px; border: 3px solid #a855f7; border-left: none; border-bottom: none; border-top-right-radius: 2px; }
+        .corner-bl { position: absolute; bottom: -2px; left: -2px; width: 40px; height: 40px; border: 3px solid #a855f7; border-right: none; border-top: none; border-bottom-left-radius: 2px; }
+
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-20deg);
+            font-size: 140px;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.015);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            text-align: center;
+            line-height: 0.85;
+            letter-spacing: -2px;
+        }
+
+
+        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 20px; z-index: 1; }
+        .sys-title { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #a855f7; letter-spacing: 4px; text-transform: uppercase; }
+        .sys-sub { font-size: 10px; color: #888; letter-spacing: 1.5px; margin-top: 5px; text-transform: uppercase; font-weight: 700; }
+        .cert-type { font-size: 22px; font-weight: 900; color: #ffffff; letter-spacing: 4px; text-transform: uppercase; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+
+
+        .main-wrapper { display: flex; align-items: center; justify-content: space-between; flex-grow: 1; z-index: 1; padding: 20px 0; }
+        .text-content { flex: 1; padding-right: 40px; display: flex; flex-direction: column; justify-content: center; }
+
+        .subtitle { font-family: 'JetBrains Mono', monospace; color: #22c55e; font-size: 16px; letter-spacing: 3px; margin-bottom: 15px; text-transform: uppercase; font-weight: bold;}
+        .student-name { font-size: 64px; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; color: #ffffff; margin-bottom: 15px; text-shadow: 0 0 30px rgba(255, 255, 255, 0.2); line-height: 1; }
+        .has-completed { font-size: 16px; color: #888; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;}
+        
+        .exam-title-wrapper { margin-top: 10px; }
+        .exam-prefix { font-size: 18px; color: #a855f7; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 5px; }
+        .exam-name { font-size: 42px; font-weight: 900; color: #ffffff; text-transform: uppercase; letter-spacing: -1px; line-height: 1.1; }
+
+
+        .badge-wrapper {
+            width: 280px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .badge-core {
+            width: 150px;
+            height: 150px;
+            background: rgba(10, 10, 10, 0.9);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 4px solid #22c55e;
+            box-shadow: 0 0 40px rgba(34, 197, 94, 0.3), inset 0 0 20px rgba(34, 197, 94, 0.2);
+            z-index: 5;
+        }
+
+
+        .ring-1 {
+            position: absolute; width: 190px; height: 190px; border-radius: 50%;
+            border: 2px dashed rgba(168, 85, 247, 0.6);
+            animation: spin 15s linear infinite; z-index: 4;
+        }
+
+
+        .ring-2 {
+            position: absolute; width: 230px; height: 230px; border-radius: 50%;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            border-top: 2px solid #22c55e;
+            animation: spin-reverse 10s linear infinite; z-index: 3;
+        }
+
+     
+        .ring-3 {
+            position: absolute; width: 270px; height: 270px; border-radius: 50%;
+            border: 3px dotted rgba(255, 255, 255, 0.1);
+            border-right: 3px dotted #a855f7;
+            animation: spin 25s linear infinite; z-index: 2;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
+
+        .badge-core svg {
+            width: 70px; height: 70px; stroke: #22c55e; stroke-width: 1.5; fill: none;
+            filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.8));
+        }
+
+        .footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.1); z-index: 1; }
+        .meta-info { display: flex; gap: 60px; }
+        .meta-block { display: flex; flex-direction: column; gap: 8px; }
+        .meta-label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;}
+        .hash-box { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #22c55e; letter-spacing: 1px; opacity: 0.8; }
+        .meta-value { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: #ffffff; font-weight: 700; }
+
+        .signature-block { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+        .signature-image { height: 70px; margin-bottom: 5px; filter: invert(1); } 
+        .signature-line { width: 220px; height: 1px; background-color: #666; margin-bottom: 8px; }
+        .director-title { font-size: 14px; color: #a855f7; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
+        .director-sub { font-size: 10px; color: #888; letter-spacing: 1px; margin-top: 4px; font-weight: bold; text-transform: uppercase;}
+
+    </style>
+</head>
+<body>
+
+    <div class="star" style="top: 10%; right: 20%; animation: shooting-star 3s ease-in-out 1s infinite;"></div>
+    <div class="star" style="top: 50%; right: 80%; animation: shooting-star 4s ease-in-out 2s infinite;"></div>
+    <div class="star" style="top: 80%; right: 40%; animation: shooting-star 2.5s ease-in-out 0.5s infinite;"></div>
+
+    <div class="cert-container">
+        <div class="corner-tr"></div>
+        <div class="corner-bl"></div>
+
+        <div class="watermark">
+            D.O.T<br><span style="font-size: 120px;">SOLUTIONS</span>
+        </div>
+
+        <div class="header">
+            <div>
+                <div class="sys-title">GHEDAHAUI.ONLINE // VULNLAB PROJECT</div>
+                <div class="sys-sub">A PROJECT BY D.O.T SOLUTIONS GROUP</div>
+            </div>
+            <div class="cert-type">CERTIFICATION</div>
+        </div>
+
+        <div class="main-wrapper">
+            <div class="grid-bg"></div>
+            <div class="text-content">
+                <div class="subtitle">This certifies that</div>
+                <div class="student-name">NGUYEN VAN JUNA</div>
+                <div class="has-completed">has successfully achieved the certification of</div>
+                
+                <div class="exam-title-wrapper">
+                    <div class="exam-prefix">Dot Certified Associate</div>
+                    <div class="exam-name">Web Penetration Tester</div>
+                </div>
+
+                </div>
+
+            <div class="badge-wrapper">
+                <div class="ring-1"></div>
+                <div class="ring-2"></div>
+                <div class="ring-3"></div>
+
+                <div class="badge-core">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+
+                    </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <div class="meta-info">
+                <div class="meta-block">
+                    <div class="meta-label">DATE ISSUED</div>
+                    <div class="meta-value">2026-04-26</div>
+                </div>
+                <div class="meta-block">
+                    <div class="meta-label">VERIFICATION HASH</div>
+                    <div class="hash-box">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</div>
+                </div>
+            </div>
+
+            <div class="signature-block">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Signature_of_John_Hancock.svg" alt="Signature" class="signature-image"> 
+                <div class="signature-line"></div>
+                <div class="director-title">CANH NGUYEN</div>
+                <div class="director-sub">FOUNDER, D.O.T SOLUTIONS GROUP</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
