@@ -15,19 +15,6 @@ const LanguageContext = createContext<LanguageContextType>(null!);
 
 const translations: Record<Lang, Record<string, any>> = { vi, en };
 
-const resolveNested = (obj: Record<string, any>, path: string): string => {
-  const keys = path.split(".");
-  let value: any = obj;
-  for (const k of keys) {
-    if (value && typeof value === "object" && k in value) {
-      value = value[k];
-    } else {
-      return path;
-    }
-  }
-  return typeof value === "string" ? value : path;
-};
-
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [lang, setLang] = useState<Lang>(() => {
     try {
@@ -44,7 +31,10 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     document.documentElement.setAttribute("lang", lang);
   }, [lang]);
 
-  const t = (key: string): string => resolveNested(translations[lang], key);
+  const t = (key: string): string => {
+    const dict = translations[lang];
+    return dict && typeof dict[key] === "string" ? dict[key] : key;
+  };
   const toggleLang = () => setLang((prev) => (prev === "vi" ? "en" : "vi"));
 
   return (

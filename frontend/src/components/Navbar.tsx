@@ -25,6 +25,7 @@ const otherLang = { vi: "en", en: "vi" } as const;
 const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: NavbarProps) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [fetchedAvatar, setFetchedAvatar] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { isDark, toggle } = useTheme();
   const { lang, toggleLang, t } = useLanguage();
@@ -40,14 +41,28 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  useEffect(() => {
+    const stored = localStorage.getItem("user_picture");
+    if (stored) { setFetchedAvatar(stored); return; }
+    if (!isLoggedIn || userAvatar) return;
+    fetch("/api/profile", { credentials: "include" })
+      .then(r => r.json())
+      .then(d => {
+        if (d.picture) {
+          localStorage.setItem("user_picture", d.picture);
+          setFetchedAvatar(d.picture);
+        }
+      })
+      .catch(() => {});
+  }, [isLoggedIn, userAvatar]);
+
   const handleLogout = () => {
     localStorage.clear();
     document.cookie = "session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     navigate("/");
   };
 
-  const storedPicture = typeof window !== "undefined" ? localStorage.getItem("user_picture") : null;
-  const avatarUrl = userAvatar || storedPicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=a855f7&color=fff&rounded=true`;
+  const avatarUrl = userAvatar || fetchedAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=a855f7&color=fff&rounded=true`;
 
   return (
     <header className="fixed top-0 w-full h-16 z-50 glass-card border-b border-border backdrop-blur-xl">
