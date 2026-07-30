@@ -80,7 +80,9 @@ async function startChatServer() {
 
   io.use((socket, next) => {
 	    // Lấy token từ nhiều nguồn: handshake.auth hoặc cookie
-	    const token = socket.handshake.auth?.token || socket.handshake.headers?.cookie?.split('token=')[1]?.split(';')[0];
+	    const cookie = socket.handshake.headers?.cookie || '';
+	    const match = cookie.match(/(?:^|;\s*)session_token=([^;]+)/);
+	    const token = socket.handshake.auth?.token || (match ? match[1] : null);
 	    
 	    if (!token) {
 	        return next(new Error("Authentication error: No token provided"));
