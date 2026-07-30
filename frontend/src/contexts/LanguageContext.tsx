@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import vi from "@/locales/vi.json";
-import en from "@/locales/en.json";
+import vi from "@/locales/vi";
+import en from "@/locales/en";
 
 type Lang = "vi" | "en";
 
@@ -30,21 +30,21 @@ const resolveNested = (obj: Record<string, any>, path: string): string => {
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [lang, setLang] = useState<Lang>(() => {
-    if (typeof window !== "undefined") {
+    try {
       return (localStorage.getItem("lang") as Lang) || "vi";
+    } catch {
+      return "vi";
     }
-    return "vi";
   });
 
   useEffect(() => {
-    localStorage.setItem("lang", lang);
+    try {
+      localStorage.setItem("lang", lang);
+    } catch {}
     document.documentElement.setAttribute("lang", lang);
   }, [lang]);
 
-  const t = (key: string): string => {
-    return resolveNested(translations[lang], key);
-  };
-
+  const t = (key: string): string => resolveNested(translations[lang], key);
   const toggleLang = () => setLang((prev) => (prev === "vi" ? "en" : "vi"));
 
   return (
@@ -54,4 +54,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useLanguage = () => useContext(LanguageContext);
+export const useLanguage = () => {
+  const ctx = useContext(LanguageContext);
+  if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
+  return ctx;
+};

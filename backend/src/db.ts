@@ -186,5 +186,5 @@ LessonProgress.init({
 }, { sequelize, modelName: 'lesson_progress', timestamps: true });
 
 export const initDb = async () => {
-  await sequelize.sync();
+  await sequelize.sync({ alter: true });
 };

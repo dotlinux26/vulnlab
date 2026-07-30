@@ -1,4 +1,4 @@
-{
+const en: Record<string, any> = {
   "nav.dashboard": "Dashboard",
   "nav.learning": "Learning",
   "nav.exam": "Exam",
@@ -63,4 +63,6 @@
   "admin.cancel": "Cancel",
   "admin.create": "Publish to System",
   "admin.processing": "Processing..."
-}
+};
+
+export default en;

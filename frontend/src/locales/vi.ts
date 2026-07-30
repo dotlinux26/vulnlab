@@ -1,4 +1,4 @@
-{
+const vi: Record<string, any> = {
   "nav.dashboard": "Trang chủ",
   "nav.learning": "Học tập",
   "nav.exam": "Kiểm tra",
@@ -63,4 +63,6 @@
   "admin.cancel": "Hủy",
   "admin.create": "Xuất bản lên hệ thống",
   "admin.processing": "Đang xử lý..."
-}
+};
+
+export default vi;
