@@ -228,13 +228,13 @@ const Learning = () => {
               <div key={lesson.id} style={{ animation: `fade-in-up 0.5s ease-out ${i * 0.05}s both` }}>
                 <Link
                   to={`/learning/${lesson.id}`}
-                  className="group glass-card p-5 rounded-xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 block"
+                  className="group glass-card p-5 rounded-xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 block flex flex-col"
                 >
                   <div className={`absolute left-0 top-0 w-1 h-full rounded-l-xl ${progress[lesson.id] === 'completed' ? 'bg-green-500' : progress[lesson.id] === 'reading' ? 'bg-yellow-500' : 'gradient-primary'}`} />
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <BookOpen size={18} className={progress[lesson.id] === 'completed' ? 'text-green-500' : 'text-primary'} />
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{lang === "en" && lesson.title_en ? lesson.title_en : lesson.title}</h3>
+                  <div className="flex items-start justify-between mb-3 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <BookOpen size={18} className={progress[lesson.id] === 'completed' ? 'text-green-500' : 'text-primary shrink-0'} />
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{lang === "en" && lesson.title_en ? lesson.title_en : lesson.title}</h3>
                     </div>
                     {progress[lesson.id] === 'completed' && (
                       <span className="text-xs text-green-500 bg-green-500/10 border border-green-500/30 px-2 py-0.5 rounded-full">{t("learning.done")}</span>
@@ -243,8 +243,8 @@ const Learning = () => {
                       <span className="text-xs text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-2 py-0.5 rounded-full">{t("learning.learning")}</span>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{lang === "en" && lesson.description_en ? lesson.description_en : lesson.description}</p>
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-1">{lang === "en" && lesson.description_en ? lesson.description_en : lesson.description}</p>
+                  <div className="flex items-center gap-2 flex-wrap mt-auto">
                     <span className={`text-xs px-2 py-1 rounded-full border ${difficultyColors[lesson.difficulty] || "text-muted-foreground border-border"}`}>
                       {lesson.difficulty}
                     </span>
