@@ -4,7 +4,7 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { OAuth2Client } from 'google-auth-library';
-import { initDb, User, Lab, Submission, Certificate } from './src/db';
+import { initDb, User, Lab, Submission, Certificate, Lesson } from './src/db';
 import crypto from 'crypto'; // Dùng để gen mã Hash
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -631,6 +631,96 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
 	    }
 	});
 
+
+    // =========================================================
+    // Lesson APIs
+    // =========================================================
+    app.get('/api/lessons', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { category, difficulty, level } = req.query;
+        const where: any = {};
+        if (category) where.category = category;
+        if (difficulty) where.difficulty = difficulty;
+        if (level) where.level = level;
+
+        const lessons = await Lesson.findAll({
+          where,
+          attributes: ['id', 'title', 'description', 'category', 'difficulty', 'level', 'imageUrl', 'orderIndex'],
+          order: [['orderIndex', 'ASC']]
+        });
+        res.json(lessons);
+      } catch (error) {
+        res.status(500).json({ error: 'Lỗi tải bài học' });
+      }
+    });
+
+    app.get('/api/lessons/:id', authenticate, async (req: Request, res: Response) => {
+      try {
+        const lesson = await Lesson.findByPk(req.params.id);
+        if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+        res.json(lesson);
+      } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+      }
+    });
+
+    app.get('/api/admin/lessons', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const lessons = await Lesson.findAll({ order: [['orderIndex', 'ASC']] });
+        res.json(lessons);
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server khi lấy danh sách bài học.' });
+      }
+    });
+
+    app.post('/api/admin/lessons/upload', authenticate, requireAdmin, upload.single('image'), async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        if (!req.file) return res.status(400).json({ success: false, message: 'Chưa chọn file!' });
+        const url = `/uploads/${req.file.filename}`;
+        res.json({ success: true, url });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi upload ảnh' });
+      }
+    });
+
+    app.post('/api/admin/lessons', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const { id, title, description, category, difficulty, level, content, imageUrl, orderIndex } = req.body;
+        const existing = await Lesson.findByPk(id);
+        if (existing) return res.status(400).json({ success: false, message: 'ID bài học này đã tồn tại!' });
+
+        const newLesson = await Lesson.create({
+          id, title, description, category, difficulty, level, content, imageUrl: imageUrl || '', orderIndex: orderIndex || 0
+        });
+        res.json({ success: true, message: 'Tạo bài học thành công!', lesson: newLesson });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server khi tạo.' });
+      }
+    });
+
+    app.put('/api/admin/lessons/:id', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const { title, description, category, difficulty, level, content, imageUrl, orderIndex } = req.body;
+        const lesson: any = await Lesson.findByPk(req.params.id);
+        if (!lesson) return res.status(404).json({ success: false, message: 'Không tìm thấy bài học!' });
+
+        await lesson.update({ title, description, category, difficulty, level, content, imageUrl: imageUrl || '', orderIndex: orderIndex || 0 });
+        res.json({ success: true, message: 'Cập nhật thành công!', lesson });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server khi sửa.' });
+      }
+    });
+
+    app.delete('/api/admin/lessons/:id', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const lesson = await Lesson.findByPk(req.params.id);
+        if (!lesson) return res.status(404).json({ success: false, message: 'Không tìm thấy bài học!' });
+        await lesson.destroy();
+        res.json({ success: true, message: 'Đã xóa thành công.' });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server khi xóa.' });
+      }
+    });
 
     // GET /api/admin/submissions - Lấy danh sách bài đã nộp
 app.get('/api/admin/submissions', authenticate, requireAdmin, async (req: Request, res: Response) => {

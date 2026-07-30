@@ -55,3 +55,28 @@ export const logout = async () => {
     if (!res.ok) throw new Error('Logout failed');
     return res.json();
 };
+
+export interface Lesson {
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    difficulty: string;
+    level: string;
+    content?: string;
+    imageUrl?: string;
+    orderIndex: number;
+}
+
+export const fetchLessons = async (params?: { category?: string; difficulty?: string; level?: string }): Promise<Lesson[]> => {
+    const query = params ? '?' + new URLSearchParams(params as any).toString() : '';
+    const res = await fetch(`/api/lessons${query}`, { ...fetchOptions, method: 'GET' });
+    if (!res.ok) throw new Error('Failed to fetch lessons');
+    return res.json();
+};
+
+export const fetchLesson = async (id: string): Promise<Lesson> => {
+    const res = await fetch(`/api/lessons/${id}`, { ...fetchOptions, method: 'GET' });
+    if (!res.ok) throw new Error('Failed to fetch lesson');
+    return res.json();
+};

@@ -14,6 +14,8 @@ const features = [
 
 const Landing = () => {
   const [statsData, setStatsData] = useState({ labs: "...", users: "...", categories: "..." });
+  const isLoggedIn = localStorage.getItem("is_logged_in") === "true";
+  const userName = localStorage.getItem("user_name") || "Học viên";
 
   useEffect(() => {
     fetchStats()
@@ -39,7 +41,7 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <ShootingStars />
-      <Navbar />
+      <Navbar isLoggedIn={isLoggedIn} userName={userName} />
 
       {/* Hero */}
       <section className="relative pt-32 pb-20 px-4">
@@ -63,10 +65,10 @@ const Landing = () => {
             </p>
             <div className="flex gap-4 justify-center lg:justify-start">
               <Link
-                to="/login"
+                to={isLoggedIn ? "/dashboard" : "/login"}
                 className="gradient-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity"
               >
-                Bắt đầu ngay <ChevronRight size={18} />
+                {isLoggedIn ? "Vào Dashboard" : "Bắt đầu ngay"} <ChevronRight size={18} />
               </Link>
               <Link
                 to="/dashboard"
@@ -132,10 +134,10 @@ const Landing = () => {
               Đăng ký ngay để truy cập hàng chục bài Lab thực chiến miễn phí.
             </p>
             <Link
-              to="/login"
+              to={isLoggedIn ? "/dashboard" : "/login"}
               className="inline-flex gradient-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
             >
-              Đăng ký miễn phí
+              {isLoggedIn ? "Vào Dashboard" : "Đăng ký miễn phí"}
             </Link>
           </div>
         </div>

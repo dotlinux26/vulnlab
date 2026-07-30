@@ -37,8 +37,8 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
   return (
     <header className="fixed top-0 w-full h-16 z-50 glass-card border-b border-border backdrop-blur-xl">
       <div className="container h-full mx-auto flex items-center justify-between px-4 md:px-8">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 tracking-widest font-bold text-xl">
+        {/* Logo — về dashboard nếu đã login, về landing nếu chưa */}
+        <Link to={isLoggedIn ? "/dashboard" : "/"} className="flex items-center gap-2 tracking-widest font-bold text-xl">
           <span className="text-foreground">VULN</span>
           <span className="text-primary">LAB</span>
         </Link>
@@ -49,6 +49,9 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
             <>
               <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Dashboard
+              </Link>
+              <Link to="/learning" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Học tập
               </Link>
               <Link to="/exams" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Exam
@@ -180,6 +183,7 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
           {isLoggedIn && (
             <>
               <Link to="/dashboard" className="block py-2 text-foreground" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+              <Link to="/learning" className="block py-2 text-foreground" onClick={() => setMobileMenuOpen(false)}>Học tập</Link>
               <Link to="/profile" className="block py-2 text-foreground" onClick={() => setMobileMenuOpen(false)}>Profile</Link>
             </>
           )}

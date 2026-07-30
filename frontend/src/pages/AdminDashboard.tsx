@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AddLabForm from "./AddLabForm";
 import GatewayManager from "./GatewayManager";
+import AdminLessons from "./AdminLessons";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("labs");
@@ -26,6 +27,16 @@ const AdminDashboard = () => {
               [1] Thêm Lab Mới
             </li>
             <li 
+              onClick={() => setActiveTab('lessons')} 
+              className={`cursor-pointer p-3 rounded transition-all duration-200 ${
+                activeTab === 'lessons' 
+                  ? 'bg-red-900/30 border border-red-500 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.2)]' 
+                  : 'hover:bg-gray-800 text-gray-400'
+              }`}
+            >
+              [2] Quản lý bài học
+            </li>
+            <li 
               onClick={() => setActiveTab('gateway')} 
               className={`cursor-pointer p-3 rounded transition-all duration-200 ${
                 activeTab === 'gateway' 
@@ -33,14 +44,14 @@ const AdminDashboard = () => {
                   : 'hover:bg-gray-800 text-gray-400'
               }`}
             >
-              [2] Gateway Docker
+              [3] Gateway Docker
             </li>
           </ul>
         </div>
 
         {/* Nội dung chính (Chuyển đổi Tab) */}
         <div className="w-full md:w-3/4">
-          {activeTab === 'labs' ? <AddLabForm /> : <GatewayManager />}
+          {activeTab === 'labs' ? <AddLabForm /> : activeTab === 'lessons' ? <AdminLessons /> : <GatewayManager />}
         </div>
 
       </div>

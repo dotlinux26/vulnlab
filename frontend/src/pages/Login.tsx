@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, AlertTriangle } from "lucide-react";
 import ShootingStars from "@/components/ShootingStars";
 import EclipseOrb from "@/components/EclipseOrb";
 import { useGoogleLogin } from "@react-oauth/google";
@@ -20,12 +20,13 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showTroll, setShowTroll] = useState(false);
   const navigate = useNavigate();
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const res = await fetch("https://vuln.ghedahaui.online/api/auth/verify", {
+        const res = await fetch("/api/auth/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token: tokenResponse.access_token }),
@@ -35,8 +36,6 @@ const Login = () => {
 	if (data.success) {
 	    localStorage.setItem("user_name", data.user.name);
 	    localStorage.setItem("is_logged_in", "true");
-	    
-	    // 🎯 THÊM DÒNG NÀY ĐỂ LƯU ROLE
 	    localStorage.setItem("user_role", data.user.role || "student"); 
 	    
 	    navigate("/dashboard");
@@ -56,17 +55,9 @@ const Login = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Logic mock login cho email/password
-    localStorage.setItem("user_name", email.split("@")[0] || "Học viên");
-    localStorage.setItem("is_logged_in", "true");
-    
-    if (email.toLowerCase() === "admin_test@local.dev") {
-        localStorage.setItem("user_role", "admin");
-    } else {
-        localStorage.setItem("user_role", "student");
-    }
-
-    navigate("/dashboard");
+    setShowTroll(true);
+    // Troll: email registration is fake
+    setTimeout(() => setShowTroll(false), 5000);
   };
 
   return (
@@ -133,6 +124,16 @@ const Login = () => {
           >
             {isSignUp ? "Đăng ký" : "Đăng nhập"}
           </button>
+
+          {showTroll && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-xs" style={{ animation: "fade-in-up 0.3s ease-out" }}>
+              <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold mb-1">Tính năng này chỉ để troll thôi :))</p>
+                <p>Đăng ký email là giả đó, đừng nhập mật khẩu thật vào. Dùng <strong>Google</strong> bên dưới để đăng nhập thật nhé!</p>
+              </div>
+            </div>
+          )}
         </form>
 
         <div className="flex items-center gap-3 my-6">

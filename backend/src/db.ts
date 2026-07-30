@@ -135,6 +135,30 @@ Submission.belongsTo(User, { foreignKey: 'userId' });
 Lab.hasMany(Submission, { foreignKey: 'labId' });
 Submission.belongsTo(Lab, { foreignKey: 'labId' });
 
+export class Lesson extends Model {
+  declare id: string;
+  declare title: string;
+  declare description: string;
+  declare category: string;
+  declare difficulty: string;
+  declare level: string;
+  declare content: string;
+  declare imageUrl: string;
+  declare orderIndex: number;
+}
+
+Lesson.init({
+  id: { type: DataTypes.STRING, primaryKey: true },
+  title: { type: DataTypes.STRING, allowNull: false },
+  description: { type: DataTypes.TEXT },
+  category: { type: DataTypes.STRING },
+  difficulty: { type: DataTypes.STRING },
+  level: { type: DataTypes.STRING },
+  content: { type: DataTypes.TEXT },
+  imageUrl: { type: DataTypes.STRING },
+  orderIndex: { type: DataTypes.INTEGER, defaultValue: 0 },
+}, { sequelize, modelName: 'lesson' });
+
 export const initDb = async () => {
   await sequelize.sync();
 };
