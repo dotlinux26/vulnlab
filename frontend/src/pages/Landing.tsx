@@ -147,7 +147,7 @@ const Landing = () => {
       <footer className="border-t border-border py-12 px-4">
         <div className="container mx-auto grid md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-primary font-bold text-lg mb-3">D.O.T Solutions Group</h3>
+            <h3 className="text-primary font-bold text-lg mb-3">D.O.T Solutions</h3>
             <p className="text-muted-foreground text-sm">
               ShellMap Protocol: A Lightweight Solution for Post-Quantum Cryptography at the Application Layer.
             </p>

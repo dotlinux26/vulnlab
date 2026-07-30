@@ -88,7 +88,8 @@ const upload = multer({
             'application/x-zip-compressed', 
             'application/x-rar-compressed', 
             'application/vnd.rar',
-            'application/octet-stream' // Cần thiết cho một số file RAR/ZIP
+            'application/octet-stream',
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'
         ];
 
         if (allowedTypes.includes(file.mimetype)) {

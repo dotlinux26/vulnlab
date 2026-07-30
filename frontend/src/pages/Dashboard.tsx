@@ -5,15 +5,10 @@ import ShootingStars from "@/components/ShootingStars";
 import LabCard from "@/components/LabCard";
 import { fetchLabs, type PaginatedResponse, type LabWithStatus } from "@/services/api";
 import { type Difficulty, type Category, type LabStatus, type Lab } from "@/data/labs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const difficulties: Difficulty[] = ["Easy", "Medium", "Hard"];
 const categories: Category[] = ["Web", "Pwn", "Forensics", "Crypto", "Reverse", "OSINT", "Network"];
-const statuses: { value: LabStatus; label: string }[] = [
-  { value: "solved", label: "Solved" },
-  { value: "unsolved", label: "Unsolved" },
-  { value: "in-progress", label: "In Progress" },
-];
-
 const Dashboard = () => {
   const [labs, setLabs] = useState<LabWithStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,6 +22,13 @@ const Dashboard = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   const userName = localStorage.getItem("user_name") || "Học viên";
+  const { t } = useLanguage();
+
+  const statuses: { value: LabStatus; label: string }[] = [
+    { value: "solved", label: t("status.solved") },
+    { value: "unsolved", label: t("status.unsolved") },
+    { value: "in-progress", label: t("status.inProgress") },
+  ];
 
   const loadPage = async (pageNum: number, append = false) => {
     try {
@@ -88,7 +90,7 @@ const Dashboard = () => {
       <main className="pt-24 pb-12 px-4">
         <div className="container mx-auto">
           <div className="mb-8" style={{ animation: "fade-in-up 0.6s ease-out" }}>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Khu vực huấn luyện</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">{t("dashboard.title")}</h1>
             <p className="text-muted-foreground">
               Chào mừng <span className="text-primary font-medium">{userName}</span>. Hãy chọn một thử thách để bắt đầu.
             </p>
@@ -99,7 +101,7 @@ const Dashboard = () => {
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Tìm kiếm bài Lab..."
+                placeholder={t("dashboard.search")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-card border border-border rounded-lg px-4 py-2.5 pl-10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
@@ -110,7 +112,7 @@ const Dashboard = () => {
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-colors ${showFilters ? "border-primary text-primary bg-primary/10" : "border-border text-muted-foreground hover:text-foreground"}`}
             >
               <Filter size={18} />
-              Bộ lọc
+              {t("common.filter")}
               {hasFilters && (
                 <span className="w-2 h-2 rounded-full bg-primary" />
               )}
@@ -120,10 +122,10 @@ const Dashboard = () => {
           {showFilters && (
             <div className="glass-card rounded-xl p-4 mb-6 space-y-4" style={{ animation: "scale-in 0.3s ease-out" }}>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Bộ lọc</span>
+                <span className="text-sm font-medium text-foreground">{t("common.filter")}</span>
                 {hasFilters && (
                   <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-destructive hover:underline">
-                    <X size={12} /> Xóa bộ lọc
+                    <X size={12} /> {t("dashboard.clearFilter")}
                   </button>
                 )}
               </div>
