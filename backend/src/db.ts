@@ -202,4 +202,5 @@ export const initDb = async () => {
   await addColumnIfMissing('lessons', 'title_en', 'STRING');
   await addColumnIfMissing('lessons', 'description_en', 'TEXT');
   await addColumnIfMissing('lessons', 'content_en', 'TEXT');
+  await addColumnIfMissing('users_backup', 'voucherXp', 'INTEGER DEFAULT 0');
 };
