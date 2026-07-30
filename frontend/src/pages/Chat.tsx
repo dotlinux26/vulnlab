@@ -54,13 +54,13 @@ const Chat = () => {
     socket.on("receive_message", handleReceive);
     socket.on("error_msg", handleError);
 
-    socket.connect();
+    if (!socket.connected) socket.connect();
 
     return () => { 
       socket.off("load_history", handleLoadHistory);
       socket.off("receive_message", handleReceive); 
       socket.off("error_msg", handleError); 
-      socket.disconnect(); 
+      if (socket.connected) socket.disconnect(); 
     };
   }, [user]);
 

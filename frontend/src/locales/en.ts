@@ -174,6 +174,8 @@ const en: Record<string, any> = {
   "profile.xpTarget": "Target: {target} XP",
   "profile.skillChart": "Skill Chart",
   "profile.certificates": "Certificate Vault",
+  "profile.certId": "ID",
+  "profile.certDate": "Issued",
   "profile.certPending": "PENDING",
   "profile.certVerify": "VERIFY",
   "profile.certEmpty": "No certificates earned yet.",

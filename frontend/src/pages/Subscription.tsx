@@ -26,7 +26,7 @@ const Subscription = () => {
       })
       .then(userData => {
         setUser(userData);
-        socket.connect();
+        if (!socket.connected) socket.connect();
       })
       .catch(() => navigate('/login'));
 
@@ -38,7 +38,7 @@ const Subscription = () => {
 
     return () => {
       socket.off("payment_success");
-      socket.disconnect();
+      if (socket.connected) socket.disconnect();
     };
   }, [navigate]);
 

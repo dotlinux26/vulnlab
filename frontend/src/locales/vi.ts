@@ -174,6 +174,8 @@ const vi: Record<string, any> = {
   "profile.xpTarget": "Mục tiêu: {target} XP",
   "profile.skillChart": "Biểu Đồ Kỹ Năng",
   "profile.certificates": "Kho Chứng Chỉ",
+  "profile.certId": "Mã",
+  "profile.certDate": "Cấp",
   "profile.certPending": "PENDING",
   "profile.certVerify": "VERIFY",
   "profile.certEmpty": "Chưa đạt chứng chỉ nào.",

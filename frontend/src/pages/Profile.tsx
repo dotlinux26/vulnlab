@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Profile = () => {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const [profileData, setProfileData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -101,25 +101,26 @@ const Profile = () => {
 	  </h2>
 	  <div className="grid grid-cols-1 gap-4">
 	    {profileData.certificates?.length > 0 ? (
-	      profileData.certificates.map((cert: any) => (
-	        <div key={cert.hash} className="flex items-center gap-4 p-5 bg-primary/5 border border-primary/20 rounded-2xl group hover:border-primary transition-all">
-	          <div className="p-3 bg-primary/20 rounded-xl text-primary"><Award size={28}/></div>
-	          <div className="flex-1 overflow-hidden">
-	            <div className="text-lg font-bold text-foreground leading-tight truncate">{cert.title}</div>
-	            
-	            {/* ✅ SỬA CHỖ NÀY: Dùng cert.hash thay cho cert.submissionId */}
-	            <div className="text-xs font-mono text-muted-foreground mt-2 uppercase tracking-widest truncate">
-	              Mã: #{cert.hash ? cert.hash.substring(0, 16) + '...' : t("profile.certPending")} • Cấp: {cert.issueDate}
-	            </div>
-	            
-	          </div>
-	          
-	          {/* ✅ SỬA CẢ CHỖ LINK NÀY NỮA: Dùng cert.hash */}
-	          <Link to={`/verify/${cert.hash}`} className="hidden sm:flex bg-primary hover:bg-primary/80 text-primary-foreground px-4 py-2 rounded-lg font-bold text-sm items-center gap-2 transition-all opacity-0 group-hover:opacity-100 shrink-0">
-	            {t("profile.certVerify")} <ExternalLink size={16}/>
-	          </Link>
-	        </div>
-	      ))
+      profileData.certificates.map((cert: any) => {
+        const certTitle = lang === "en" && cert.title_en ? cert.title_en : cert.title;
+        return (
+        <div key={cert.hash} className="flex items-center gap-4 p-5 bg-primary/5 border border-primary/20 rounded-2xl group hover:border-primary transition-all">
+          <div className="p-3 bg-primary/20 rounded-xl text-primary"><Award size={28}/></div>
+          <div className="flex-1 overflow-hidden">
+            <div className="text-lg font-bold text-foreground leading-tight truncate">{certTitle}</div>
+
+            <div className="text-xs font-mono text-muted-foreground mt-2 uppercase tracking-widest truncate">
+              {t("profile.certId")}: #{cert.hash ? cert.hash.substring(0, 16) + '...' : t("profile.certPending")} • {t("profile.certDate")}: {cert.issueDate}
+            </div>
+
+          </div>
+
+          <Link to={`/verify/${cert.hash}`} className="hidden sm:flex bg-primary hover:bg-primary/80 text-primary-foreground px-4 py-2 rounded-lg font-bold text-sm items-center gap-2 transition-all opacity-0 group-hover:opacity-100 shrink-0">
+            {t("profile.certVerify")} <ExternalLink size={16}/>
+          </Link>
+        </div>
+        );
+      })
 	    ) : (
 	      <div className="text-center py-12 text-muted-foreground text-sm font-mono italic bg-accent/30 rounded-2xl border border-dashed border-border">
 	        {t("profile.certEmpty")}
