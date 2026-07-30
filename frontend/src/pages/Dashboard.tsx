@@ -149,7 +149,7 @@ const Dashboard = () => {
                       <button
                         key={c}
                         onClick={() => setSelectedCat(selectedCat === c ? "" : c)}
-                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${selectedCat === c ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground}`}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${selectedCat === c ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
                       >
                         {c}
                       </button>
@@ -163,7 +163,7 @@ const Dashboard = () => {
                       <button
                         key={s.value}
                         onClick={() => setSelectedStatus(selectedStatus === s.value ? "" : s.value)}
-                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${selectedStatus === s.value ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground}`}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${selectedStatus === s.value ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
                       >
                         {s.label}
                       </button>
