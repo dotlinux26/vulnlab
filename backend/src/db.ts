@@ -185,6 +185,21 @@ LessonProgress.init({
   updatedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, { sequelize, modelName: 'lesson_progress', timestamps: true });
 
+const addColumnIfMissing = async (table: string, column: string, def: string) => {
+  try {
+    await sequelize.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${def}`);
+    console.log(`  ✓ added column ${table}.${column}`);
+  } catch (e: any) {
+    const msg = e.message || e.parent?.message || '';
+    if (!msg.includes('duplicate column')) console.error(e);
+  }
+};
+
 export const initDb = async () => {
-  await sequelize.sync({ alter: true });
+  await sequelize.sync();
+  await addColumnIfMissing('labs', 'title_en', 'STRING');
+  await addColumnIfMissing('labs', 'description_en', 'TEXT');
+  await addColumnIfMissing('lessons', 'title_en', 'STRING');
+  await addColumnIfMissing('lessons', 'description_en', 'TEXT');
+  await addColumnIfMissing('lessons', 'content_en', 'TEXT');
 };
