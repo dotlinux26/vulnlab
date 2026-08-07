@@ -82,8 +82,8 @@ const Login = () => {
       <div className="relative z-10 w-full max-w-md glass-card rounded-2xl p-8 border">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold tracking-wider mb-2">
-            <span className="text-foreground">VULN</span>
-            <span className="text-primary">LAB</span>
+            <span className="brand-vuln">VULN</span>
+            <span className="brand-gradient">LAB</span>
           </h1>
           <p className="text-muted-foreground text-sm tracking-widest uppercase">
             {isSignUp ? t("login.signupTitle") : t("login.subtitle")}
