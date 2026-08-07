@@ -207,7 +207,15 @@ const Landing = () => {
               <h3 className="text-primary font-bold text-lg">{t("landing.footer")}</h3>
             </div>
             <p className="text-muted-foreground text-sm">
-              {t("landing.footerDesc")}
+              <a
+                href="https://github.com/D-O-T-Solutions/smoframework"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors"
+                title="SMO Framework"
+              >
+                {t("landing.footerDesc")}
+              </a>
             </p>
           </div>
           <div>
