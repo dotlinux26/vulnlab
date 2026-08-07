@@ -128,16 +128,16 @@ const Landing = () => {
       {/* Cert badges marquee */}
       <section className="py-10 overflow-hidden w-full">
         <div
-          className="flex gap-16 w-max"
-          style={{ animation: "marquee 30s linear infinite" }}
+          className="flex w-max"
+          style={{ animation: "marquee 18s linear infinite" }}
         >
           {[0, 1].map((dup) => (
-            <div key={dup} className="flex items-center gap-16 shrink-0">
+            <div key={dup} className="flex items-center shrink-0">
               <a
                 href="https://labs.cyberwarfare.live/credential/achievement/6a6b3e4d8aed14e94c93a8a8"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity"
+                className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity mr-16"
               >
                 <img src="/certs/crtsv2.png" alt="CRTS V2" className="w-12 h-12 rounded-lg" />
                 <span className="text-foreground font-semibold whitespace-nowrap">{t("landing.crts")}</span>
@@ -146,7 +146,7 @@ const Landing = () => {
                 href="https://academy.hackthebox.com/achievement/badge/039ec66d-7386-11f0-9254-bea50ffe6cb4"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity"
+                className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity mr-16"
               >
                 <img src="/certs/cwes.png" alt="HTB CWES" className="w-12 h-12 rounded-lg" />
                 <span className="text-foreground font-semibold whitespace-nowrap">{t("landing.cwes")}</span>
