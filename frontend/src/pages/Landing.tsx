@@ -57,7 +57,7 @@ const Landing = () => {
             </div>
             <h1 className="text-4xl md:text-6xl font-bold leading-tight">
               <span className="brand-gradient">VULN</span>
-              <span className="text-primary">LAB</span>
+              <span className="brand-gradient">LAB</span>
               <br />
               <span className="text-2xl md:text-3xl text-muted-foreground font-normal">
                 Training System
