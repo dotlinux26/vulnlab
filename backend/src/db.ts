@@ -328,7 +328,7 @@ export const initDb = async () => {
     await addColumnIfMissing('lessons', 'title_en', 'STRING');
     await addColumnIfMissing('lessons', 'description_en', 'TEXT');
     await addColumnIfMissing('lessons', 'content_en', 'TEXT');
-    await addColumnIfMissing('learning_path', 'status', 'TEXT DEFAULT \'updating\'');
+    await addColumnIfMissing('learning_paths', 'status', 'TEXT DEFAULT \'updating\'');
   } catch (e) {
     console.error("[!] initDb error (non-fatal):", e);
   }
