@@ -1,10 +1,133 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-</head>
+    <meta name="theme-color" content="#a855f7" />
+
+    <title>VULNLAB - Học Cybersecurity Thực Chiến | Lab, Cert, CTF, DCAWPT, SMO Framework, HAUI, SICT</title>
+    <meta name="title" content="VULNLAB - Học Cybersecurity Thực Chiến | Lab, Cert, CTF, DCAWPT, SMO Framework, HAUI, SICT" />
+    <meta name="description" content="Nền tảng học Cybersecurity thực chiến Việt Nam: Lab hands-on, chứng chỉ thực tế (DCAWPT, SMO Framework - Secure Mesh Operation), lộ trình học tập (RED/BLUE/PEN/PURPLE), CTF, bài tập thực hành Web/Pwn/Forensics/Crypto/Reverse. Tác giả: Nguyễn Đức Cảnh (canhnguyen26, dotlinux26, juna), DOTSolutions. Liên kết: HAUI, SICT, Facebook Group." />
+    <meta name="keywords" content="cybersecurity, hacking, pentest, CTF, lab, hands-on, vulnerability, web security, pwn, forensics, crypto, reverse engineering, chứng chỉ, học online, DCAWPT, SMO Framework, Secure Mesh Operation, CRTSv2, CWE, canhnguyen26, dotlinux26, juna, DOTSolutions, alf, vulnlab, ghedahaui, HAUI, SICT, Hà Nội, Việt Nam, Nguyễn Đức Cảnh, Distributed Offensive Technology Solutions" />
+    <meta name="author" content="Nguyễn Đức Cảnh (canhnguyen26, dotlinux26, juna), DOTSolutions" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://vuln.ghedahaui.online/" />
+    <meta property="og:title" content="VULNLAB - Học Cybersecurity Thực Chiến | DCAWPT, SMO Framework, HAUI, SICT" />
+    <meta property="og:description" content="Nền tảng học Cybersecurity thực chiến: Lab hands-on, chứng chỉ DCAWPT/SMO Framework (Secure Mesh Operation), lộ trình RED/BLUE/PEN/PURPLE, CTF, bài tập Web/Pwn/Forensics/Crypto/Reverse. Tác giả: Nguyễn Đức Cảnh (canhnguyen26, dotlinux26, juna). HAUI - SICT." />
+    <meta property="og:image" content="https://vuln.ghedahaui.online/og-image.png" />
+    <meta property="og:site_name" content="VULNLAB" />
+    <meta property="og:locale" content="vi_VN" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://vuln.ghedahaui.online/" />
+    <meta name="twitter:title" content="VULNLAB - Học Cybersecurity Thực Chiến | DCAWPT, SMO Framework, HAUI" />
+    <meta name="twitter:description" content="Nền tảng học Cybersecurity thực chiến: Lab hands-on, chứng chỉ DCAWPT/SMO Framework, lộ trình học tập, CTF. Tác giả: Nguyễn Đức Cảnh." />
+    <meta name="twitter:image" content="https://vuln.ghedahaui.online/og-image.png" />
+    <meta name="twitter:creator" content="@canhnguyen26" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://vuln.ghedahaui.online/" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "VULNLAB",
+      "alternateName": "VULN LAB",
+      "url": "https://vuln.ghedahaui.online",
+      "logo": "https://vuln.ghedahaui.online/logo.png",
+      "description": "Nền tảng học Cybersecurity thực chiến Việt Nam: Lab, Cert (DCAWPT, SMO Framework), Lộ trình RED/BLUE/PEN/PURPLE, CTF. Tác giả: Nguyễn Đức Cảnh (canhnguyen26). Liên kết: HAUI, SICT, DOTSolutions.",
+      "sameAs": [
+        "https://www.facebook.com/slox.ceo/",
+        "https://www.facebook.com/groups/3317427451767975",
+        "https://github.com/dotlinux26/vulnlab",
+        "https://github.com/dotlinux26",
+        "https://www.linkedin.com/in/canh-nguyen-duc-791503392/",
+        "https://github.com/D-O-T-Solutions"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "VN",
+        "addressLocality": "Hà Nội"
+      },
+      "founder": {
+        "@type": "Person",
+        "name": "Nguyễn Đức Cảnh",
+        "alternateName": ["canhnguyen26", "dotlinux26", "juna"],
+        "url": "https://github.com/dotlinux26",
+        "email": "0206canh2@gmail.com",
+        "affiliation": {
+          "@type": "Organization",
+          "name": "HAUI - SICT"
+        }
+      },
+      "knowsAbout": [
+        "Cybersecurity",
+        "Penetration Testing",
+        "CTF",
+        "DCAWPT",
+        "SMO Framework",
+        "Secure Mesh Operation",
+        "CRTSv2",
+        "CWE",
+        "Web Security",
+        "Binary Exploitation",
+        "Reverse Engineering",
+        "Digital Forensics",
+        "Cryptography"
+      ],
+      "subOrganization": {
+        "@type": "Organization",
+        "name": "D.O.T Solutions",
+        "alternateName": "Distributed Offensive Technology Solutions",
+        "url": "https://github.com/D-O-T-Solutions",
+        "description": "Open-source engineering organization focused on distributed systems, secure networking, systems programming, and infrastructure software. Capability-scoped distributed execution runtime for untrusted mesh environments — incident response, fleet operations, intent-based orchestration.",
+        "foundingDate": "2026",
+        "sameAs": [
+          "https://github.com/D-O-T-Solutions",
+          "https://github.com/D-O-T-Solutions/smoframework",
+          "https://github.com/D-O-T-Solutions/.github"
+        ],
+        "knowsAbout": [
+          "Distributed Systems",
+          "Secure Networking",
+          "Systems Programming",
+          "Infrastructure Software",
+          "Secure Mesh Operation",
+          "SMO Framework",
+          "Post-Quantum Cryptography",
+          "Capability-Scoped Execution",
+          "Autonomous Local Consensus",
+          "Edge-Node Validation",
+          "Decentralized Routing Protocols"
+        ],
+        "project": {
+          "@type": "SoftwareProject",
+          "name": "SMO Framework",
+          "alternateName": "Secure Mesh Operation",
+          "url": "https://github.com/D-O-T-Solutions/smoframework",
+          "programmingLanguage": "C++",
+          "license": "Apache-2.0",
+          "description": "Capability-scoped distributed execution runtime for untrusted mesh environments. Lightweight, high-performance distributed architecture eliminating single points of failure with autonomous Local Consensus Engine, hybrid identity hierarchies, and automated edge-node validation."
+        }
+      }
+    }
+    </script>
+  </head>
 
   <body>
     <div id="root"></div>
