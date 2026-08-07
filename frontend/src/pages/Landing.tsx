@@ -126,11 +126,12 @@ const Landing = () => {
       </section>
 
       {/* Cert badges marquee */}
-      <section className="py-10 overflow-hidden w-full">
-        <div
-          className="flex w-max"
-          style={{ animation: "marquee 12s linear infinite" }}
-        >
+      <section className="py-10 px-4">
+        <div className="container mx-auto overflow-hidden">
+          <div
+            className="flex w-max"
+            style={{ animation: "marquee 8s linear infinite" }}
+          >
           {[0, 1].map((dup) => (
             <div key={dup} className="flex items-center shrink-0">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -157,6 +158,7 @@ const Landing = () => {
               ))}
             </div>
           ))}
+          </div>
         </div>
       </section>
 
