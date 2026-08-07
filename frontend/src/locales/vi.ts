@@ -242,7 +242,7 @@ const vi: Record<string, any> = {
   "landing.facebook": "Facebook",
   "landing.links": "Links",
   "landing.certifications": "Chứng Chỉ & Chuyên Môn",
-  "landing.certificationsDesc": "Chứng chỉ bảo mật được cấp bởi các tổ chức uy tín, có thể xác minh bằng liên kết chính thức.",
+  "landing.certificationsDesc": "Đội ngũ của chúng tôi nắm giữ các chứng chỉ bảo mật quốc tế, có thể xác minh qua liên kết chính thức.",
   "landing.crts": "Certified Red Team Specialist V2 (CRTS V2) - Nguyen Canh",
   "landing.crtsOrg": "CyberWarFare Labs",
   "landing.cwes": "HTB Certified Web Exploitation Specialist (CWES)",

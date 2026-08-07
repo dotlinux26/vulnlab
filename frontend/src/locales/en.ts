@@ -242,7 +242,7 @@ const en: Record<string, any> = {
   "landing.facebook": "Facebook",
   "landing.links": "Links",
   "landing.certifications": "Certifications & Expertise",
-  "landing.certificationsDesc": "Security certifications issued by reputable organizations, verifiable via official links.",
+  "landing.certificationsDesc": "Our team holds internationally recognized security certifications, verifiable via official links.",
   "landing.crts": "Certified Red Team Specialist V2 (CRTS V2) - Nguyen Canh",
   "landing.crtsOrg": "CyberWarFare Labs",
   "landing.cwes": "HTB Certified Web Exploitation Specialist (CWES)",
