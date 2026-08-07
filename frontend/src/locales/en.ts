@@ -71,6 +71,9 @@ const en: Record<string, any> = {
   "learning.pathEmpty": "No lessons in this path yet",
   "learning.roadmap": "Roadmap",
   "learning.jobTitle": "Target Job",
+  "learning.pathStatusUpdating": "🔄 Updating",
+  "learning.pathStatusFinal": "✅ Final",
+  "learning.pathStatusComingSoon": "⏳ Coming Soon",
 
   "lesson.qa.title": "Review Questions",
   "lesson.qa.subtitle": "Answer all questions correctly to complete the lesson. Answers are only verified on the server.",

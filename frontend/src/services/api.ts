@@ -193,6 +193,7 @@ export interface LearningPath {
     jobTitle: string;
     jobTitle_en?: string;
     type: 'RED' | 'BLUE' | 'PEN' | 'PURPLE';
+    status?: 'updating' | 'final' | 'coming_soon';
     imageUrl?: string;
     icon?: string;
     orderIndex: number;

@@ -1,9 +1,20 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Filter, X, Loader2, BookOpen, ChevronDown, Users, MapPin, ArrowRight, UserPlus, Shield, Sword, Ghost, Bug, Target, Crosshair, Terminal, Lock, Key } from "lucide-react";
+import { Search, Filter, X, Loader2, BookOpen, ChevronDown, Users, MapPin, ArrowRight, UserPlus, Shield, Sword, Ghost, Bug, Target, Crosshair, Terminal, Lock, Key, Zap, Flame, Skull, Bomb, Eye, Server, Database, Globe, Wifi, Radar, Fingerprint, Rocket, Wrench, Hammer, Cpu, Code, Flag, Crown, Medal, Compass, Route, Layers, Network } from "lucide-react";
 
 const pathIcons: Record<string, any> = {
   shield: Shield, sword: Sword, ghost: Ghost, bug: Bug, target: Target,
   crosshair: Crosshair, terminal: Terminal, lock: Lock, key: Key,
+  zap: Zap, flame: Flame, skull: Skull, bomb: Bomb, eye: Eye,
+  server: Server, database: Database, globe: Globe, wifi: Wifi, radar: Radar,
+  fingerprint: Fingerprint, rocket: Rocket, wrench: Wrench, hammer: Hammer, cpu: Cpu,
+  code: Code, flag: Flag, crown: Crown, medal: Medal, compass: Compass,
+  route: Route, layers: Layers, network: Network,
+};
+
+const statusMeta: Record<string, { labelKey: string; color: string }> = {
+  updating: { labelKey: "learning.pathStatusUpdating", color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" },
+  final: { labelKey: "learning.pathStatusFinal", color: "text-neon-green bg-neon-green/10 border-neon-green/30" },
+  coming_soon: { labelKey: "learning.pathStatusComingSoon", color: "text-cyan-400 bg-cyan-400/10 border-cyan-400/30" },
 };
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -185,7 +196,14 @@ const Learning = () => {
                           );
                         })()}
                         <div className="min-w-0 flex-1">
-                          <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border mb-1 ${tm.color}`}>{tm.label}</span>
+                          <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                            <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border ${tm.color}`}>{tm.label}</span>
+                            {path.status && (
+                              <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border whitespace-nowrap ${statusMeta[path.status]?.color || statusMeta.updating.color}`}>
+                                {t(statusMeta[path.status]?.labelKey || statusMeta.updating.labelKey)}
+                              </span>
+                            )}
+                          </div>
                           <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{displayTitle}</h3>
                         </div>
                       </div>

@@ -1273,13 +1273,14 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
 
     app.post('/api/admin/paths', authenticate, requireAdmin, async (req: Request, res: Response) => {
       try {
-        const { id, title, title_en, description, description_en, jobTitle, jobTitle_en, type, imageUrl, icon, orderIndex } = req.body;
+        const { id, title, title_en, description, description_en, jobTitle, jobTitle_en, type, status, imageUrl, icon, orderIndex } = req.body;
         if (!id || !title) return res.status(400).json({ success: false, message: 'Thiếu ID hoặc tiêu đề' });
         const existing = await LearningPath.findByPk(id);
         if (existing) return res.status(400).json({ success: false, message: 'ID lộ trình đã tồn tại!' });
         const newPath = await LearningPath.create({
           id, title, title_en: title_en || '', description: description || '', description_en: description_en || '',
           jobTitle: jobTitle || '', jobTitle_en: jobTitle_en || '', type: type || 'PEN',
+          status: status || 'updating',
           imageUrl: imageUrl || '', icon: icon || '', orderIndex: orderIndex || 0
         });
         res.json({ success: true, message: 'Tạo lộ trình thành công!', path: newPath });
@@ -1291,12 +1292,13 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
 
     app.put('/api/admin/paths/:id', authenticate, requireAdmin, async (req: Request, res: Response) => {
       try {
-        const { title, title_en, description, description_en, jobTitle, jobTitle_en, type, imageUrl, icon, orderIndex } = req.body;
+        const { title, title_en, description, description_en, jobTitle, jobTitle_en, type, status, imageUrl, icon, orderIndex } = req.body;
         const path: any = await LearningPath.findByPk(req.params.id);
         if (!path) return res.status(404).json({ success: false, message: 'Không tìm thấy lộ trình!' });
         await path.update({
           title, title_en: title_en || '', description: description || '', description_en: description_en || '',
           jobTitle: jobTitle || '', jobTitle_en: jobTitle_en || '', type: type || path.type,
+          status: status || path.status,
           imageUrl: imageUrl || '', icon: icon || '', orderIndex: orderIndex || 0
         });
         res.json({ success: true, message: 'Cập nhật lộ trình thành công!', path });

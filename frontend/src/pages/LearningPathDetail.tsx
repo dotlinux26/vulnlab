@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Loader2, CheckCircle2, PlayCircle, Lock, BookOpen, Users, ArrowLeft, UserPlus, UserCheck, Briefcase, MapPin, Shield, Sword, Ghost, Bug, Target, Crosshair, Terminal, Key } from "lucide-react";
+import { Loader2, CheckCircle2, PlayCircle, Lock, BookOpen, Users, ArrowLeft, UserPlus, UserCheck, Briefcase, MapPin, Shield, Sword, Ghost, Bug, Target, Crosshair, Terminal, Key, Zap, Flame, Skull, Bomb, Eye, Server, Database, Globe, Wifi, Radar, Fingerprint, Rocket, Wrench, Hammer, Cpu, Code, Flag, Crown, Medal, Compass, Route, Layers, Network } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -9,6 +9,17 @@ import { fetchPath, joinPath, type LearningPath } from "@/services/api";
 const pathIcons: Record<string, any> = {
   shield: Shield, sword: Sword, ghost: Ghost, bug: Bug, target: Target,
   crosshair: Crosshair, terminal: Terminal, lock: Lock, key: Key,
+  zap: Zap, flame: Flame, skull: Skull, bomb: Bomb, eye: Eye,
+  server: Server, database: Database, globe: Globe, wifi: Wifi, radar: Radar,
+  fingerprint: Fingerprint, rocket: Rocket, wrench: Wrench, hammer: Hammer, cpu: Cpu,
+  code: Code, flag: Flag, crown: Crown, medal: Medal, compass: Compass,
+  route: Route, layers: Layers, network: Network,
+};
+
+const statusMeta: Record<string, { labelKey: string; color: string }> = {
+  updating: { labelKey: "learning.pathStatusUpdating", color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" },
+  final: { labelKey: "learning.pathStatusFinal", color: "text-neon-green bg-neon-green/10 border-neon-green/30" },
+  coming_soon: { labelKey: "learning.pathStatusComingSoon", color: "text-cyan-400 bg-cyan-400/10 border-cyan-400/30" },
 };
 
 const typeMeta: Record<string, { label: string; color: string }> = {
@@ -102,9 +113,16 @@ const LearningPathDetail = () => {
                 );
               })()}
               <div className="flex-1 text-center md:text-left">
-                <span className={`inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full border mb-3 ${tm.color}`}>
-                  {tm.label} PATH
-                </span>
+                <div className="flex items-center justify-center md:justify-start gap-2 mb-3 flex-wrap">
+                  <span className={`inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full border ${tm.color}`}>
+                    {tm.label} PATH
+                  </span>
+                  {path.status && (
+                    <span className={`inline-flex items-center text-xs px-3 py-1 rounded-full border ${statusMeta[path.status]?.color || statusMeta.updating.color}`}>
+                      {t(statusMeta[path.status]?.labelKey || statusMeta.updating.labelKey)}
+                    </span>
+                  )}
+                </div>
                 <h1 className="text-3xl font-bold text-foreground mb-2">{displayTitle}</h1>
                 <p className="text-muted-foreground mb-4">{displayDesc}</p>
                 {displayJob && (

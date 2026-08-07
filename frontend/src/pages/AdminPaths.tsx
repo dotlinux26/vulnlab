@@ -3,6 +3,12 @@ import { Plus, Trash2, X, Loader2, BookOpen, Users, ArrowUpDown } from "lucide-r
 
 const pathTypes = ["RED", "BLUE", "PEN", "PURPLE"];
 
+const statusOptions = [
+  { value: "updating", label: "🔄 Còn cập nhật" },
+  { value: "final", label: "✅ Chốt cứng" },
+  { value: "coming_soon", label: "⏳ Chuẩn bị cập nhật" },
+];
+
 const iconOptions = [
   { value: "", label: "Không (dùng ảnh)" },
   { value: "shield", label: "Shield" },
@@ -14,6 +20,29 @@ const iconOptions = [
   { value: "terminal", label: "Terminal" },
   { value: "lock", label: "Lock" },
   { value: "key", label: "Key" },
+  { value: "zap", label: "Zap (⚡)" },
+  { value: "flame", label: "Flame" },
+  { value: "skull", label: "Skull" },
+  { value: "bomb", label: "Bomb" },
+  { value: "eye", label: "Eye" },
+  { value: "server", label: "Server" },
+  { value: "database", label: "Database" },
+  { value: "globe", label: "Globe" },
+  { value: "wifi", label: "Wifi" },
+  { value: "radar", label: "Radar" },
+  { value: "fingerprint", label: "Fingerprint" },
+  { value: "rocket", label: "Rocket" },
+  { value: "wrench", label: "Wrench" },
+  { value: "hammer", label: "Hammer" },
+  { value: "cpu", label: "CPU" },
+  { value: "code", label: "Code" },
+  { value: "flag", label: "Flag" },
+  { value: "crown", label: "Crown" },
+  { value: "medal", label: "Medal" },
+  { value: "compass", label: "Compass" },
+  { value: "route", label: "Route" },
+  { value: "layers", label: "Layers" },
+  { value: "network", label: "Network" },
 ];
 
 const emptyForm = {
@@ -25,6 +54,7 @@ const emptyForm = {
   jobTitle: "",
   jobTitle_en: "",
   type: "PEN",
+  status: "updating",
   imageUrl: "",
   icon: "",
   orderIndex: 0,
@@ -109,6 +139,7 @@ const AdminPaths = () => {
       jobTitle: path.jobTitle || "",
       jobTitle_en: path.jobTitle_en || "",
       type: path.type || "PEN",
+      status: path.status || "updating",
       imageUrl: path.imageUrl || "",
       icon: path.icon || "",
       orderIndex: path.orderIndex || 0,
@@ -218,6 +249,12 @@ const AdminPaths = () => {
     PURPLE: "text-fuchsia-400 bg-fuchsia-400/10 border-fuchsia-400/30",
   };
 
+  const statusMeta: Record<string, { label: string; color: string }> = {
+    updating: { label: "🔄 Còn cập nhật", color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" },
+    final: { label: "✅ Chốt cứng", color: "text-neon-green bg-neon-green/10 border-neon-green/30" },
+    coming_soon: { label: "⏳ Chuẩn bị cập nhật", color: "text-cyan-400 bg-cyan-400/10 border-cyan-400/30" },
+  };
+
   return (
     <div className="space-y-8">
       <div className="p-6 bg-card border border-border rounded-xl">
@@ -252,6 +289,13 @@ const AdminPaths = () => {
                 {pathTypes.map(tp => <option key={tp} value={tp}>{tp}</option>)}
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block font-bold mb-1 text-foreground">Trạng thái lộ trình</label>
+            <select name="status" value={formData.status} onChange={handleChange} className="w-full p-2 bg-accent border border-border rounded text-foreground">
+              {statusOptions.map(so => <option key={so.value} value={so.value}>{so.label}</option>)}
+            </select>
           </div>
 
           <div>
@@ -336,6 +380,7 @@ const AdminPaths = () => {
               <tr>
                 <th className="px-4 py-3">ID / Tiêu đề</th>
                 <th className="px-4 py-3 text-center">Loại</th>
+                <th className="px-4 py-3 text-center">Trạng thái</th>
                 <th className="px-4 py-3 text-center">Bài học</th>
                 <th className="px-4 py-3 text-center">Học viên</th>
                 <th className="px-4 py-3 text-center">Hành động</th>
@@ -361,6 +406,11 @@ const AdminPaths = () => {
                     <span className={`text-xs font-bold px-2 py-0.5 rounded border ${typeColor[path.type] || typeColor.PEN}`}>{path.type}</span>
                   </td>
                   <td className="px-4 py-3 text-center">
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${statusMeta[path.status]?.color || statusMeta.updating.color}`}>
+                      {statusMeta[path.status]?.label || statusMeta.updating.label}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
                     <span className="flex items-center gap-1 justify-center text-foreground"><BookOpen size={13} className="text-primary" /> {path.lessonCount ?? 0}</span>
                   </td>
                   <td className="px-4 py-3 text-center">
@@ -377,7 +427,7 @@ const AdminPaths = () => {
                 </tr>
               ))}
               {paths.length === 0 && (
-                <tr><td colSpan={5} className="text-center py-4 text-muted-foreground">Chưa có lộ trình nào.</td></tr>
+                <tr><td colSpan={6} className="text-center py-4 text-muted-foreground">Chưa có lộ trình nào.</td></tr>
               )}
             </tbody>
           </table>

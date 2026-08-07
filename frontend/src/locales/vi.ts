@@ -71,6 +71,9 @@ const vi: Record<string, any> = {
   "learning.pathEmpty": "Lộ trình chưa có bài học nào",
   "learning.roadmap": "Lộ trình",
   "learning.jobTitle": "Công việc chuẩn",
+  "learning.pathStatusUpdating": "🔄 Còn cập nhật",
+  "learning.pathStatusFinal": "✅ Chốt cứng",
+  "learning.pathStatusComingSoon": "⏳ Chuẩn bị cập nhật",
 
   "lesson.qa.title": "Câu hỏi củng cố",
   "lesson.qa.subtitle": "Trả lời đúng tất cả câu hỏi để hoàn thành bài học. Đáp án chỉ được kiểm tra ở máy chủ.",

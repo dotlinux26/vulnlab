@@ -230,6 +230,7 @@ export class LearningPath extends Model {
   declare jobTitle: string;
   declare jobTitle_en: string;
   declare type: string;
+  declare status: string;
   declare imageUrl: string;
   declare icon: string;
   declare orderIndex: number;
@@ -244,6 +245,7 @@ LearningPath.init({
   jobTitle: { type: DataTypes.TEXT },
   jobTitle_en: { type: DataTypes.TEXT, allowNull: true },
   type: { type: DataTypes.STRING, defaultValue: 'PEN' },
+  status: { type: DataTypes.STRING, defaultValue: 'updating' },
   imageUrl: { type: DataTypes.STRING },
   icon: { type: DataTypes.STRING },
   orderIndex: { type: DataTypes.INTEGER, defaultValue: 0 },
@@ -326,6 +328,7 @@ export const initDb = async () => {
     await addColumnIfMissing('lessons', 'title_en', 'STRING');
     await addColumnIfMissing('lessons', 'description_en', 'TEXT');
     await addColumnIfMissing('lessons', 'content_en', 'TEXT');
+    await addColumnIfMissing('learning_path', 'status', 'TEXT DEFAULT \'updating\'');
   } catch (e) {
     console.error("[!] initDb error (non-fatal):", e);
   }
