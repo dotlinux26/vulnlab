@@ -210,11 +210,17 @@ const Landing = () => {
 
       {/* CTA */}
       <section className="py-20 px-4">
-        <div className="container mx-auto text-center glass-card rounded-2xl p-12 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-20"
+        <div className="container mx-auto text-center glass-card rounded-2xl p-12 relative overflow-hidden group">
+          <div className="absolute inset-0 opacity-10"
             style={{ background: "radial-gradient(circle at center, hsl(var(--neon-purple)), transparent 70%)" }} />
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none"
+            style={{ background: "radial-gradient(circle at 50% 0%, hsl(var(--neon-purple) / 0.35), hsl(var(--neon-blue) / 0.2) 40%, transparent 70%)" }} />
+          <div className="absolute top-8 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full blur-3xl opacity-0 group-hover:opacity-70 transition-opacity duration-700 pointer-events-none"
+            style={{ background: "radial-gradient(circle, hsl(var(--neon-purple) / 0.5), transparent 70%)", animation: "pulse-neon 3s ease-in-out infinite" }} />
           <div className="relative z-10">
-            <Shield size={48} className="mx-auto text-primary mb-4" />
+            <div className="w-16 h-16 mx-auto rounded-2xl gradient-primary flex items-center justify-center text-primary-foreground mb-4 shadow-lg">
+              <Shield size={32} />
+            </div>
             <h2 className="text-3xl font-bold gradient-text mb-3">{t("landing.cta")}</h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               {t("landing.ctaDesc")}
@@ -250,7 +256,7 @@ const Landing = () => {
             </p>
           </div>
           <div>
-            <h3 className="text-primary font-bold text-lg mb-3">{t("landing.contact")}</h3>
+            <h3 className="gradient-text font-bold text-lg mb-3">{t("landing.contact")}</h3>
             <ul className="text-muted-foreground text-sm space-y-2">
               <li>{t("landing.address")}</li>
               <li>
@@ -292,7 +298,7 @@ const Landing = () => {
             </div>
           </div>
           <div>
-            <h3 className="text-primary font-bold text-lg mb-3">{t("landing.links")}</h3>
+            <h3 className="gradient-text font-bold text-lg mb-3">{t("landing.links")}</h3>
             <ul className="text-muted-foreground text-sm space-y-2">
               <li><Link to="/dashboard" className="hover:text-primary transition-colors">{t("nav.dashboard")}</Link></li>
               <li><Link to="/login" className="hover:text-primary transition-colors">{t("nav.login")}</Link></li>
