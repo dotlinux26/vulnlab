@@ -56,7 +56,7 @@ const Landing = () => {
               {t("landing.badge")}
             </div>
             <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-              <span className="text-foreground">VULN</span>
+              <span className="brand-gradient">VULN</span>
               <span className="text-primary">LAB</span>
               <br />
               <span className="text-2xl md:text-3xl text-muted-foreground font-normal">
