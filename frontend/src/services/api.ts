@@ -200,7 +200,23 @@ export interface LearningPath {
     lessonCount?: number;
     joined?: boolean;
     joinedCount?: number;
+    nextLessonId?: string | null;
+    nextLessonTitle?: string | null;
+    nextLessonTitle_en?: string | null;
     lessons?: PathLessonDetail[];
+}
+
+export interface LessonPathContext {
+    inPath: boolean;
+    pathId?: string;
+    pathTitle?: string;
+    pathTitle_en?: string;
+    currentLessonCompleted?: boolean;
+    lessonIndex?: number;
+    totalLessons?: number;
+    nextLessonId?: string | null;
+    nextLessonTitle?: string | null;
+    nextLessonTitle_en?: string | null;
 }
 
 export interface PathLessonDetail {
@@ -231,7 +247,33 @@ export const fetchPath = async (id: string): Promise<LearningPath> => {
 
 export const joinPath = async (id: string): Promise<{ success: boolean; joined: boolean }> => {
     const res = await fetch(`/api/paths/${id}/join`, { ...fetchOptions, method: 'POST' });
-    if (!res.ok) throw new Error('Failed to join path');
+    if (!res.ok) {
+        let msg = 'Failed to join path';
+        let code = '';
+        try { const data = await res.json(); if (data?.message) msg = data.message; if (data?.code) code = data.code; } catch {}
+        const err: any = new Error(msg);
+        err.status = res.status;
+        err.code = code;
+        throw err;
+    }
+    return res.json();
+};
+
+export const leavePath = async (id: string): Promise<{ success: boolean; joined: boolean }> => {
+    const res = await fetch(`/api/paths/${id}/join`, { ...fetchOptions, method: 'DELETE' });
+    if (!res.ok) {
+        let msg = 'Failed to leave path';
+        try { const data = await res.json(); if (data?.message) msg = data.message; } catch {}
+        const err: any = new Error(msg);
+        err.status = res.status;
+        throw err;
+    }
+    return res.json();
+};
+
+export const fetchLessonPathContext = async (lessonId: string): Promise<LessonPathContext> => {
+    const res = await fetch(`/api/paths/lesson-context/${lessonId}`, { ...fetchOptions, method: 'GET' });
+    if (!res.ok) throw new Error('Failed to fetch path context');
     return res.json();
 };
 

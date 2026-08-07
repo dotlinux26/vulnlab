@@ -832,10 +832,54 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         const counts = await PathLesson.findAll({ attributes: ['pathId', [Sequelize.fn('COUNT', Sequelize.col('id')), 'cnt']], group: ['pathId'], raw: true });
         const countMap: Record<string, number> = {};
         counts.forEach((r: any) => { countMap[r.pathId] = Number(r.cnt) || 0; });
+
+        const joinedPathIds = paths.filter((p: any) => joinedSet.has(p.id)).map((p: any) => p.id);
+        const nextLessonByPath: Record<string, string> = {};
+        const nextTitleByPath: Record<string, string> = {};
+        const nextTitleEnByPath: Record<string, string> = {};
+        if (joinedPathIds.length > 0) {
+          const members = await PathLesson.findAll({
+            where: { pathId: joinedPathIds },
+            order: [['pathId', 'ASC'], ['orderIndex', 'ASC'], ['id', 'ASC']]
+          });
+          const memberLessonIds = [...new Set(members.map((m: any) => m.lessonId))];
+          const progressMap: Record<string, string> = {};
+          if (memberLessonIds.length > 0) {
+            const progress = await LessonProgress.findAll({
+              where: { userId: req.user.id, lessonId: memberLessonIds },
+              attributes: ['lessonId', 'status']
+            });
+            progress.forEach((r: any) => { progressMap[r.lessonId] = r.status; });
+          }
+          let lessonTitleMap: Record<string, any> = {};
+          if (memberLessonIds.length > 0) {
+            const found = await Lesson.findAll({
+              where: { id: memberLessonIds },
+              attributes: ['id', 'title', 'title_en']
+            });
+            found.forEach((l: any) => { lessonTitleMap[l.id] = l; });
+          }
+          const byPath: Record<string, string[]> = {};
+          members.forEach((m: any) => {
+            (byPath[m.pathId] = byPath[m.pathId] || []).push(m.lessonId);
+          });
+          Object.keys(byPath).forEach((pid: string) => {
+            const firstIncomplete = byPath[pid].find((lid: string) => progressMap[lid] !== 'completed');
+            if (firstIncomplete) {
+              nextLessonByPath[pid] = firstIncomplete;
+              nextTitleByPath[pid] = lessonTitleMap[firstIncomplete]?.title || '';
+              nextTitleEnByPath[pid] = lessonTitleMap[firstIncomplete]?.title_en || '';
+            }
+          });
+        }
+
         res.json(paths.map((p: any) => ({
           ...p.toJSON(),
           lessonCount: countMap[p.id] || 0,
-          joined: joinedSet.has(p.id)
+          joined: joinedSet.has(p.id),
+          nextLessonId: joinedSet.has(p.id) ? (nextLessonByPath[p.id] || null) : null,
+          nextLessonTitle: joinedSet.has(p.id) ? (nextTitleByPath[p.id] || null) : null,
+          nextLessonTitle_en: joinedSet.has(p.id) ? (nextTitleEnByPath[p.id] || null) : null
         })));
       } catch (error) {
         console.error('[-] Lỗi lấy paths:', error);
@@ -885,12 +929,15 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         }
         const joined = await PathProgress.findOne({ where: { pathId: path.id, userId: req.user.id } });
         const joinedCount = await PathProgress.count({ where: { pathId: path.id } });
+        const lessonsWithStatus = lessons.map((l: any) => ({ ...l, status: progressMap[l.lessonId] || 'not_started' }));
+        const nextLesson = lessonsWithStatus.find((l: any) => l.status !== 'completed');
         res.json({
           ...path.toJSON(),
           lessonCount: lessons.length,
           joinedCount,
           joined: !!joined,
-          lessons: lessons.map((l: any) => ({ ...l, status: progressMap[l.lessonId] || 'not_started' }))
+          nextLessonId: joined ? (nextLesson ? nextLesson.lessonId : null) : null,
+          lessons: lessonsWithStatus
         });
       } catch (error) {
         console.error('[-] Lỗi lấy path detail:', error);
@@ -904,14 +951,82 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         if (!path) return res.status(404).json({ success: false, message: 'Không tìm thấy lộ trình' });
         const existing = await PathProgress.findOne({ where: { pathId: path.id, userId: req.user.id } });
         if (existing) {
-          await existing.destroy();
-          return res.json({ success: true, joined: false });
+          return res.json({ success: true, joined: true });
+        }
+        const other = await PathProgress.findOne({ where: { userId: req.user.id } });
+        if (other) {
+          return res.status(400).json({
+            success: false,
+            code: 'ALREADY_JOINED',
+            message: 'Bạn đang tham gia một lộ trình khác. Hãy hủy tham gia lộ trình hiện tại trước.'
+          });
         }
         await PathProgress.create({ pathId: path.id, userId: req.user.id });
         res.json({ success: true, joined: true });
       } catch (error) {
         console.error('[-] Lỗi join path:', error);
         res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.delete('/api/paths/:id/join', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        await PathProgress.destroy({ where: { pathId: req.params.id, userId: req.user.id } });
+        res.json({ success: true, joined: false });
+      } catch (error) {
+        console.error('[-] Lỗi leave path:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.get('/api/paths/lesson-context/:lessonId', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const joined = await PathProgress.findOne({ where: { userId: req.user.id } });
+        if (!joined) return res.json({ inPath: false });
+        const members = await PathLesson.findAll({
+          where: { pathId: joined.pathId },
+          order: [['orderIndex', 'ASC'], ['id', 'ASC']]
+        });
+        const idx = members.findIndex((m: any) => String(m.lessonId) === String(req.params.lessonId));
+        if (idx === -1) return res.json({ inPath: false });
+        const path = await LearningPath.findByPk(joined.pathId);
+        if (!path) return res.json({ inPath: false });
+        const current = await LessonProgress.findOne({
+          where: { userId: req.user.id, lessonId: req.params.lessonId },
+          attributes: ['status']
+        });
+        const nextMember = members[idx + 1] as any;
+        let nextLesson: any = null;
+        if (nextMember) {
+          const nextLessonData = await Lesson.findByPk(nextMember.lessonId, {
+            attributes: ['id', 'title', 'title_en', 'difficulty', 'category']
+          });
+          if (nextLessonData) {
+            nextLesson = {
+              lessonId: nextLessonData.id,
+              title: nextLessonData.title,
+              title_en: nextLessonData.title_en,
+              difficulty: nextLessonData.difficulty,
+              category: nextLessonData.category
+            };
+          }
+        }
+        res.json({
+          inPath: true,
+          pathId: path.id,
+          pathTitle: path.title,
+          pathTitle_en: path.title_en,
+          currentLessonCompleted: current?.status === 'completed',
+          lessonIndex: idx,
+          totalLessons: members.length,
+          nextLessonId: nextLesson ? nextLesson.lessonId : null,
+          nextLessonTitle: nextLesson ? nextLesson.title : null,
+          nextLessonTitle_en: nextLesson ? nextLesson.title_en : null,
+          nextLesson
+        });
+      } catch (error) {
+        console.error('[-] Lỗi lesson-context:', error);
+        res.status(500).json({ error: 'Lỗi tải bối cảnh lộ trình' });
       }
     });
 

@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Loader2, ArrowLeft, BookOpen, CheckCircle, Circle } from "lucide-react";
+import { Loader2, ArrowLeft, BookOpen, CheckCircle, Circle, Lock, ArrowRight, Trophy, MapPin } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
-import { fetchLesson, fetchLessonProgress, updateLessonProgress, type Lesson } from "@/services/api";
+import { fetchLesson, fetchLessonProgress, updateLessonProgress, fetchLessonPathContext, type Lesson, type LessonPathContext } from "@/services/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LessonQA from "@/components/LessonQA";
 import LessonComments from "@/components/LessonComments";
@@ -45,9 +45,16 @@ const LearningDetail = () => {
   const [progressStatus, setProgressStatus] = useState<string | null>(null);
   const [contentLang, setContentLang] = useState<"vi" | "en">("vi");
   const [progressError, setProgressError] = useState("");
+  const [pathCtx, setPathCtx] = useState<LessonPathContext | null>(null);
 
   const { lang, setLang, t } = useLanguage();
   const userName = localStorage.getItem("user_name") || "Học viên";
+
+  const loadPathContext = (lessonId: string) => {
+    fetchLessonPathContext(lessonId)
+      .then(setPathCtx)
+      .catch(() => setPathCtx(null));
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -55,6 +62,7 @@ const LearningDetail = () => {
       try {
         const data = await fetchLesson(id);
         setLesson(data);
+        loadPathContext(id);
         const allProgress = await fetchLessonProgress();
         const currentStatus = allProgress[id];
         if (currentStatus === 'completed') {
@@ -85,7 +93,10 @@ const LearningDetail = () => {
     setProgressError("");
     try {
       const res = await updateLessonProgress(id, 'completed');
-      if (res.success) setProgressStatus('completed');
+      if (res.success) {
+        setProgressStatus('completed');
+        loadPathContext(id);
+      }
     } catch (error: any) {
       console.error("Lỗi cập nhật tiến độ:", error);
       if (error?.message) setProgressError(error.message);
@@ -185,6 +196,74 @@ const LearningDetail = () => {
               {displayContent}
             </ReactMarkdown>
           </div>
+
+          {pathCtx?.inPath && (
+            <div className="mb-6">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                <MapPin size={15} className="text-primary" />
+                <span className="truncate">
+                  {contentLang === "en" && pathCtx.pathTitle_en ? pathCtx.pathTitle_en : pathCtx.pathTitle}
+                </span>
+                <span className="text-xs text-muted-foreground/70">
+                  {t("learning.pathLessonPos")} {pathCtx.lessonIndex! + 1}/{pathCtx.totalLessons}
+                </span>
+              </div>
+
+              {pathCtx.nextLessonId && pathCtx.currentLessonCompleted ? (
+                <Link
+                  to={`/learning/${pathCtx.nextLessonId}`}
+                  className="flex items-center gap-4 p-4 rounded-xl border border-primary/30 bg-primary/10 hover:bg-primary/20 transition-colors group"
+                >
+                  <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center text-primary-foreground shrink-0">
+                    <ArrowRight size={20} className="group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-primary font-semibold mb-0.5">{t("learning.nextLesson")}</p>
+                    <h3 className="font-semibold text-foreground truncate">
+                      {contentLang === "en" && pathCtx.nextLessonTitle_en ? pathCtx.nextLessonTitle_en : pathCtx.nextLessonTitle}
+                    </h3>
+                  </div>
+                  <span className="text-xs text-primary shrink-0">{t("learning.go")}</span>
+                </Link>
+              ) : pathCtx.nextLessonId && !pathCtx.currentLessonCompleted ? (
+                <div className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card opacity-60 cursor-not-allowed">
+                  <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center text-muted-foreground shrink-0">
+                    <Lock size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground font-semibold mb-0.5">{t("learning.nextLesson")}</p>
+                    <h3 className="font-semibold text-foreground truncate">
+                      {contentLang === "en" && pathCtx.nextLessonTitle_en ? pathCtx.nextLessonTitle_en : pathCtx.nextLessonTitle}
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-1">{t("learning.nextLessonLocked")}</p>
+                  </div>
+                </div>
+              ) : pathCtx.currentLessonCompleted ? (
+                <Link
+                  to={`/learning/paths/${pathCtx.pathId}`}
+                  className="flex items-center gap-4 p-4 rounded-xl border border-neon-green/30 bg-neon-green/5 hover:bg-neon-green/10 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-neon-green/20 text-neon-green flex items-center justify-center shrink-0">
+                    <Trophy size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-neon-green font-semibold mb-0.5">{t("learning.pathComplete")}</p>
+                    <p className="text-sm text-muted-foreground">{t("learning.pathCompleteDesc")}</p>
+                  </div>
+                </Link>
+              ) : (
+                <div className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card opacity-60">
+                  <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center text-muted-foreground shrink-0">
+                    <Lock size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground font-semibold mb-0.5">{t("learning.lastLesson")}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("learning.nextLessonLocked")}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <LessonQA lessonId={lesson.id} contentLang={contentLang} />
 

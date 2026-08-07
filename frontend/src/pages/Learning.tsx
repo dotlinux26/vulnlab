@@ -16,7 +16,7 @@ const statusMeta: Record<string, { labelKey: string; color: string; icon: any }>
   final: { labelKey: "learning.pathStatusFinal", color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/30", icon: CheckCircle2 },
   coming_soon: { labelKey: "learning.pathStatusComingSoon", color: "text-sky-500 bg-sky-500/10 border-sky-500/30", icon: Clock },
 };
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -69,6 +69,7 @@ const Learning = () => {
 
   const userName = localStorage.getItem("user_name") || "Học viên";
   const { lang, t } = useLanguage();
+  const navigate = useNavigate();
   const [progress, setProgress] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -209,6 +210,22 @@ const Learning = () => {
                         </div>
                       </div>
                       <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-1">{displayDesc}</p>
+                      {path.joined && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigate(path.nextLessonId ? `/learning/${path.nextLessonId}` : `/learning/paths/${path.id}`);
+                          }}
+                          className="mb-4 w-full flex items-center gap-2 bg-primary/10 border border-primary/30 hover:bg-primary/20 text-primary text-xs px-3 py-2 rounded-lg transition-colors group/cont relative z-20"
+                        >
+                          <span className="font-semibold whitespace-nowrap">{t("learning.continuePath")}</span>
+                          <span className="flex-1 text-left text-primary/80 truncate min-w-0">
+                            {path.nextLessonId ? (lang === "en" && path.nextLessonTitle_en ? path.nextLessonTitle_en : path.nextLessonTitle) : t("learning.pathComplete")}
+                          </span>
+                          <ArrowRight size={14} className="shrink-0 group-hover/cont:translate-x-0.5 transition-transform" />
+                        </button>
+                      )}
                       <div className="flex items-center justify-between mt-auto relative z-10">
                         <span className="text-xs text-muted-foreground">{path.lessonCount ?? 0} {t("learning.lessons")}</span>
                         {path.joined ? (

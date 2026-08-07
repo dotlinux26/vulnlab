@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Loader2, CheckCircle2, PlayCircle, Lock, BookOpen, Users, ArrowLeft, UserPlus, UserCheck, Briefcase, MapPin, Shield, Sword, Ghost, Bug, Target, Crosshair, Terminal, Key, Zap, Flame, Skull, Bomb, Eye, Server, Database, Globe, Wifi, Radar, Fingerprint, Rocket, Wrench, Hammer, Cpu, Code, Flag, Crown, Medal, Compass, Route, Layers, Network, RefreshCw, Clock } from "lucide-react";
+import { Loader2, CheckCircle2, PlayCircle, Lock, BookOpen, Users, ArrowLeft, UserPlus, LogOut, Briefcase, MapPin, Shield, Sword, Ghost, Bug, Target, Crosshair, Terminal, Key, Zap, Flame, Skull, Bomb, Eye, Server, Database, Globe, Wifi, Radar, Fingerprint, Rocket, Wrench, Hammer, Cpu, Code, Flag, Crown, Medal, Compass, Route, Layers, Network, RefreshCw, Clock, ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { fetchPath, joinPath, type LearningPath } from "@/services/api";
+import { toast } from "sonner";
+import { fetchPath, joinPath, leavePath, type LearningPath } from "@/services/api";
 
 const pathIcons: Record<string, any> = {
   shield: Shield, sword: Sword, ghost: Ghost, bug: Bug, target: Target,
@@ -52,13 +53,36 @@ const LearningPathDetail = () => {
       .finally(() => setIsLoading(false));
   }, [id]);
 
-  const toggleJoin = async () => {
+  const handleJoin = async () => {
     if (!id || busy) return;
     setBusy(true);
     try {
       const result = await joinPath(id);
       setPath(prev => prev ? { ...prev, joined: result.joined } : prev);
-    } catch {}
+      if (result.joined && id) {
+        const fresh = await fetchPath(id);
+        setPath(fresh);
+      }
+    } catch (error: any) {
+      if (error?.code === 'ALREADY_JOINED') {
+        toast.error(error.message || t("learning.alreadyJoined"));
+      } else {
+        toast.error(error?.message || t("learning.joinError"));
+      }
+    }
+    setBusy(false);
+  };
+
+  const handleLeave = async () => {
+    if (!id || busy) return;
+    setBusy(true);
+    try {
+      await leavePath(id);
+      setPath(prev => prev ? { ...prev, joined: false } : prev);
+      toast.success(t("learning.leaveSuccess"));
+    } catch (error: any) {
+      toast.error(error?.message || t("learning.leaveError"));
+    }
     setBusy(false);
   };
 
@@ -138,16 +162,38 @@ const LearningPathDetail = () => {
                   <span className="flex items-center gap-1.5"><MapPin size={15} className="text-primary/70" /> {t("learning.roadmap")}</span>
                 </div>
               </div>
-              <button
-                onClick={toggleJoin}
-                disabled={busy}
-                className={`shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-50 ${
-                  path.joined ? "bg-accent text-foreground border border-border hover:bg-accent/70" : "gradient-primary text-primary-foreground hover:opacity-90"
-                }`}
-              >
-                {busy ? <Loader2 size={18} className="animate-spin" /> : path.joined ? <UserCheck size={18} /> : <UserPlus size={18} />}
-                {path.joined ? t("learning.pathJoined") : t("learning.pathJoin")}
-              </button>
+              <div className="flex flex-col gap-2 shrink-0">
+                {path.joined ? (
+                  <>
+                    <button
+                      onClick={() => navigate(path.nextLessonId ? `/learning/${path.nextLessonId}` : `/learning/paths/${path.id}`)}
+                      disabled={busy}
+                      className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-50 gradient-primary text-primary-foreground hover:opacity-90"
+                    >
+                      <PlayCircle size={18} />
+                      {t("learning.continuePath")}
+                      <ArrowRight size={16} />
+                    </button>
+                    <button
+                      onClick={handleLeave}
+                      disabled={busy}
+                      className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-semibold transition-all disabled:opacity-50 bg-accent text-foreground border border-border hover:bg-accent/70"
+                    >
+                      {busy ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
+                      {t("learning.leavePath")}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={handleJoin}
+                    disabled={busy}
+                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-50 gradient-primary text-primary-foreground hover:opacity-90"
+                  >
+                    {busy ? <Loader2 size={18} className="animate-spin" /> : <UserPlus size={18} />}
+                    {t("learning.pathJoin")}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
