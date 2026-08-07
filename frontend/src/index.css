@@ -123,11 +123,6 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .dark .brand-gradient {
-    background: none;
-    -webkit-text-fill-color: hsl(var(--foreground));
-    color: hsl(var(--foreground));
-  }
 }
 
 /* Shooting stars */

@@ -69,8 +69,7 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
       <div className="container h-full mx-auto flex items-center justify-between px-4 md:px-8">
         <Link to={isLoggedIn ? "/dashboard" : "/"} className="flex items-center gap-2 tracking-widest font-bold text-xl">
           <img src="/logo.svg" alt="D.O.T Solutions" className="w-7 h-7" />
-          <span className="brand-gradient">VULN</span>
-          <span className="brand-gradient">LAB</span>
+          <span className="brand-gradient">VULNLAB</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">

@@ -56,8 +56,7 @@ const Landing = () => {
               {t("landing.badge")}
             </div>
             <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-              <span className="brand-gradient">VULN</span>
-              <span className="brand-gradient">LAB</span>
+              <span className="brand-gradient">VULNLAB</span>
               <br />
               <span className="text-2xl md:text-3xl text-muted-foreground font-normal">
                 Training System
@@ -130,7 +129,7 @@ const Landing = () => {
         <div className="container mx-auto overflow-hidden">
           <div
             className="flex w-max"
-            style={{ animation: "marquee 12s linear infinite" }}
+            style={{ animation: "marquee 16s linear infinite" }}
           >
           {[0, 1].map((dup) => (
             <div key={dup} className="flex items-center shrink-0">
