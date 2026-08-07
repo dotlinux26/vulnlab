@@ -104,7 +104,7 @@ const Landing = () => {
       <section className="py-20 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-3">{t("landing.features")}</h2>
+            <h2 className="text-3xl font-bold gradient-text mb-3">{t("landing.features")}</h2>
             <p className="text-muted-foreground">{t("landing.featuresDesc")}</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
@@ -126,35 +126,33 @@ const Landing = () => {
       </section>
 
       {/* Cert badges marquee */}
-      <section className="py-8 px-4">
-        <div className="container mx-auto overflow-hidden">
-          <div
-            className="flex gap-16 w-max"
-            style={{ animation: "marquee 30s linear infinite" }}
-          >
-            {[0, 1].map((dup) => (
-              <div key={dup} className="flex items-center gap-16 shrink-0">
-                <a
-                  href="https://labs.cyberwarfare.live/credential/achievement/6a6b3e4d8aed14e94c93a8a8"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity"
-                >
-                  <img src="/certs/crtsv2.png" alt="CRTS V2" className="w-12 h-12 rounded-lg" />
-                  <span className="text-foreground font-semibold whitespace-nowrap">{t("landing.crts")}</span>
-                </a>
-                <a
-                  href="https://academy.hackthebox.com/achievement/badge/039ec66d-7386-11f0-9254-bea50ffe6cb4"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity"
-                >
-                  <img src="/certs/cwes.png" alt="HTB CWES" className="w-12 h-12 rounded-lg" />
-                  <span className="text-foreground font-semibold whitespace-nowrap">{t("landing.cwes")}</span>
-                </a>
-              </div>
-            ))}
-          </div>
+      <section className="py-10 overflow-hidden w-full">
+        <div
+          className="flex gap-16 w-max"
+          style={{ animation: "marquee 30s linear infinite" }}
+        >
+          {[0, 1].map((dup) => (
+            <div key={dup} className="flex items-center gap-16 shrink-0">
+              <a
+                href="https://labs.cyberwarfare.live/credential/achievement/6a6b3e4d8aed14e94c93a8a8"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity"
+              >
+                <img src="/certs/crtsv2.png" alt="CRTS V2" className="w-12 h-12 rounded-lg" />
+                <span className="text-foreground font-semibold whitespace-nowrap">{t("landing.crts")}</span>
+              </a>
+              <a
+                href="https://academy.hackthebox.com/achievement/badge/039ec66d-7386-11f0-9254-bea50ffe6cb4"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity"
+              >
+                <img src="/certs/cwes.png" alt="HTB CWES" className="w-12 h-12 rounded-lg" />
+                <span className="text-foreground font-semibold whitespace-nowrap">{t("landing.cwes")}</span>
+              </a>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -166,7 +164,7 @@ const Landing = () => {
               <BadgeCheck size={14} />
               {t("landing.certifications")}
             </div>
-            <h2 className="text-3xl font-bold text-foreground mb-3">{t("landing.certifications")}</h2>
+            <h2 className="text-3xl font-bold gradient-text mb-3">{t("landing.certifications")}</h2>
             <p className="text-muted-foreground">{t("landing.certificationsDesc")}</p>
           </div>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -217,7 +215,7 @@ const Landing = () => {
             style={{ background: "radial-gradient(circle at center, hsl(var(--neon-purple)), transparent 70%)" }} />
           <div className="relative z-10">
             <Shield size={48} className="mx-auto text-primary mb-4" />
-            <h2 className="text-3xl font-bold text-foreground mb-3">{t("landing.cta")}</h2>
+            <h2 className="text-3xl font-bold gradient-text mb-3">{t("landing.cta")}</h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               {t("landing.ctaDesc")}
             </p>
