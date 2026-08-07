@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import AddLabForm from "./AddLabForm";
 import GatewayManager from "./GatewayManager";
 import AdminLessons from "./AdminLessons";
+import AdminPaths from "./AdminPaths";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -31,7 +32,8 @@ const AdminDashboard = () => {
               {[
                 { key: "labs", label: `[1] ${t("admin.labs")}` },
                 { key: "lessons", label: `[2] ${t("admin.lessons")}` },
-                { key: "gateway", label: `[3] ${t("admin.gateway")}` },
+                { key: "paths", label: `[3] ${t("admin.paths")}` },
+                { key: "gateway", label: `[4] ${t("admin.gateway")}` },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -53,6 +55,8 @@ const AdminDashboard = () => {
               <AddLabForm />
             ) : activeTab === "lessons" ? (
               <AdminLessons />
+            ) : activeTab === "paths" ? (
+              <AdminPaths />
             ) : (
               <GatewayManager />
             )}

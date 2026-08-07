@@ -23,6 +23,7 @@ import Chat from "./pages/Chat.tsx";
 import Subscription from './pages/Subscription';
 import Learning from "./pages/Learning";
 import LearningDetail from "./pages/LearningDetail";
+import LearningPathDetail from "./pages/LearningPathDetail";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,7 @@ const App = () => (
             <Route path="/verify/:hash" element={<VerifyCert />} />
             <Route path="/checkout-cert/:hash" element={<CheckOutCert />} />
             <Route path="/learning" element={<ProtectedRoute><Learning /></ProtectedRoute>} />
+            <Route path="/learning/paths/:id" element={<ProtectedRoute><LearningPathDetail /></ProtectedRoute>} />
             <Route path="/learning/:id" element={<ProtectedRoute><LearningDetail /></ProtectedRoute>} />
             <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
             <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />

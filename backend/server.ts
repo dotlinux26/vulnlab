@@ -4,7 +4,7 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { OAuth2Client } from 'google-auth-library';
-import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress, LessonQuestion, LessonAnswerLog, LessonComment } from './src/db';
+import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress, LessonQuestion, LessonAnswerLog, LessonComment, LearningPath, PathLesson, PathProgress } from './src/db';
 import { sanitizeComment, linkify, extractImageUrl, isImageUrl } from './src/commentFilter';
 import crypto from 'crypto'; // Dùng để gen mã Hash
 import dotenv from 'dotenv';
@@ -820,6 +820,94 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
     });
 
     // =========================================================
+    // Learning Paths APIs (student-facing)
+    // =========================================================
+    app.get('/api/paths', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const paths = await LearningPath.findAll({
+          order: [['orderIndex', 'ASC'], ['createdAt', 'DESC']]
+        });
+        const joined = await PathProgress.findAll({ where: { userId: req.user.id }, attributes: ['pathId'] });
+        const joinedSet = new Set(joined.map((p: any) => p.pathId));
+        const counts = await PathLesson.findAll({ attributes: ['pathId', [Sequelize.fn('COUNT', Sequelize.col('id')), 'cnt']], group: ['pathId'], raw: true });
+        const countMap: Record<string, number> = {};
+        counts.forEach((r: any) => { countMap[r.pathId] = Number(r.cnt) || 0; });
+        res.json(paths.map((p: any) => ({
+          ...p.toJSON(),
+          lessonCount: countMap[p.id] || 0,
+          joined: joinedSet.has(p.id)
+        })));
+      } catch (error) {
+        console.error('[-] Lỗi lấy paths:', error);
+        res.status(500).json({ error: 'Lỗi tải lộ trình học' });
+      }
+    });
+
+    app.get('/api/paths/:id', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const path = await LearningPath.findByPk(req.params.id);
+        if (!path) return res.status(404).json({ error: 'Không tìm thấy lộ trình' });
+        const members = await PathLesson.findAll({
+          where: { pathId: path.id },
+          include: [{ model: Lesson, attributes: ['id', 'title', 'title_en', 'description', 'description_en', 'category', 'difficulty', 'level', 'imageUrl', 'orderIndex'] }],
+          order: [['orderIndex', 'ASC'], ['id', 'ASC']]
+        });
+        const lessons = members
+          .filter((m: any) => m.Lesson)
+          .map((m: any) => ({
+            lessonId: m.Lesson.id,
+            orderIndex: m.orderIndex,
+            title: m.Lesson.title,
+            title_en: m.Lesson.title_en,
+            description: m.Lesson.description,
+            description_en: m.Lesson.description_en,
+            category: m.Lesson.category,
+            difficulty: m.Lesson.difficulty,
+            level: m.Lesson.level,
+            imageUrl: m.Lesson.imageUrl,
+            lessonOrderIndex: m.Lesson.orderIndex,
+          }));
+        const progressMap: Record<string, string> = {};
+        if (lessons.length > 0) {
+          const progress = await LessonProgress.findAll({
+            where: { userId: req.user.id, lessonId: lessons.map((l: any) => l.lessonId) },
+            attributes: ['lessonId', 'status']
+          });
+          progress.forEach((r: any) => { progressMap[r.lessonId] = r.status; });
+        }
+        const joined = await PathProgress.findOne({ where: { pathId: path.id, userId: req.user.id } });
+        const joinedCount = await PathProgress.count({ where: { pathId: path.id } });
+        res.json({
+          ...path.toJSON(),
+          lessonCount: lessons.length,
+          joinedCount,
+          joined: !!joined,
+          lessons: lessons.map((l: any) => ({ ...l, status: progressMap[l.lessonId] || 'not_started' }))
+        });
+      } catch (error) {
+        console.error('[-] Lỗi lấy path detail:', error);
+        res.status(500).json({ error: 'Lỗi tải chi tiết lộ trình' });
+      }
+    });
+
+    app.post('/api/paths/:id/join', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const path = await LearningPath.findByPk(req.params.id);
+        if (!path) return res.status(404).json({ success: false, message: 'Không tìm thấy lộ trình' });
+        const existing = await PathProgress.findOne({ where: { pathId: path.id, userId: req.user.id } });
+        if (existing) {
+          await existing.destroy();
+          return res.json({ success: true, joined: false });
+        }
+        await PathProgress.create({ pathId: path.id, userId: req.user.id });
+        res.json({ success: true, joined: true });
+      } catch (error) {
+        console.error('[-] Lỗi join path:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    // =========================================================
     // Lesson Q&A APIs (check phía server, KHÔNG trả answer về client)
     // =========================================================
     app.get('/api/lessons/:id/questions', authenticate, async (req: AuthenticatedRequest, res: Response) => {
@@ -1149,6 +1237,151 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         res.json({ success: true, message: 'Đã xóa thành công.' });
       } catch (error) {
         res.status(500).json({ success: false, message: 'Lỗi server khi xóa.' });
+      }
+    });
+
+    // =========================================================
+    // Learning Paths Admin APIs
+    // =========================================================
+    app.get('/api/admin/paths', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const paths = await LearningPath.findAll({ order: [['orderIndex', 'ASC']] });
+        const counts = await PathLesson.findAll({ attributes: ['pathId', [Sequelize.fn('COUNT', Sequelize.col('id')), 'cnt']], group: ['pathId'], raw: true });
+        const countMap: Record<string, number> = {};
+        counts.forEach((r: any) => { countMap[r.pathId] = Number(r.cnt) || 0; });
+        const joined = await PathProgress.findAll({ attributes: ['pathId', [Sequelize.fn('COUNT', Sequelize.col('id')), 'cnt']], group: ['pathId'], raw: true });
+        const joinedMap: Record<string, number> = {};
+        joined.forEach((r: any) => { joinedMap[r.pathId] = Number(r.cnt) || 0; });
+        res.json(paths.map((p: any) => ({
+          ...p.toJSON(),
+          lessonCount: countMap[p.id] || 0,
+          joinedCount: joinedMap[p.id] || 0
+        })));
+      } catch (error) {
+        console.error('[-] Lỗi admin lấy paths:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.post('/api/admin/paths', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const { id, title, title_en, description, description_en, jobTitle, jobTitle_en, type, imageUrl, icon, orderIndex } = req.body;
+        if (!id || !title) return res.status(400).json({ success: false, message: 'Thiếu ID hoặc tiêu đề' });
+        const existing = await LearningPath.findByPk(id);
+        if (existing) return res.status(400).json({ success: false, message: 'ID lộ trình đã tồn tại!' });
+        const newPath = await LearningPath.create({
+          id, title, title_en: title_en || '', description: description || '', description_en: description_en || '',
+          jobTitle: jobTitle || '', jobTitle_en: jobTitle_en || '', type: type || 'PEN',
+          imageUrl: imageUrl || '', icon: icon || '', orderIndex: orderIndex || 0
+        });
+        res.json({ success: true, message: 'Tạo lộ trình thành công!', path: newPath });
+      } catch (error) {
+        console.error('[-] Lỗi tạo path:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.put('/api/admin/paths/:id', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const { title, title_en, description, description_en, jobTitle, jobTitle_en, type, imageUrl, icon, orderIndex } = req.body;
+        const path: any = await LearningPath.findByPk(req.params.id);
+        if (!path) return res.status(404).json({ success: false, message: 'Không tìm thấy lộ trình!' });
+        await path.update({
+          title, title_en: title_en || '', description: description || '', description_en: description_en || '',
+          jobTitle: jobTitle || '', jobTitle_en: jobTitle_en || '', type: type || path.type,
+          imageUrl: imageUrl || '', icon: icon || '', orderIndex: orderIndex || 0
+        });
+        res.json({ success: true, message: 'Cập nhật lộ trình thành công!', path });
+      } catch (error) {
+        console.error('[-] Lỗi sửa path:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.delete('/api/admin/paths/:id', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const path = await LearningPath.findByPk(req.params.id);
+        if (!path) return res.status(404).json({ success: false, message: 'Không tìm thấy lộ trình!' });
+        await PathLesson.destroy({ where: { pathId: path.id } });
+        await PathProgress.destroy({ where: { pathId: path.id } });
+        await path.destroy();
+        res.json({ success: true, message: 'Đã xóa lộ trình.' });
+      } catch (error) {
+        console.error('[-] Lỗi xóa path:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.get('/api/admin/paths/:id/lessons', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const members = await PathLesson.findAll({
+          where: { pathId: req.params.id },
+          include: [{ model: Lesson, attributes: ['id', 'title', 'title_en', 'category', 'difficulty', 'level'] }],
+          order: [['orderIndex', 'ASC'], ['id', 'ASC']]
+        });
+        res.json(members.map((m: any) => ({
+          id: m.id, pathId: m.pathId, lessonId: m.lessonId, orderIndex: m.orderIndex,
+          lesson: m.Lesson ? { id: m.Lesson.id, title: m.Lesson.title, title_en: m.Lesson.title_en, category: m.Lesson.category, difficulty: m.Lesson.difficulty, level: m.Lesson.level } : null
+        })));
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.post('/api/admin/paths/:id/lessons', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const { lessonId, orderIndex } = req.body;
+        if (!lessonId) return res.status(400).json({ success: false, message: 'Thiếu bài học' });
+        const lesson = await Lesson.findByPk(lessonId);
+        if (!lesson) return res.status(404).json({ success: false, message: 'Bài học không tồn tại!' });
+        const existing = await PathLesson.findOne({ where: { pathId: req.params.id, lessonId } });
+        if (existing) return res.status(400).json({ success: false, message: 'Bài học đã có trong lộ trình!' });
+        const maxIdx = await PathLesson.max('orderIndex', { where: { pathId: req.params.id } });
+        const member = await PathLesson.create({
+          pathId: req.params.id, lessonId,
+          orderIndex: (typeof orderIndex === 'number' ? orderIndex : (Number(maxIdx) || 0) + 1)
+        });
+        res.json({ success: true, message: 'Đã thêm bài học vào lộ trình!', member });
+      } catch (error) {
+        console.error('[-] Lỗi thêm lesson vào path:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.put('/api/admin/paths/:id/lessons/:mid', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const { orderIndex } = req.body;
+        const member: any = await PathLesson.findByPk(req.params.mid);
+        if (!member || member.pathId !== req.params.id) return res.status(404).json({ success: false, message: 'Không tìm thấy bài học trong lộ trình!' });
+        if (typeof orderIndex === 'number') await member.update({ orderIndex });
+        res.json({ success: true, message: 'Đã cập nhật thứ tự!', member });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.delete('/api/admin/paths/:id/lessons/:mid', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const member = await PathLesson.findByPk(req.params.mid);
+        if (!member || member.pathId !== req.params.id) return res.status(404).json({ success: false, message: 'Không tìm thấy bài học trong lộ trình!' });
+        await member.destroy();
+        res.json({ success: true, message: 'Đã gỡ bài học khỏi lộ trình.' });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.post('/api/admin/paths/upload', authenticate, requireAdmin, uploadImage.single('image'), async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        if (!req.file) return res.status(400).json({ success: false, message: 'Chưa chọn file!' });
+        const buf = fs.readFileSync(req.file.path);
+        if (!isRealImage(buf)) {
+          fs.unlinkSync(req.file.path);
+          return res.status(400).json({ success: false, message: 'File không phải là ảnh hợp lệ!' });
+        }
+        res.json({ success: true, url: `/uploads/${req.file.filename}` });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi upload ảnh' });
       }
     });
 

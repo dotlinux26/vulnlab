@@ -1,10 +1,15 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Filter, X, Loader2, BookOpen, ChevronDown, Users } from "lucide-react";
+import { Search, Filter, X, Loader2, BookOpen, ChevronDown, Users, MapPin, ArrowRight, UserPlus, Shield, Sword, Ghost, Bug, Target, Crosshair, Terminal, Lock, Key } from "lucide-react";
+
+const pathIcons: Record<string, any> = {
+  shield: Shield, sword: Sword, ghost: Ghost, bug: Bug, target: Target,
+  crosshair: Crosshair, terminal: Terminal, lock: Lock, key: Key,
+};
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { fetchLessons, fetchLessonProgress, type Lesson, type PaginatedResponse } from "@/services/api";
+import { fetchLessons, fetchLessonProgress, fetchPaths, type Lesson, type PaginatedResponse, type LearningPath } from "@/services/api";
 
 const difficulties = ["Easy", "Medium", "Hard"];
 const categories = ["Web", "Pwn", "Forensics", "Crypto", "Reverse", "OSINT", "Network"];
@@ -49,6 +54,7 @@ const Learning = () => {
   const [selectedCat, setSelectedCat] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
+  const [paths, setPaths] = useState<LearningPath[]>([]);
 
   const userName = localStorage.getItem("user_name") || "Học viên";
   const { lang, t } = useLanguage();
@@ -79,6 +85,7 @@ const Learning = () => {
   useEffect(() => {
     setIsLoading(true);
     loadPage(1);
+    fetchPaths().then(setPaths).catch(() => {});
   }, []);
 
   const loadMore = () => {
@@ -137,6 +144,66 @@ const Learning = () => {
                     style={{ width: `${lessons.length > 0 ? (Object.values(progress).filter(v => v === 'completed').length / lessons.length) * 100 : 0}%` }}
                   />
                 </div>
+              </div>
+            </div>
+          )}
+
+          {paths.length > 0 && (
+            <div className="mb-8" style={{ animation: "fade-in-up 0.6s ease-out 0.05s both" }}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                  <MapPin size={20} className="text-primary" />
+                  {t("learning.paths")}
+                </h2>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paths.map((path, i) => {
+                  const displayTitle = lang === "en" && path.title_en ? path.title_en : path.title;
+                  const displayDesc = lang === "en" && path.description_en ? path.description_en : path.description;
+                  const tm = path.type === 'RED' ? { label: "RED", color: "text-red-400 bg-red-400/10 border-red-400/30" }
+                    : path.type === 'BLUE' ? { label: "BLUE", color: "text-blue-400 bg-blue-400/10 border-blue-400/30" }
+                    : path.type === 'PURPLE' ? { label: "PURPLE", color: "text-fuchsia-400 bg-fuchsia-400/10 border-fuchsia-400/30" }
+                    : { label: "PEN", color: "text-purple-400 bg-purple-400/10 border-purple-400/30" };
+                  return (
+                    <Link
+                      key={path.id}
+                      to={`/learning/paths/${path.id}`}
+                      className="group glass-card p-5 rounded-xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 block flex flex-col"
+                      style={{ animation: `fade-in-up 0.5s ease-out ${i * 0.05}s both` }}
+                    >
+                      <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+                        style={{ background: `radial-gradient(circle at 80% 0%, hsl(var(--neon-purple)), transparent 60%)` }} />
+                      <div className="flex items-start gap-3 mb-3 relative z-10">
+                        {path.imageUrl ? (
+                          <img src={path.imageUrl} alt={displayTitle} className="w-12 h-12 rounded-lg object-cover border border-border shrink-0" />
+                        ) : (() => {
+                          const Icon = path.icon ? (pathIcons[path.icon] || BookOpen) : BookOpen;
+                          return (
+                            <div className="w-12 h-12 rounded-lg gradient-primary flex items-center justify-center text-primary-foreground shrink-0">
+                              <Icon size={22} />
+                            </div>
+                          );
+                        })()}
+                        <div className="min-w-0 flex-1">
+                          <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border mb-1 ${tm.color}`}>{tm.label}</span>
+                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{displayTitle}</h3>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-1">{displayDesc}</p>
+                      <div className="flex items-center justify-between mt-auto relative z-10">
+                        <span className="text-xs text-muted-foreground">{path.lessonCount ?? 0} {t("learning.lessons")}</span>
+                        {path.joined ? (
+                          <span className="text-xs text-neon-green bg-neon-green/10 border border-neon-green/30 px-2 py-0.5 rounded-full">{t("learning.pathJoined")}</span>
+                        ) : (
+                          <span className="text-xs text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <UserPlus size={13} /> {t("learning.pathJoin")}
+                          </span>
+                        )}
+                        <ArrowRight size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           )}

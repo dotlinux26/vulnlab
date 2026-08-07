@@ -221,6 +221,67 @@ LessonAnswerLog.init({
   correct: { type: DataTypes.BOOLEAN, defaultValue: false },
 }, { sequelize, modelName: 'lesson_answer_log', indexes: [{ unique: true, fields: ['userId', 'lessonId', 'questionId'] }] });
 
+export class LearningPath extends Model {
+  declare id: string;
+  declare title: string;
+  declare title_en: string;
+  declare description: string;
+  declare description_en: string;
+  declare jobTitle: string;
+  declare jobTitle_en: string;
+  declare type: string;
+  declare imageUrl: string;
+  declare icon: string;
+  declare orderIndex: number;
+}
+
+LearningPath.init({
+  id: { type: DataTypes.STRING, primaryKey: true },
+  title: { type: DataTypes.STRING, allowNull: false },
+  title_en: { type: DataTypes.STRING, allowNull: true },
+  description: { type: DataTypes.TEXT },
+  description_en: { type: DataTypes.TEXT, allowNull: true },
+  jobTitle: { type: DataTypes.TEXT },
+  jobTitle_en: { type: DataTypes.TEXT, allowNull: true },
+  type: { type: DataTypes.STRING, defaultValue: 'PEN' },
+  imageUrl: { type: DataTypes.STRING },
+  icon: { type: DataTypes.STRING },
+  orderIndex: { type: DataTypes.INTEGER, defaultValue: 0 },
+}, { sequelize, modelName: 'learning_path' });
+
+export class PathLesson extends Model {
+  declare id: number;
+  declare pathId: string;
+  declare lessonId: string;
+  declare orderIndex: number;
+}
+
+PathLesson.init({
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  pathId: { type: DataTypes.STRING, allowNull: false },
+  lessonId: { type: DataTypes.STRING, allowNull: false },
+  orderIndex: { type: DataTypes.INTEGER, defaultValue: 0 },
+}, { sequelize, modelName: 'path_lesson', indexes: [{ unique: true, fields: ['pathId', 'lessonId'] }] });
+
+export class PathProgress extends Model {
+  declare id: number;
+  declare pathId: string;
+  declare userId: string;
+  declare joinedAt: Date;
+}
+
+PathProgress.init({
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  pathId: { type: DataTypes.STRING, allowNull: false },
+  userId: { type: DataTypes.STRING, allowNull: false },
+  joinedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+}, { sequelize, modelName: 'path_progress', indexes: [{ unique: true, fields: ['pathId', 'userId'] }] });
+
+LearningPath.hasMany(PathLesson, { foreignKey: 'pathId', as: 'pathLessons' });
+PathLesson.belongsTo(LearningPath, { foreignKey: 'pathId' });
+PathLesson.belongsTo(Lesson, { foreignKey: 'lessonId' });
+PathProgress.belongsTo(LearningPath, { foreignKey: 'pathId' });
+
 export class LessonComment extends Model {
   declare id: number;
   declare lessonId: string;

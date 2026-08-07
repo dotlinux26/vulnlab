@@ -184,6 +184,56 @@ export const postLessonComment = async (id: string, payload: { content: string; 
     return res.json();
 };
 
+export interface LearningPath {
+    id: string;
+    title: string;
+    title_en?: string;
+    description: string;
+    description_en?: string;
+    jobTitle: string;
+    jobTitle_en?: string;
+    type: 'RED' | 'BLUE' | 'PEN' | 'PURPLE';
+    imageUrl?: string;
+    icon?: string;
+    orderIndex: number;
+    lessonCount?: number;
+    joined?: boolean;
+    joinedCount?: number;
+    lessons?: PathLessonDetail[];
+}
+
+export interface PathLessonDetail {
+    lessonId: string;
+    orderIndex: number;
+    title: string;
+    title_en?: string;
+    description: string;
+    description_en?: string;
+    category: string;
+    difficulty: string;
+    level: string;
+    imageUrl?: string;
+    status?: 'not_started' | 'reading' | 'completed';
+}
+
+export const fetchPaths = async (): Promise<LearningPath[]> => {
+    const res = await fetch('/api/paths', { ...fetchOptions, method: 'GET' });
+    if (!res.ok) throw new Error('Failed to fetch paths');
+    return res.json();
+};
+
+export const fetchPath = async (id: string): Promise<LearningPath> => {
+    const res = await fetch(`/api/paths/${id}`, { ...fetchOptions, method: 'GET' });
+    if (!res.ok) throw new Error('Failed to fetch path');
+    return res.json();
+};
+
+export const joinPath = async (id: string): Promise<{ success: boolean; joined: boolean }> => {
+    const res = await fetch(`/api/paths/${id}/join`, { ...fetchOptions, method: 'POST' });
+    if (!res.ok) throw new Error('Failed to join path');
+    return res.json();
+};
+
 export const uploadLessonCommentImage = async (id: string, file: File) => {
     const fd = new FormData();
     fd.append('image', file);
