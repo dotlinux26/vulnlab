@@ -180,7 +180,7 @@ const LearningDetail = () => {
             </div>
           )}
 
-          <div className="glass-card rounded-xl p-6 md:p-8 prose dark:prose-invert max-w-none">
+          <div className="glass-card rounded-xl p-6 md:p-8 prose dark:prose-invert max-w-none mb-6">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {displayContent}
             </ReactMarkdown>
