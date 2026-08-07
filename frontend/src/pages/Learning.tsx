@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Filter, X, Loader2, BookOpen, ChevronDown, Users, MapPin, ArrowRight, UserPlus, Shield, Sword, Ghost, Bug, Target, Crosshair, Terminal, Lock, Key, Zap, Flame, Skull, Bomb, Eye, Server, Database, Globe, Wifi, Radar, Fingerprint, Rocket, Wrench, Hammer, Cpu, Code, Flag, Crown, Medal, Compass, Route, Layers, Network } from "lucide-react";
+import { Search, Filter, X, Loader2, BookOpen, ChevronDown, Users, MapPin, ArrowRight, UserPlus, Shield, Sword, Ghost, Bug, Target, Crosshair, Terminal, Lock, Key, Zap, Flame, Skull, Bomb, Eye, Server, Database, Globe, Wifi, Radar, Fingerprint, Rocket, Wrench, Hammer, Cpu, Code, Flag, Crown, Medal, Compass, Route, Layers, Network, RefreshCw, CheckCircle2, Clock } from "lucide-react";
 
 const pathIcons: Record<string, any> = {
   shield: Shield, sword: Sword, ghost: Ghost, bug: Bug, target: Target,
@@ -11,10 +11,10 @@ const pathIcons: Record<string, any> = {
   route: Route, layers: Layers, network: Network,
 };
 
-const statusMeta: Record<string, { labelKey: string; color: string }> = {
-  updating: { labelKey: "learning.pathStatusUpdating", color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" },
-  final: { labelKey: "learning.pathStatusFinal", color: "text-neon-green bg-neon-green/10 border-neon-green/30" },
-  coming_soon: { labelKey: "learning.pathStatusComingSoon", color: "text-cyan-400 bg-cyan-400/10 border-cyan-400/30" },
+const statusMeta: Record<string, { labelKey: string; color: string; icon: any }> = {
+  updating: { labelKey: "learning.pathStatusUpdating", color: "text-amber-500 bg-amber-500/10 border-amber-500/30", icon: RefreshCw },
+  final: { labelKey: "learning.pathStatusFinal", color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/30", icon: CheckCircle2 },
+  coming_soon: { labelKey: "learning.pathStatusComingSoon", color: "text-sky-500 bg-sky-500/10 border-sky-500/30", icon: Clock },
 };
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -199,7 +199,8 @@ const Learning = () => {
                           <div className="flex items-center gap-1.5 flex-wrap mb-1">
                             <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border ${tm.color}`}>{tm.label}</span>
                             {path.status && (
-                              <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border whitespace-nowrap ${statusMeta[path.status]?.color || statusMeta.updating.color}`}>
+                              <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border whitespace-nowrap ${statusMeta[path.status]?.color || statusMeta.updating.color}`}>
+                                {(() => { const Icon = statusMeta[path.status]?.icon || statusMeta.updating.icon; return <Icon size={10} />; })()}
                                 {t(statusMeta[path.status]?.labelKey || statusMeta.updating.labelKey)}
                               </span>
                             )}

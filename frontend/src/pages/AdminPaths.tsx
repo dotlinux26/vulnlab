@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, X, Loader2, BookOpen, Users, ArrowUpDown } from "lucide-react";
+import { Plus, Trash2, X, Loader2, BookOpen, Users, ArrowUpDown, RefreshCw, CheckCircle2, Clock } from "lucide-react";
 
 const pathTypes = ["RED", "BLUE", "PEN", "PURPLE"];
 
 const statusOptions = [
-  { value: "updating", label: "🔄 Còn cập nhật" },
-  { value: "final", label: "✅ Chốt cứng" },
-  { value: "coming_soon", label: "⏳ Chuẩn bị cập nhật" },
+  { value: "updating", label: "Còn cập nhật" },
+  { value: "final", label: "Chốt cứng" },
+  { value: "coming_soon", label: "Chuẩn bị cập nhật" },
 ];
 
 const iconOptions = [
@@ -249,10 +249,10 @@ const AdminPaths = () => {
     PURPLE: "text-fuchsia-400 bg-fuchsia-400/10 border-fuchsia-400/30",
   };
 
-  const statusMeta: Record<string, { label: string; color: string }> = {
-    updating: { label: "🔄 Còn cập nhật", color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" },
-    final: { label: "✅ Chốt cứng", color: "text-neon-green bg-neon-green/10 border-neon-green/30" },
-    coming_soon: { label: "⏳ Chuẩn bị cập nhật", color: "text-cyan-400 bg-cyan-400/10 border-cyan-400/30" },
+  const statusMeta: Record<string, { label: string; color: string; icon: any }> = {
+    updating: { label: "Còn cập nhật", color: "text-amber-500 bg-amber-500/10 border-amber-500/30", icon: RefreshCw },
+    final: { label: "Chốt cứng", color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/30", icon: CheckCircle2 },
+    coming_soon: { label: "Chuẩn bị cập nhật", color: "text-sky-500 bg-sky-500/10 border-sky-500/30", icon: Clock },
   };
 
   return (
@@ -406,7 +406,8 @@ const AdminPaths = () => {
                     <span className={`text-xs font-bold px-2 py-0.5 rounded border ${typeColor[path.type] || typeColor.PEN}`}>{path.type}</span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${statusMeta[path.status]?.color || statusMeta.updating.color}`}>
+                    <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${statusMeta[path.status]?.color || statusMeta.updating.color}`}>
+                      {(() => { const Icon = statusMeta[path.status]?.icon || statusMeta.updating.icon; return <Icon size={11} />; })()}
                       {statusMeta[path.status]?.label || statusMeta.updating.label}
                     </span>
                   </td>

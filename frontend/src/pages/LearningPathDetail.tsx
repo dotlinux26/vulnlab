@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Loader2, CheckCircle2, PlayCircle, Lock, BookOpen, Users, ArrowLeft, UserPlus, UserCheck, Briefcase, MapPin, Shield, Sword, Ghost, Bug, Target, Crosshair, Terminal, Key, Zap, Flame, Skull, Bomb, Eye, Server, Database, Globe, Wifi, Radar, Fingerprint, Rocket, Wrench, Hammer, Cpu, Code, Flag, Crown, Medal, Compass, Route, Layers, Network } from "lucide-react";
+import { Loader2, CheckCircle2, PlayCircle, Lock, BookOpen, Users, ArrowLeft, UserPlus, UserCheck, Briefcase, MapPin, Shield, Sword, Ghost, Bug, Target, Crosshair, Terminal, Key, Zap, Flame, Skull, Bomb, Eye, Server, Database, Globe, Wifi, Radar, Fingerprint, Rocket, Wrench, Hammer, Cpu, Code, Flag, Crown, Medal, Compass, Route, Layers, Network, RefreshCw, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -16,10 +16,10 @@ const pathIcons: Record<string, any> = {
   route: Route, layers: Layers, network: Network,
 };
 
-const statusMeta: Record<string, { labelKey: string; color: string }> = {
-  updating: { labelKey: "learning.pathStatusUpdating", color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" },
-  final: { labelKey: "learning.pathStatusFinal", color: "text-neon-green bg-neon-green/10 border-neon-green/30" },
-  coming_soon: { labelKey: "learning.pathStatusComingSoon", color: "text-cyan-400 bg-cyan-400/10 border-cyan-400/30" },
+const statusMeta: Record<string, { labelKey: string; color: string; icon: any }> = {
+  updating: { labelKey: "learning.pathStatusUpdating", color: "text-amber-500 bg-amber-500/10 border-amber-500/30", icon: RefreshCw },
+  final: { labelKey: "learning.pathStatusFinal", color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/30", icon: CheckCircle2 },
+  coming_soon: { labelKey: "learning.pathStatusComingSoon", color: "text-sky-500 bg-sky-500/10 border-sky-500/30", icon: Clock },
 };
 
 const typeMeta: Record<string, { label: string; color: string }> = {
@@ -118,7 +118,8 @@ const LearningPathDetail = () => {
                     {tm.label} PATH
                   </span>
                   {path.status && (
-                    <span className={`inline-flex items-center text-xs px-3 py-1 rounded-full border ${statusMeta[path.status]?.color || statusMeta.updating.color}`}>
+                    <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full border ${statusMeta[path.status]?.color || statusMeta.updating.color}`}>
+                      {(() => { const Icon = statusMeta[path.status]?.icon || statusMeta.updating.icon; return <Icon size={12} />; })()}
                       {t(statusMeta[path.status]?.labelKey || statusMeta.updating.labelKey)}
                     </span>
                   )}
