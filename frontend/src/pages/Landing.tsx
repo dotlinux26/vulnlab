@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Shield, Terminal, ChevronRight, Zap, Target, Award } from "lucide-react";
+import { Shield, Terminal, ChevronRight, Zap, Target, Award, BadgeCheck, Linkedin, Facebook, Mail, ExternalLink } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
 import EclipseOrb from "@/components/EclipseOrb";
@@ -125,6 +125,58 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Certifications */}
+      <section className="py-20 px-4">
+        <div className="container mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary text-sm mb-4">
+              <BadgeCheck size={14} />
+              {t("landing.certifications")}
+            </div>
+            <h2 className="text-3xl font-bold text-foreground mb-3">{t("landing.certifications")}</h2>
+            <p className="text-muted-foreground">{t("landing.certificationsDesc")}</p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <a
+              href="https://labs.cyberwarfare.live/credential/achievement/6a6b3e4d8aed14e94c93a8a8"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass-card p-6 rounded-xl hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group flex flex-col items-center text-center"
+            >
+              <img
+                src="/certs/crtsv2.png"
+                alt="CRTS V2"
+                className="w-28 h-28 rounded-lg mb-4 group-hover:scale-105 transition-transform"
+                loading="lazy"
+              />
+              <h3 className="font-semibold text-foreground mb-1">{t("landing.crts")}</h3>
+              <p className="text-sm text-muted-foreground mb-4">{t("landing.crtsOrg")}</p>
+              <span className="inline-flex items-center gap-2 text-primary text-sm font-semibold group-hover:opacity-80">
+                {t("landing.certVerify")} <ExternalLink size={14} />
+              </span>
+            </a>
+            <a
+              href="https://academy.hackthebox.com/achievement/badge/039ec66d-7386-11f0-9254-bea50ffe6cb4"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass-card p-6 rounded-xl hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group flex flex-col items-center text-center"
+            >
+              <img
+                src="/certs/cwes.png"
+                alt="HTB CWES"
+                className="w-28 h-28 rounded-lg mb-4 group-hover:scale-105 transition-transform"
+                loading="lazy"
+              />
+              <h3 className="font-semibold text-foreground mb-1">{t("landing.cwes")}</h3>
+              <p className="text-sm text-muted-foreground mb-4">{t("landing.cwesOrg")}</p>
+              <span className="inline-flex items-center gap-2 text-primary text-sm font-semibold group-hover:opacity-80">
+                {t("landing.certVerify")} <ExternalLink size={14} />
+              </span>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center glass-card rounded-2xl p-12 relative overflow-hidden">
@@ -150,7 +202,10 @@ const Landing = () => {
       <footer className="border-t border-border py-12 px-4">
         <div className="container mx-auto grid md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-primary font-bold text-lg mb-3">{t("landing.footer")}</h3>
+            <div className="flex items-center gap-2 mb-3">
+              <img src="/logo.svg" alt="D.O.T Solutions" className="w-8 h-8" />
+              <h3 className="text-primary font-bold text-lg">{t("landing.footer")}</h3>
+            </div>
             <p className="text-muted-foreground text-sm">
               {t("landing.footerDesc")}
             </p>
@@ -159,9 +214,43 @@ const Landing = () => {
             <h3 className="text-primary font-bold text-lg mb-3">{t("landing.contact")}</h3>
             <ul className="text-muted-foreground text-sm space-y-2">
               <li>{t("landing.address")}</li>
-              <li>{t("landing.email")}</li>
+              <li>
+                <a href="mailto:info@ghedahaui.online" className="hover:text-primary transition-colors inline-flex items-center gap-1.5">
+                  <Mail size={14} /> {t("landing.email")}
+                </a>
+              </li>
+              <li>
+                <a href="mailto:security@ghedahaui.online" className="hover:text-primary transition-colors inline-flex items-center gap-1.5">
+                  <Mail size={14} /> {t("landing.emailSecurity")}
+                </a>
+              </li>
+              <li>
+                <a href="mailto:0206canh2@gmail.com" className="hover:text-primary transition-colors inline-flex items-center gap-1.5">
+                  <Mail size={14} /> {t("landing.emailPersonal")}
+                </a>
+              </li>
               <li>{t("landing.phone")}</li>
             </ul>
+            <div className="flex gap-3 mt-4">
+              <a
+                href="https://www.linkedin.com/in/canh-nguyen-duc-791503392/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+                title={t("landing.linkedin")}
+              >
+                <Linkedin size={16} />
+              </a>
+              <a
+                href="https://www.facebook.com/slox.ceo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+                title={t("landing.facebook")}
+              >
+                <Facebook size={16} />
+              </a>
+            </div>
           </div>
           <div>
             <h3 className="text-primary font-bold text-lg mb-3">{t("landing.links")}</h3>

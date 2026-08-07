@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="10 4 108 116"
+     width="512" 
+     height="512"
+     fill="none">
+  <defs>
+    <linearGradient id="nodeAnchorGrad" x1="0" y1="0" x2="128" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="50%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+  </defs>
+
+  <g stroke="url(#nodeAnchorGrad)"
+     stroke-width="5"
+     stroke-linecap="round"
+     stroke-linejoin="round">
+
+    <circle cx="64" cy="28" r="8"/>
+
+    <path d="M64 36V108"/>
+
+    <path d="M44 52H84"/>
+
+    <path d="M30 74 
+             C30 94 46 108 64 108
+             C82 108 98 94 98 74
+             C98 92 86 100 74 96
+             L64 108
+             L54 96
+             C42 100 30 92 30 74 Z" 
+          fill="url(#nodeAnchorGrad)" />
+
+  </g>
+</svg>
