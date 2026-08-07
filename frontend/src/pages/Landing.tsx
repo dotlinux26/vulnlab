@@ -130,7 +130,7 @@ const Landing = () => {
         <div className="container mx-auto overflow-hidden">
           <div
             className="flex w-max"
-            style={{ animation: "marquee 8s linear infinite" }}
+            style={{ animation: "marquee 12s linear infinite" }}
           >
           {[0, 1].map((dup) => (
             <div key={dup} className="flex items-center shrink-0">
