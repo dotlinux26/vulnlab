@@ -173,7 +173,7 @@ const Landing = () => {
             <h2 className="text-3xl font-bold gradient-text mb-3">{t("landing.certifications")}</h2>
             <p className="text-muted-foreground">{t("landing.certificationsDesc")}</p>
           </div>
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6">
             <a
               href="https://labs.cyberwarfare.live/credential/achievement/6a6b3e4d8aed14e94c93a8a8"
               target="_blank"
