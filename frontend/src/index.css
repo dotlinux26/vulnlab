@@ -7,11 +7,11 @@
 @layer base {
   :root {
     --background: 220 20% 97%;
-    --foreground: 222 76% 30%;
+    --foreground: 217 91% 60%;
     --card: 0 0% 100%;
-    --card-foreground: 222 76% 30%;
+    --card-foreground: 217 91% 60%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 76% 30%;
+    --popover-foreground: 217 91% 60%;
     --primary: 263 70% 58%;
     --primary-foreground: 0 0% 100%;
     --secondary: 217 91% 60%;
@@ -149,6 +149,11 @@
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 @keyframes slide-in-right {
