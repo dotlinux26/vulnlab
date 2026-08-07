@@ -260,17 +260,17 @@ const Landing = () => {
             <ul className="text-muted-foreground text-sm space-y-2">
               <li>{t("landing.address")}</li>
               <li>
-                <a href="mailto:info@ghedahaui.online" className="gradient-text hover:opacity-80 transition-opacity inline-flex items-center gap-1.5">
+                <a href="mailto:info@ghedahaui.online" className="hover:text-primary transition-colors inline-flex items-center gap-1.5">
                   <Mail size={14} /> {t("landing.email")}
                 </a>
               </li>
               <li>
-                <a href="mailto:security@ghedahaui.online" className="gradient-text hover:opacity-80 transition-opacity inline-flex items-center gap-1.5">
+                <a href="mailto:security@ghedahaui.online" className="hover:text-primary transition-colors inline-flex items-center gap-1.5">
                   <Mail size={14} /> {t("landing.emailSecurity")}
                 </a>
               </li>
               <li>
-                <a href="mailto:0206canh2@gmail.com" className="gradient-text hover:opacity-80 transition-opacity inline-flex items-center gap-1.5">
+                <a href="mailto:0206canh2@gmail.com" className="hover:text-primary transition-colors inline-flex items-center gap-1.5">
                   <Mail size={14} /> {t("landing.emailPersonal")}
                 </a>
               </li>
@@ -300,8 +300,8 @@ const Landing = () => {
           <div>
             <h3 className="gradient-text font-bold text-lg mb-3">{t("landing.links")}</h3>
             <ul className="text-muted-foreground text-sm space-y-2">
-              <li><Link to="/dashboard" className="gradient-text hover:opacity-80 transition-opacity">{t("nav.dashboard")}</Link></li>
-              <li><Link to="/login" className="gradient-text hover:opacity-80 transition-opacity">{t("nav.login")}</Link></li>
+              <li><Link to="/dashboard" className="hover:text-primary transition-colors">{t("nav.dashboard")}</Link></li>
+              <li><Link to="/login" className="hover:text-primary transition-colors">{t("nav.login")}</Link></li>
             </ul>
           </div>
         </div>
