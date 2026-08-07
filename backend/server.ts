@@ -849,23 +849,31 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         if (!path) return res.status(404).json({ error: 'Không tìm thấy lộ trình' });
         const members = await PathLesson.findAll({
           where: { pathId: path.id },
-          include: [{ model: Lesson, attributes: ['id', 'title', 'title_en', 'description', 'description_en', 'category', 'difficulty', 'level', 'imageUrl', 'orderIndex'] }],
           order: [['orderIndex', 'ASC'], ['id', 'ASC']]
         });
+        const lessonIds = members.map((m: any) => m.lessonId);
+        const lessonMap: Record<string, any> = {};
+        if (lessonIds.length > 0) {
+          const found = await Lesson.findAll({
+            where: { id: lessonIds },
+            attributes: ['id', 'title', 'title_en', 'description', 'description_en', 'category', 'difficulty', 'level', 'imageUrl', 'orderIndex']
+          });
+          found.forEach((l: any) => { lessonMap[l.id] = l; });
+        }
         const lessons = members
-          .filter((m: any) => m.Lesson)
+          .filter((m: any) => lessonMap[m.lessonId])
           .map((m: any) => ({
-            lessonId: m.Lesson.id,
+            lessonId: m.lessonId,
             orderIndex: m.orderIndex,
-            title: m.Lesson.title,
-            title_en: m.Lesson.title_en,
-            description: m.Lesson.description,
-            description_en: m.Lesson.description_en,
-            category: m.Lesson.category,
-            difficulty: m.Lesson.difficulty,
-            level: m.Lesson.level,
-            imageUrl: m.Lesson.imageUrl,
-            lessonOrderIndex: m.Lesson.orderIndex,
+            title: lessonMap[m.lessonId].title,
+            title_en: lessonMap[m.lessonId].title_en,
+            description: lessonMap[m.lessonId].description,
+            description_en: lessonMap[m.lessonId].description_en,
+            category: lessonMap[m.lessonId].category,
+            difficulty: lessonMap[m.lessonId].difficulty,
+            level: lessonMap[m.lessonId].level,
+            imageUrl: lessonMap[m.lessonId].imageUrl,
+            lessonOrderIndex: lessonMap[m.lessonId].orderIndex,
           }));
         const progressMap: Record<string, string> = {};
         if (lessons.length > 0) {
@@ -1316,12 +1324,20 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
       try {
         const members = await PathLesson.findAll({
           where: { pathId: req.params.id },
-          include: [{ model: Lesson, attributes: ['id', 'title', 'title_en', 'category', 'difficulty', 'level'] }],
           order: [['orderIndex', 'ASC'], ['id', 'ASC']]
         });
+        const lessonIds = members.map((m: any) => m.lessonId);
+        const lessonMap: Record<string, any> = {};
+        if (lessonIds.length > 0) {
+          const found = await Lesson.findAll({
+            where: { id: lessonIds },
+            attributes: ['id', 'title', 'title_en', 'category', 'difficulty', 'level']
+          });
+          found.forEach((l: any) => { lessonMap[l.id] = l; });
+        }
         res.json(members.map((m: any) => ({
           id: m.id, pathId: m.pathId, lessonId: m.lessonId, orderIndex: m.orderIndex,
-          lesson: m.Lesson ? { id: m.Lesson.id, title: m.Lesson.title, title_en: m.Lesson.title_en, category: m.Lesson.category, difficulty: m.Lesson.difficulty, level: m.Lesson.level } : null
+          lesson: lessonMap[m.lessonId] ? { id: lessonMap[m.lessonId].id, title: lessonMap[m.lessonId].title, title_en: lessonMap[m.lessonId].title_en, category: lessonMap[m.lessonId].category, difficulty: lessonMap[m.lessonId].difficulty, level: lessonMap[m.lessonId].level } : null
         })));
       } catch (error) {
         res.status(500).json({ success: false, message: 'Lỗi server' });
