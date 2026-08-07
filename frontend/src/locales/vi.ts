@@ -231,7 +231,7 @@ const vi: Record<string, any> = {
   "landing.ctaDesc": "Đăng ký ngay để truy cập hàng chục bài Lab thực chiến miễn phí.",
   "landing.ctaBtn": "Đăng ký miễn phí",
   "landing.footer": "D.O.T Solutions",
-  "landing.footerDesc": "ShellMap Protocol: A Lightweight Solution for Post-Quantum Cryptography at the Application Layer.",
+  "landing.footerDesc": "ShellMap Protocol: A Lightweight Solution for Post-Quantum Cryptography at the Application Layer. (Secure Mesh Operation — Capability-scoped distributed execution runtime for untrusted mesh environments.",
   "landing.contact": "Contact",
   "landing.address": "Hà Nội, Việt Nam",
   "landing.email": "info@ghedahaui.online",

@@ -231,7 +231,7 @@ const en: Record<string, any> = {
   "landing.ctaDesc": "Register now to access dozens of free real-world labs.",
   "landing.ctaBtn": "Register Free",
   "landing.footer": "D.O.T Solutions",
-  "landing.footerDesc": "ShellMap Protocol: A Lightweight Solution for Post-Quantum Cryptography at the Application Layer.",
+  "landing.footerDesc": "ShellMap Protocol: A Lightweight Solution for Post-Quantum Cryptography at the Application Layer. (Secure Mesh Operation — Capability-scoped distributed execution runtime for untrusted mesh environments.",
   "landing.contact": "Contact",
   "landing.address": "Hanoi, Vietnam",
   "landing.email": "info@ghedahaui.online",
