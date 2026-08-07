@@ -123,6 +123,17 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+  .brand-vuln {
+    background: linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--neon-blue)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .dark .brand-vuln {
+    background: none;
+    -webkit-text-fill-color: hsl(var(--foreground));
+    color: hsl(var(--foreground));
+  }
 }
 
 /* Shooting stars */
