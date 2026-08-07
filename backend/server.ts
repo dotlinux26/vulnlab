@@ -4,7 +4,8 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { OAuth2Client } from 'google-auth-library';
-import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress } from './src/db';
+import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress, LessonQuestion, LessonAnswerLog, LessonComment } from './src/db';
+import { sanitizeComment, linkify, extractImageUrl, isImageUrl } from './src/commentFilter';
 import crypto from 'crypto'; // Dùng để gen mã Hash
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -12,6 +13,7 @@ import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import helmet from 'helmet';
+import { Sequelize } from 'sequelize';
 
 dotenv.config();
 
@@ -37,6 +39,10 @@ const authLimiter = rateLimit({
   max: 10
 });
 
+// Rate limit bình luận bài học: 3s/người dùng
+const lastCommentTime = new Map<string, number>();
+const lastCommentUpload = new Map<string, number>();
+
 
 interface AuthenticatedRequest extends Request {
     user?: any;
@@ -60,12 +66,49 @@ const getRank = (level: number): string => {
 const uploadDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
+// ✅ AN TOÀN: chỉ cho phép đuôi file an toàn khi lưu xuống đĩa
+const SAFE_EXTENSIONS = new Set([
+  '.pdf', '.zip', '.rar',
+  '.jpg', '.jpeg', '.png', '.gif', '.webp'
+]);
+const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp']);
+
+// ✅ AN TOÀN: chặn mọi đuôi có thể chứa script/nội dung active
+const DANGEROUS_EXTS = [
+  '.php', '.php3', '.php4', '.php5', '.phtml', '.phar',
+  '.sh', '.js', '.mjs', '.exe', '.bat', '.cmd', '.py', '.jar',
+  '.html', '.htm', '.shtml', '.xhtml', '.svg', '.svgz',
+  '.xml', '.mhtml', '.jsp', '.jspx', '.asp', '.aspx',
+  '.cgi', '.pl', '.rb', '.ps1', '.vbs', '.hta', '.swf', '.action'
+];
+
+// ✅ AN TOÀN: filename không bao giờ dùng trực tiếp originalname (chống path traversal)
+const sanitizeFilename = (original: string): string => {
+  const base = path.basename(original || '').replace(/[^a-zA-Z0-9.\-_]/g, '_');
+  const ext = path.extname(base).toLowerCase();
+  if (!SAFE_EXTENSIONS.has(ext)) return `file_${Date.now()}.pdf`;
+  const name = path.basename(base, ext).slice(0, 40) || 'file';
+  return `${name}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`;
+};
+
+// ✅ AN TOÀN: kiểm tra magic bytes thật của ảnh (chống giả MIME type)
+const isRealImage = (buf: Buffer): boolean => {
+  if (!buf || buf.length < 12) return false;
+  // PNG
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) return true;
+  // JPEG
+  if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) return true;
+  // GIF
+  if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) return true;
+  // WebP
+  if (buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return true;
+  return false;
+};
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadDir),
     filename: (req, file, cb) => {
-        const userReq = req as AuthenticatedRequest;
-        cb(null, `user_${userReq.user?.id}_${Date.now()}_${file.originalname}`);
+        cb(null, sanitizeFilename(file.originalname));
     }
 });
 
@@ -73,32 +116,56 @@ const upload = multer({
     storage,
     limits: { fileSize: 20 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-        const DANGEROUS_EXTS = ['.php', '.phtml', '.sh', '.js', '.exe', '.bat', '.py', '.jar'];
         const filename = file.originalname.toLowerCase();
-        
+        const ext = path.extname(filename);
+
         // 1. Chặn đứng các file có chứa đuôi nguy hiểm ở bất cứ đâu (ví dụ shell.php.rar)
-        if (DANGEROUS_EXTS.some(ext => filename.includes(ext))) {
+        if (DANGEROUS_EXTS.some(d => filename.includes(d))) {
             return cb(new Error('File co chua ky tu hoac duoi mo rong nguy hiem!'));
         }
 
-        // 2. Chỉ cho phép các MimeType an toàn
+        // 2. Chỉ cho phép MimeType + đuôi nằm trong whitelist
         const allowedTypes = [
-            'application/pdf', 
-            'application/zip', 
-            'application/x-zip-compressed', 
-            'application/x-rar-compressed', 
+            'application/pdf',
+            'application/zip',
+            'application/x-zip-compressed',
+            'application/x-rar-compressed',
             'application/vnd.rar',
             'application/octet-stream',
-            'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp'
         ];
 
-        if (allowedTypes.includes(file.mimetype)) {
+        if (allowedTypes.includes(file.mimetype) && SAFE_EXTENSIONS.has(ext)) {
             cb(null, true);
         } else {
             cb(new Error('Dinh dang file khong hop le!'));
         }
     }
 });
+
+// ✅ AN TOÀN: multer riêng cho ảnh (comment/lesson) — bắt buộc đúng magic bytes
+const uploadImage = multer({
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const ext = path.extname(file.originalname.toLowerCase());
+        if (!IMAGE_EXTENSIONS.has(ext)) return cb(new Error('Chi chap nhan file anh!'));
+        cb(null, true);
+    }
+});
+
+const learnerCounts = async (lessonIds: string[]) => {
+  if (!lessonIds.length) return {} as Record<string, number>;
+  const rows: any[] = await LessonProgress.findAll({
+    attributes: ['lessonId', [Sequelize.fn('COUNT', Sequelize.col('id')), 'cnt']],
+    where: { lessonId: lessonIds },
+    group: ['lessonId'],
+    raw: true
+  });
+  const out: Record<string, number> = {};
+  rows.forEach((r: any) => { out[r.lessonId] = Number(r.cnt) || 0; });
+  return out;
+};
 
 async function startServer() {
     await initDb();
@@ -135,6 +202,13 @@ async function startServer() {
     app.use('/uploads', (req, res, next) => {
 	    res.header('Access-Control-Allow-Origin', 'https://vuln.ghedahaui.online');
 	    res.header('Access-Control-Allow-Credentials', 'true');
+	    res.setHeader('X-Content-Type-Options', 'nosniff');
+	    // Chặn nội dung chủ động chạy inline: file không phải ảnh -> tải về thay vì mở trực tiếp
+	    const ext = path.extname(req.path).toLowerCase();
+	    if (!IMAGE_EXTENSIONS.has(ext)) {
+	        res.setHeader('Content-Disposition', 'attachment');
+	        res.setHeader('Content-Type', 'application/octet-stream');
+	    }
 	    next();
 	}, express.static(uploadDir));
 
@@ -670,7 +744,9 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
             limit
           });
           const total = await Lesson.count({ where });
-          return res.json({ items, total, page: Number(page), totalPages: Math.ceil(total / limit) });
+          const learners = await learnerCounts(items.map((l: any) => l.id));
+          const withLearners = items.map((l: any) => ({ ...l.toJSON(), learners: learners[l.id] || 0 }));
+          return res.json({ items: withLearners, total, page: Number(page), totalPages: Math.ceil(total / limit) });
         }
 
         const lessons = await Lesson.findAll({
@@ -678,7 +754,8 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
           attributes: ['id', 'title', 'title_en', 'description', 'description_en', 'category', 'difficulty', 'level', 'imageUrl', 'orderIndex'],
           order: [['orderIndex', 'ASC']]
         });
-        res.json(lessons);
+        const learners = await learnerCounts(lessons.map((l: any) => l.id));
+        res.json(lessons.map((l: any) => ({ ...l.toJSON(), learners: learners[l.id] || 0 })));
       } catch (error) {
         res.status(500).json({ error: 'Lỗi tải bài học' });
       }
@@ -714,6 +791,20 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         if (!['reading', 'completed'].includes(status)) {
           return res.status(400).json({ success: false, message: 'Trạng thái không hợp lệ' });
         }
+
+        // BẮT BUỘC trả lời đúng hết câu hỏi (nếu có) trước khi đánh dấu hoàn thành
+        if (status === 'completed') {
+          const totalQuestions = await LessonQuestion.count({ where: { lessonId: req.params.id } });
+          if (totalQuestions > 0) {
+            const answeredCorrect = await LessonAnswerLog.count({
+              where: { userId: req.user.id, lessonId: req.params.id, correct: true }
+            });
+            if (answeredCorrect < totalQuestions) {
+              return res.status(400).json({ success: false, message: 'Phải trả lời đúng tất cả câu hỏi trước khi hoàn thành!' });
+            }
+          }
+        }
+
         const [record] = await LessonProgress.findOrCreate({
           where: { userId: req.user.id, lessonId: req.params.id },
           defaults: { status }
@@ -728,6 +819,276 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
       }
     });
 
+    // =========================================================
+    // Lesson Q&A APIs (check phía server, KHÔNG trả answer về client)
+    // =========================================================
+    app.get('/api/lessons/:id/questions', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const questions = await LessonQuestion.findAll({
+          where: { lessonId: req.params.id },
+          attributes: ['id', 'lessonId', 'question_vi', 'question_en', 'orderIndex'],
+          order: [['orderIndex', 'ASC'], ['id', 'ASC']]
+        });
+        const solvedLogs = await LessonAnswerLog.findAll({
+          where: { userId: req.user.id, lessonId: req.params.id, correct: true },
+          attributes: ['questionId']
+        });
+        const solvedSet = new Set(solvedLogs.map((s: any) => s.questionId));
+        res.json(questions.map((q: any) => ({
+          id: q.id,
+          lessonId: q.lessonId,
+          question_vi: q.question_vi,
+          question_en: q.question_en || '',
+          orderIndex: q.orderIndex,
+          solved: solvedSet.has(q.id)
+        })));
+      } catch (error) {
+        res.status(500).json({ error: 'Lỗi tải câu hỏi' });
+      }
+    });
+
+    app.post('/api/lessons/:id/questions/:qid/check', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const question: any = await LessonQuestion.findByPk(req.params.qid);
+        if (!question || question.lessonId !== req.params.id) {
+          return res.status(404).json({ success: false, message: 'Câu hỏi không tồn tại' });
+        }
+        const { answer } = req.body;
+        if (typeof answer !== 'string' || !answer.trim()) {
+          return res.status(400).json({ success: false, correct: false });
+        }
+
+        const given = answer.trim().toLowerCase();
+        const validAnswers = [question.answer_vi, question.answer_en]
+          .filter((a: any) => typeof a === 'string' && a.trim())
+          .map((a: string) => a.trim().toLowerCase());
+
+        const correct = validAnswers.includes(given);
+
+        if (correct) {
+          await LessonAnswerLog.upsert({
+            userId: req.user.id,
+            lessonId: req.params.id,
+            questionId: question.id,
+            correct: true
+          });
+        }
+        res.json({ success: true, correct });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    // =========================================================
+    // Lesson Comments APIs
+    // =========================================================
+    app.get('/api/lessons/:id/comments', authenticate, async (req: Request, res: Response) => {
+      try {
+        const limit = Math.min(Number(req.query.limit) || 10, 20);
+        const offset = Math.max(Number(req.query.offset) || 0, 0);
+        const lessonId = req.params.id;
+
+        const totalTop = await LessonComment.count({ where: { lessonId, parentId: null } });
+
+        const topComments = await LessonComment.findAll({
+          where: { lessonId, parentId: null },
+          order: [['timestamp', 'DESC'], ['id', 'DESC']],
+          offset,
+          limit
+        });
+        const topIds = topComments.map((c: any) => c.id);
+
+        let replies: LessonComment[] = [];
+        if (topIds.length) {
+          replies = await LessonComment.findAll({
+            where: { lessonId, parentId: topIds },
+            order: [['timestamp', 'ASC'], ['id', 'ASC']]
+          });
+        }
+
+        const replyMap: Record<number, any[]> = {};
+        replies.forEach((r: any) => {
+          const p = r.parentId;
+          if (!replyMap[p]) replyMap[p] = [];
+          replyMap[p].push(r.toJSON());
+        });
+
+        const items = topComments.map((c: any) => ({
+          ...c.toJSON(),
+          replies: replyMap[c.id] || []
+        }));
+
+        res.json({ items, hasMore: offset + topComments.length < totalTop, total: totalTop });
+      } catch (error) {
+        res.status(500).json({ error: 'Lỗi tải bình luận' });
+      }
+    });
+
+    app.post('/api/lessons/:id/comments', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { content, parentId, imageUrl } = req.body;
+        if (typeof content !== 'string') return res.status(400).json({ success: false, message: 'Nội dung không hợp lệ' });
+
+        // Rate limit 3s/người
+        const now = Date.now();
+        const key = `${req.user.id}:${req.params.id}`;
+        const lastTime = lastCommentTime.get(key) || 0;
+        if (now - lastTime < 3000) {
+          return res.status(429).json({ success: false, message: 'Spam ít thôi sếp ơi! Đợi 3s nhé.' });
+        }
+        lastCommentTime.set(key, now);
+
+        const clean = sanitizeComment(content);
+        if (!clean && !imageUrl) {
+          return res.status(400).json({ success: false, message: 'Nội dung trống' });
+        }
+
+        // Validate parentId thuộc cùng bài học
+        if (parentId) {
+          const parent = await LessonComment.findByPk(parentId);
+          if (!parent || parent.lessonId !== req.params.id) {
+            return res.status(400).json({ success: false, message: 'Bình luận cha không hợp lệ' });
+          }
+        }
+
+        const dbUser: any = await User.findByPk(req.user.id);
+        const autoImage = extractImageUrl(clean);
+
+        // ✅ AN TOÀN: imageUrl chỉ chấp nhận ảnh tải lên /uploads hoặc link ảnh http(s) hợp lệ
+        let finalImageUrl = null;
+        if (imageUrl && typeof imageUrl === 'string') {
+          if (imageUrl.startsWith('/uploads/')) {
+            const ext = path.extname(imageUrl).toLowerCase();
+            if (IMAGE_EXTENSIONS.has(ext)) finalImageUrl = imageUrl;
+          } else if (isImageUrl(imageUrl)) {
+            finalImageUrl = imageUrl;
+          }
+        }
+        if (!finalImageUrl && autoImage) finalImageUrl = autoImage;
+
+        const comment: any = await LessonComment.create({
+          lessonId: req.params.id,
+          parentId: parentId || null,
+          userId: req.user.id,
+          userName: (dbUser && dbUser.name) || 'Học viên',
+          userAvatar: (dbUser && dbUser.picture) || '',
+          content: linkify(clean),
+          imageUrl: finalImageUrl,
+          timestamp: now
+        });
+        res.json({ success: true, comment: { ...comment.toJSON(), replies: [] } });
+      } catch (error) {
+        console.error('[-] Lỗi tạo bình luận:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.post('/api/lessons/:id/comments/upload', authenticate, uploadImage.single('image'), async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        if (!req.file) return res.status(400).json({ success: false, message: 'Chưa chọn file!' });
+        // ✅ Chống spam upload: tối đa 1 ảnh/10s/user
+        const now = Date.now();
+        const key = `${req.user.id}:${req.params.id}`;
+        const lastUp = lastCommentUpload.get(key) || 0;
+        if (now - lastUp < 10000) {
+          fs.unlinkSync(req.file.path);
+          return res.status(429).json({ success: false, message: 'Tải ảnh quá nhanh, chờ 10s nhé!' });
+        }
+        lastCommentUpload.set(key, now);
+        // ✅ BẮT BUỘC là ảnh thật (magic bytes) — chống giả MIME
+        const buf = fs.readFileSync(req.file.path);
+        if (!isRealImage(buf)) {
+          fs.unlinkSync(req.file.path);
+          return res.status(400).json({ success: false, message: 'File không phải là ảnh hợp lệ!' });
+        }
+        res.json({ success: true, url: `/uploads/${req.file.filename}` });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi upload ảnh' });
+      }
+    });
+
+    app.delete('/api/admin/lessons/:id/comments/:cid', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const comment = await LessonComment.findByPk(req.params.cid);
+        if (!comment) return res.status(404).json({ success: false, message: 'Không tìm thấy bình luận' });
+        await LessonComment.destroy({ where: { parentId: comment.id } });
+        await comment.destroy();
+        res.json({ success: true, message: 'Đã xóa bình luận.' });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.get('/api/admin/lessons/:id/comments', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const limit = Math.min(Number(req.query.limit) || 50, 100);
+        const comments = await LessonComment.findAll({
+          where: { lessonId: req.params.id },
+          order: [['timestamp', 'DESC'], ['id', 'DESC']],
+          limit
+        });
+        res.json(comments);
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    // =========================================================
+    // Lesson Q&A Admin APIs (có answer)
+    // =========================================================
+    app.get('/api/admin/lessons/:id/questions', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const questions = await LessonQuestion.findAll({
+          where: { lessonId: req.params.id },
+          order: [['orderIndex', 'ASC'], ['id', 'ASC']]
+        });
+        res.json(questions);
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.post('/api/admin/lessons/:id/questions', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const { question_vi, question_en, answer_vi, answer_en, orderIndex } = req.body;
+        if (!question_vi || !answer_vi) {
+          return res.status(400).json({ success: false, message: 'Câu hỏi và đáp án (VI) là bắt buộc' });
+        }
+        const q = await LessonQuestion.create({
+          lessonId: req.params.id,
+          question_vi, question_en: question_en || '', answer_vi, answer_en: answer_en || '',
+          orderIndex: orderIndex || 0
+        });
+        res.json({ success: true, question: q });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.put('/api/admin/questions/:qid', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const { question_vi, question_en, answer_vi, answer_en, orderIndex } = req.body;
+        const q: any = await LessonQuestion.findByPk(req.params.qid);
+        if (!q) return res.status(404).json({ success: false, message: 'Không tìm thấy câu hỏi' });
+        await q.update({ question_vi, question_en, answer_vi, answer_en, orderIndex: orderIndex || q.orderIndex });
+        res.json({ success: true, question: q });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    app.delete('/api/admin/questions/:qid', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const q = await LessonQuestion.findByPk(req.params.qid);
+        if (!q) return res.status(404).json({ success: false, message: 'Không tìm thấy câu hỏi' });
+        await LessonAnswerLog.destroy({ where: { questionId: q.id } });
+        await q.destroy();
+        res.json({ success: true, message: 'Đã xóa câu hỏi.' });
+      } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
     app.get('/api/admin/lessons', authenticate, requireAdmin, async (req: Request, res: Response) => {
       try {
         const lessons = await Lesson.findAll({ order: [['orderIndex', 'ASC']] });
@@ -737,9 +1098,14 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
       }
     });
 
-    app.post('/api/admin/lessons/upload', authenticate, requireAdmin, upload.single('image'), async (req: AuthenticatedRequest, res: Response) => {
+    app.post('/api/admin/lessons/upload', authenticate, requireAdmin, uploadImage.single('image'), async (req: AuthenticatedRequest, res: Response) => {
       try {
         if (!req.file) return res.status(400).json({ success: false, message: 'Chưa chọn file!' });
+        const buf = fs.readFileSync(req.file.path);
+        if (!isRealImage(buf)) {
+          fs.unlinkSync(req.file.path);
+          return res.status(400).json({ success: false, message: 'File không phải là ảnh hợp lệ!' });
+        }
         const url = `/uploads/${req.file.filename}`;
         res.json({ success: true, url });
       } catch (error) {

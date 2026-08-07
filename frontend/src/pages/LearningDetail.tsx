@@ -7,6 +7,8 @@ import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
 import { fetchLesson, fetchLessonProgress, updateLessonProgress, type Lesson } from "@/services/api";
 import { useLanguage } from "@/contexts/LanguageContext";
+import LessonQA from "@/components/LessonQA";
+import LessonComments from "@/components/LessonComments";
 
 const difficultyColors: Record<string, string> = {
   Easy: "text-neon-green bg-neon-green/10 border-neon-green/30",
@@ -42,6 +44,7 @@ const LearningDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [progressStatus, setProgressStatus] = useState<string | null>(null);
   const [contentLang, setContentLang] = useState<"vi" | "en">("vi");
+  const [progressError, setProgressError] = useState("");
 
   const { lang, setLang, t } = useLanguage();
   const userName = localStorage.getItem("user_name") || "Học viên";
@@ -79,11 +82,14 @@ const LearningDetail = () => {
 
   const handleMarkComplete = async () => {
     if (!id) return;
+    setProgressError("");
     try {
       const res = await updateLessonProgress(id, 'completed');
       if (res.success) setProgressStatus('completed');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Lỗi cập nhật tiến độ:", error);
+      if (error?.message) setProgressError(error.message);
+      else setProgressError(t("lesson.qa.completeError"));
     }
   };
 
@@ -168,11 +174,21 @@ const LearningDetail = () => {
             </div>
           </div>
 
+          {progressError && (
+            <div className="mb-6 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+              {progressError}
+            </div>
+          )}
+
           <div className="glass-card rounded-xl p-6 md:p-8 prose dark:prose-invert max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {displayContent}
             </ReactMarkdown>
           </div>
+
+          <LessonQA lessonId={lesson.id} contentLang={contentLang} />
+
+          <LessonComments lessonId={lesson.id} />
         </div>
       </main>
     </div>

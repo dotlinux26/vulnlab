@@ -185,6 +185,66 @@ LessonProgress.init({
   updatedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, { sequelize, modelName: 'lesson_progress', timestamps: true });
 
+export class LessonQuestion extends Model {
+  declare id: number;
+  declare lessonId: string;
+  declare question_vi: string;
+  declare question_en: string;
+  declare answer_vi: string;
+  declare answer_en: string;
+  declare orderIndex: number;
+}
+
+LessonQuestion.init({
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  lessonId: { type: DataTypes.STRING, allowNull: false },
+  question_vi: { type: DataTypes.TEXT, allowNull: false },
+  question_en: { type: DataTypes.TEXT, allowNull: true },
+  answer_vi: { type: DataTypes.TEXT, allowNull: false },
+  answer_en: { type: DataTypes.TEXT, allowNull: true },
+  orderIndex: { type: DataTypes.INTEGER, defaultValue: 0 },
+}, { sequelize, modelName: 'lesson_question' });
+
+export class LessonAnswerLog extends Model {
+  declare id: number;
+  declare userId: string;
+  declare lessonId: string;
+  declare questionId: number;
+  declare correct: boolean;
+}
+
+LessonAnswerLog.init({
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  userId: { type: DataTypes.STRING, allowNull: false },
+  lessonId: { type: DataTypes.STRING, allowNull: false },
+  questionId: { type: DataTypes.INTEGER, allowNull: false },
+  correct: { type: DataTypes.BOOLEAN, defaultValue: false },
+}, { sequelize, modelName: 'lesson_answer_log', indexes: [{ unique: true, fields: ['userId', 'lessonId', 'questionId'] }] });
+
+export class LessonComment extends Model {
+  declare id: number;
+  declare lessonId: string;
+  declare parentId: number;
+  declare userId: string;
+  declare userName: string;
+  declare userAvatar: string;
+  declare content: string;
+  declare imageUrl: string;
+  declare timestamp: number;
+}
+
+LessonComment.init({
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  lessonId: { type: DataTypes.STRING, allowNull: false },
+  parentId: { type: DataTypes.INTEGER, allowNull: true },
+  userId: { type: DataTypes.STRING, allowNull: false },
+  userName: { type: DataTypes.STRING },
+  userAvatar: { type: DataTypes.STRING },
+  content: { type: DataTypes.TEXT, allowNull: false },
+  imageUrl: { type: DataTypes.STRING, allowNull: true },
+  timestamp: { type: DataTypes.BIGINT, allowNull: false },
+}, { sequelize, modelName: 'lesson_comment' });
+
 const addColumnIfMissing = async (table: string, column: string, def: string) => {
   try {
     await sequelize.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${def}`);

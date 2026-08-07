@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { HelpCircle, MessageSquare, Plus, Trash2, Pencil, X, Loader2 } from "lucide-react";
 import MarkdownEditor from "@/components/MarkdownEditor";
 
 const AdminLessons = () => {
@@ -20,6 +21,14 @@ const AdminLessons = () => {
   });
   const [message, setMessage] = useState({ type: "", text: "" });
   const [isLoading, setIsLoading] = useState(false);
+
+  // Q&A management
+  const [panelLesson, setPanelLesson] = useState<string | null>(null);
+  const [panelType, setPanelType] = useState<"questions" | "comments" | null>(null);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [qForm, setQForm] = useState({ qid: 0, question_vi: "", question_en: "", answer_vi: "", answer_en: "", orderIndex: 0 });
+  const [commentsList, setCommentsList] = useState<any[]>([]);
+  const [panelLoading, setPanelLoading] = useState(false);
 
   const fetchLessons = async () => {
     try {
@@ -137,6 +146,105 @@ const AdminLessons = () => {
       orderIndex: 0,
     });
     setIsEditing(false);
+  };
+
+  const togglePanel = async (lessonId: string, type: "questions" | "comments") => {
+    if (panelLesson === lessonId && panelType === type) {
+      setPanelLesson(null);
+      setPanelType(null);
+      return;
+    }
+    setPanelLesson(lessonId);
+    setPanelType(type);
+    setPanelLoading(true);
+    if (type === "questions") {
+      setQuestions([]);
+      setQForm({ qid: 0, question_vi: "", question_en: "", answer_vi: "", answer_en: "", orderIndex: 0 });
+      try {
+        const res = await fetch(`/api/admin/lessons/${lessonId}/questions`, { credentials: "include" });
+        if (res.ok) setQuestions(await res.json());
+      } catch {}
+    } else {
+      setCommentsList([]);
+      try {
+        const res = await fetch(`/api/admin/lessons/${lessonId}/comments`, { credentials: "include" });
+        if (res.ok) setCommentsList(await res.json());
+      } catch {}
+    }
+    setPanelLoading(false);
+  };
+
+  const saveQuestion = async (e: any) => {
+    e.preventDefault();
+    setPanelLoading(true);
+    try {
+      const url = qForm.qid
+        ? `/api/admin/questions/${qForm.qid}`
+        : `/api/admin/lessons/${panelLesson}/questions`;
+      const method = qForm.qid ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(qForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMessage({ type: "success", text: "Đã lưu câu hỏi!" });
+        setQForm({ qid: 0, question_vi: "", question_en: "", answer_vi: "", answer_en: "", orderIndex: 0 });
+        const r2 = await fetch(`/api/admin/lessons/${panelLesson}/questions`, { credentials: "include" });
+        if (r2.ok) setQuestions(await r2.json());
+      } else {
+        setMessage({ type: "error", text: `Lỗi: ${data.message}` });
+      }
+    } catch {
+      setMessage({ type: "error", text: "Không kết nối được với máy chủ." });
+    }
+    setPanelLoading(false);
+  };
+
+  const editQuestion = (q: any) => {
+    setQForm({
+      qid: q.id,
+      question_vi: q.question_vi,
+      question_en: q.question_en || "",
+      answer_vi: q.answer_vi,
+      answer_en: q.answer_en || "",
+      orderIndex: q.orderIndex || 0,
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const deleteQuestion = async (qid: number) => {
+    if (!window.confirm("Xóa câu hỏi này?")) return;
+    try {
+      const res = await fetch(`/api/admin/questions/${qid}`, { method: "DELETE", credentials: "include" });
+      const data = await res.json();
+      if (data.success) {
+        setMessage({ type: "success", text: "Đã xóa câu hỏi." });
+        const r2 = await fetch(`/api/admin/lessons/${panelLesson}/questions`, { credentials: "include" });
+        if (r2.ok) setQuestions(await r2.json());
+      } else setMessage({ type: "error", text: `Lỗi: ${data.message}` });
+    } catch {}
+  };
+
+  const deleteComment = async (cid: number) => {
+    if (!window.confirm("Xóa bình luận này (kèm các trả lời)?")) return;
+    try {
+      const res = await fetch(`/api/admin/lessons/${panelLesson}/comments/${cid}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMessage({ type: "success", text: "Đã xóa bình luận." });
+        setCommentsList(prev => prev.filter(c => c.id !== cid && c.parentId !== cid));
+      } else setMessage({ type: "error", text: `Lỗi: ${data.message}` });
+    } catch {}
+  };
+
+  const formatTime = (ts: number) => {
+    try { return new Date(ts).toLocaleString("vi-VN"); } catch { return ""; }
   };
 
   return (
@@ -393,6 +501,28 @@ const AdminLessons = () => {
                       Sửa
                     </button>
                     <button
+                      onClick={() => togglePanel(lesson.id, "questions")}
+                      className={`px-3 py-1 rounded transition flex items-center gap-1 mx-auto ${
+                        panelLesson === lesson.id && panelType === "questions"
+                          ? "bg-primary text-primary-foreground"
+                          : "text-cyan-400 bg-cyan-400/10 hover:bg-cyan-400/20"
+                      }`}
+                    >
+                      <HelpCircle size={13} />
+                      Câu hỏi
+                    </button>
+                    <button
+                      onClick={() => togglePanel(lesson.id, "comments")}
+                      className={`px-3 py-1 rounded transition flex items-center gap-1 mx-auto ${
+                        panelLesson === lesson.id && panelType === "comments"
+                          ? "bg-primary text-primary-foreground"
+                          : "text-green-400 bg-green-400/10 hover:bg-green-400/20"
+                      }`}
+                    >
+                      <MessageSquare size={13} />
+                      Bình luận
+                    </button>
+                    <button
                       onClick={() => handleDeleteClick(lesson.id)}
                       className="text-destructive hover:text-destructive-foreground bg-destructive/10 hover:bg-destructive px-3 py-1 rounded transition"
                     >
@@ -412,6 +542,168 @@ const AdminLessons = () => {
           </table>
         </div>
       </div>
+
+      {panelLesson && panelType === "questions" && (
+        <div className="p-6 bg-card border border-border rounded-xl">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <HelpCircle size={20} className="text-cyan-400" />
+              QUẢN LÝ CÂU HỎI: <span className="font-mono text-primary">{panelLesson}</span>
+            </h2>
+            <button onClick={() => { setPanelLesson(null); setPanelType(null); }} className="text-muted-foreground hover:text-foreground transition">
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={saveQuestion} className="space-y-3 mb-6 p-4 bg-accent/50 border border-border rounded-lg">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-bold mb-1 text-foreground text-sm">Câu hỏi (VI)*</label>
+                <textarea
+                  required
+                  rows={2}
+                  value={qForm.question_vi}
+                  onChange={(e) => setQForm({ ...qForm, question_vi: e.target.value })}
+                  className="w-full p-2 bg-background border border-border rounded text-foreground text-sm"
+                />
+              </div>
+              <div>
+                <label className="block font-bold mb-1 text-foreground text-sm">Question (EN)</label>
+                <textarea
+                  rows={2}
+                  value={qForm.question_en}
+                  onChange={(e) => setQForm({ ...qForm, question_en: e.target.value })}
+                  className="w-full p-2 bg-background border border-border rounded text-foreground text-sm"
+                />
+              </div>
+              <div>
+                <label className="block font-bold mb-1 text-foreground text-sm">Đáp án (VI)*</label>
+                <input
+                  required
+                  value={qForm.answer_vi}
+                  onChange={(e) => setQForm({ ...qForm, answer_vi: e.target.value })}
+                  className="w-full p-2 bg-background border border-border rounded text-foreground text-sm"
+                />
+              </div>
+              <div>
+                <label className="block font-bold mb-1 text-foreground text-sm">Answer (EN)</label>
+                <input
+                  value={qForm.answer_en}
+                  onChange={(e) => setQForm({ ...qForm, answer_en: e.target.value })}
+                  className="w-full p-2 bg-background border border-border rounded text-foreground text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="font-bold text-foreground text-sm">Thứ tự:</label>
+              <input
+                type="number"
+                value={qForm.orderIndex}
+                onChange={(e) => setQForm({ ...qForm, orderIndex: Number(e.target.value) })}
+                className="w-24 p-2 bg-background border border-border rounded text-foreground text-sm"
+              />
+              <button
+                type="submit"
+                disabled={panelLoading}
+                className="ml-auto bg-primary hover:bg-primary/80 text-primary-foreground px-5 py-2 rounded font-bold text-sm transition disabled:opacity-50 flex items-center gap-2"
+              >
+                {panelLoading && <Loader2 size={14} className="animate-spin" />}
+                <Plus size={14} />
+                {qForm.qid ? "CẬP NHẬT CÂU HỎI" : "THÊM CÂU HỎI"}
+              </button>
+              {qForm.qid > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setQForm({ qid: 0, question_vi: "", question_en: "", answer_vi: "", answer_en: "", orderIndex: 0 })}
+                  className="bg-accent hover:bg-accent/80 text-foreground px-4 py-2 rounded font-bold text-sm transition"
+                >
+                  HỦY
+                </button>
+              )}
+            </div>
+          </form>
+
+          {panelLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="animate-spin text-primary" size={24} /></div>
+          ) : questions.length === 0 ? (
+            <p className="text-center text-muted-foreground text-sm py-6">Chưa có câu hỏi nào cho bài học này.</p>
+          ) : (
+            <div className="space-y-3">
+              {questions.map((q, idx) => (
+                <div key={q.id} className="p-4 bg-accent/30 border border-border rounded-lg">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="text-sm font-bold text-foreground mb-1">
+                        {idx + 1}. {q.question_vi}
+                      </div>
+                      {q.question_en && (
+                        <div className="text-xs text-muted-foreground mb-1">{q.question_en}</div>
+                      )}
+                      <div className="text-xs text-primary bg-primary/10 px-2 py-1 rounded inline-block font-mono mt-1">
+                        ✓ {q.answer_vi}{q.answer_en ? ` / ${q.answer_en}` : ""}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={() => editQuestion(q)} className="text-yellow-400 hover:text-yellow-300 bg-yellow-400/10 hover:bg-yellow-400/20 p-1.5 rounded transition">
+                        <Pencil size={14} />
+                      </button>
+                      <button onClick={() => deleteQuestion(q.id)} className="text-destructive hover:text-destructive-foreground bg-destructive/10 hover:bg-destructive p-1.5 rounded transition">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {panelLesson && panelType === "comments" && (
+        <div className="p-6 bg-card border border-border rounded-xl">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <MessageSquare size={20} className="text-green-400" />
+              QUẢN LÝ BÌNH LUẬN: <span className="font-mono text-primary">{panelLesson}</span>
+              <span className="text-xs font-normal text-muted-foreground">({commentsList.length})</span>
+            </h2>
+            <button onClick={() => { setPanelLesson(null); setPanelType(null); }} className="text-muted-foreground hover:text-foreground transition">
+              <X size={20} />
+            </button>
+          </div>
+
+          {panelLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="animate-spin text-primary" size={24} /></div>
+          ) : commentsList.length === 0 ? (
+            <p className="text-center text-muted-foreground text-sm py-6">Chưa có bình luận nào.</p>
+          ) : (
+            <div className="space-y-3">
+              {commentsList.map((c) => (
+                <div key={c.id} className={`p-4 border border-border rounded-lg ${c.parentId ? "ml-10 bg-accent/20" : "bg-accent/30"}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="text-xs font-bold text-foreground">{c.userName || c.userId}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">{formatTime(c.timestamp)}</span>
+                        {c.parentId && (
+                          <span className="text-[10px] text-cyan-400 bg-cyan-400/10 px-1.5 py-0.5 rounded">Trả lời #{c.parentId}</span>
+                        )}
+                      </div>
+                      <div className="text-sm text-foreground/90 break-words" dangerouslySetInnerHTML={{ __html: c.content }} />
+                      {c.imageUrl && (
+                        <img src={c.imageUrl} alt="" className="mt-2 h-20 rounded-lg border border-border object-cover" />
+                      )}
+                    </div>
+                    <button onClick={() => deleteComment(c.id)} className="text-destructive hover:text-destructive-foreground bg-destructive/10 hover:bg-destructive p-1.5 rounded transition shrink-0">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

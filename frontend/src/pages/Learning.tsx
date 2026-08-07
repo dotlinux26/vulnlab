@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Filter, X, Loader2, BookOpen, ChevronDown } from "lucide-react";
+import { Search, Filter, X, Loader2, BookOpen, ChevronDown, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
@@ -251,7 +251,11 @@ const Learning = () => {
                     <span className={`text-xs px-2 py-1 rounded-full border ${categoryColors[lesson.category] || "text-muted-foreground border-border"}`}>
                       {lesson.category}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-auto">{lang === "en" ? (levelLabelsEn[lesson.level] || lesson.level) : (levelLabels[lesson.level] || lesson.level)}</span>
+                    <span className="text-xs text-muted-foreground">{lang === "en" ? (levelLabelsEn[lesson.level] || lesson.level) : (levelLabels[lesson.level] || lesson.level)}</span>
+                    <span className="text-xs text-muted-foreground ml-auto flex items-center gap-1">
+                      <Users size={13} className="text-primary/70" />
+                      {lesson.learners ?? 0} {t("learning.learners")}
+                    </span>
                   </div>
                 </Link>
               </div>

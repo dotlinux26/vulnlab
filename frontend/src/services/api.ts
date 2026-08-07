@@ -80,6 +80,35 @@ export interface Lesson {
     content_en?: string;
     imageUrl?: string;
     orderIndex: number;
+    learners?: number;
+}
+
+export interface LessonQuestion {
+    id: number;
+    lessonId: string;
+    question_vi: string;
+    question_en: string;
+    orderIndex: number;
+    solved?: boolean;
+}
+
+export interface LessonComment {
+    id: number;
+    lessonId: string;
+    parentId: number | null;
+    userId: string;
+    userName: string;
+    userAvatar: string;
+    content: string;
+    imageUrl: string | null;
+    timestamp: number;
+    replies?: LessonComment[];
+}
+
+export interface PaginatedComments {
+    items: LessonComment[];
+    hasMore: boolean;
+    total: number;
 }
 
 export const fetchLessons = async (params?: { category?: string; difficulty?: string; level?: string; page?: number; limit?: number }): Promise<Lesson[] | PaginatedResponse<Lesson>> => {
@@ -107,6 +136,68 @@ export const updateLessonProgress = async (id: string, status: 'reading' | 'comp
         method: 'POST',
         body: JSON.stringify({ status }),
     });
-    if (!res.ok) throw new Error('Failed to update progress');
+    if (!res.ok) {
+        let msg = 'Failed to update progress';
+        try { const data = await res.json(); if (data?.message) msg = data.message; } catch {}
+        const err: any = new Error(msg);
+        err.status = res.status;
+        throw err;
+    }
+    return res.json();
+};
+
+export const fetchLessonQuestions = async (id: string): Promise<LessonQuestion[]> => {
+    const res = await fetch(`/api/lessons/${id}/questions`, { ...fetchOptions, method: 'GET' });
+    if (!res.ok) throw new Error('Failed to fetch questions');
+    return res.json();
+};
+
+export const checkLessonAnswer = async (id: string, questionId: number, answer: string) => {
+    const res = await fetch(`/api/lessons/${id}/questions/${questionId}/check`, {
+        ...fetchOptions,
+        method: 'POST',
+        body: JSON.stringify({ answer }),
+    });
+    if (!res.ok) throw new Error('Failed to check answer');
+    return res.json();
+};
+
+export const fetchLessonComments = async (id: string, offset = 0, limit = 10): Promise<PaginatedComments> => {
+    const res = await fetch(`/api/lessons/${id}/comments?offset=${offset}&limit=${limit}`, { ...fetchOptions, method: 'GET' });
+    if (!res.ok) throw new Error('Failed to fetch comments');
+    return res.json();
+};
+
+export const postLessonComment = async (id: string, payload: { content: string; parentId?: number | null; imageUrl?: string | null }) => {
+    const res = await fetch(`/api/lessons/${id}/comments`, {
+        ...fetchOptions,
+        method: 'POST',
+        body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+        let msg = 'Failed to post comment';
+        try { const data = await res.json(); if (data?.message) msg = data.message; } catch {}
+        const err: any = new Error(msg);
+        err.status = res.status;
+        throw err;
+    }
+    return res.json();
+};
+
+export const uploadLessonCommentImage = async (id: string, file: File) => {
+    const fd = new FormData();
+    fd.append('image', file);
+    const res = await fetch(`/api/lessons/${id}/comments/upload`, {
+        credentials: 'include',
+        method: 'POST',
+        body: fd,
+    });
+    if (!res.ok) {
+        let msg = 'Failed to upload image';
+        try { const data = await res.json(); if (data?.message) msg = data.message; } catch {}
+        const err: any = new Error(msg);
+        err.status = res.status;
+        throw err;
+    }
     return res.json();
 };
