@@ -1,5 +1,0 @@
-username[$ne]=admin&pwd[$ne]=
-username[$ne]=toto&pwd[$ne]=toto
-username[$ne]=toto&password[$ne]=toto
-
-application/x-www-form-urlencoded
