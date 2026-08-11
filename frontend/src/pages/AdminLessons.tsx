@@ -120,6 +120,25 @@ const AdminLessons = () => {
       const data = await response.json();
 
       if (data.success) {
+        // Also update lab config
+        const lessonId = isEditing ? formData.id : data.lesson?.id || data.id;
+        if (lessonId) {
+          const labConfigUrl = `/api/admin/lessons/${lessonId}/lab-config`;
+          const labConfigData = {
+            labEnabled: formData.labEnabled,
+            labUrl: formData.labUrl,
+            labDuration: formData.labDuration,
+            labComposePath: formData.labComposePath,
+            labResetTimeout: formData.labResetTimeout
+          };
+          await fetch(labConfigUrl, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(labConfigData),
+          });
+        }
+
         setMessage({
           type: "success",
           text: isEditing ? "Cập nhật thành công!" : "Tạo mới thành công!",

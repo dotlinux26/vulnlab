@@ -60,22 +60,27 @@ sudo apt update && sudo apt install -y burpsuite
 
 ### Bước 1: Khởi động lab
 
-```bash
-cd burp-suite-basics/lab
-docker compose up -d
-
 > 💡 **Lấy link lab:** Mở bài học này trên trang **Learning Detail** → bấm **"Truy cập Lab"** để hệ thống cấp link thực tế (VD: `https://vuln.ghedahaui.online/labs-env/...`). Thay `<LAB_ADDRESS>` bằng link đó trong các lệnh dưới đây.
 
 # Lab tại: <LAB_ADDRESS> — một app PHP echo lại request của bạn
-```
 
 ### Bước 2: Bật Intercept và bắt request
 
-1. Mở Burp → tab **Proxy** → tab **Intercept** → nhấn **Intercept is off** để bật thành **on**.
-2. Trên browser mở `<LAB_ADDRESS>/?name=admin` và bấm Enter.
-3. Quay lại Burp — request bị "treo" ở đây, chờ bạn quyết định.
+1. Mở Burp -> tab **Proxy** -> tab **Intercept** -> Mở Browser với nút **Open Browser**.
 
-<!-- ẢNH: Chụp tab Proxy Intercept trong Burp đang giữ một request GET (bước 2). File: burp-suite-basics_01_intercept.png -->
+![image](/uploads/image_1786487558298_likeig.png)
+
+2. Lúc này một trình duyệt tích hợp trên burp sẽ nhảy ra, tiến hành truy cập lab tại đường dẫn `<LAB_ADDRESS>/?name=admin` và bấm Enter.
+
+![image](/uploads/image_1786487711305_7dyceq.png)
+
+3. Chúng ta nhận thấy đây là 1 bài lab mà ứng dụng sẽ quét tham số bất kì trên URL scheme (cụ thể là tham số name trong bước số 2.) và được HTML render lại thông qua ô hiển thị trong Website.
+
+4. Tiến hành trở lại Burp mở chức năng lắng nghe trung gian Proxy - **Intercept On**. Rồi thử tải lại trang!
+
+![image](/uploads/image_1786487958936_ydhv5j.png)
+
+> Có thể thấy thao tác tải lại trang trên trình duyệt đang bị treo? Chính xác là như vậy với tính năng intercept trên Burp request trên trình duyệt đã được đồng bộ và gửi qua kênh proxy vào thẳng Burp.
 
 ### Bước 3: Chỉnh sửa request ngay tại Intercept
 
@@ -89,24 +94,32 @@ Accept: text/html,...
 Connection: close
 ```
 
-Hãy **sửa** dòng `name=admin` thành `name=test_xss%3Cscript%3E` rồi bấm **Forward**:
+Hãy **sửa** dòng `name=admin` thành `name=<script>alert(1)</script>` rồi bấm **Forward**:
 
-<!-- ẢNH: Chụp request đã sửa name= thành payload trước khi Forward (bước 3). File: burp-suite-basics_02_intercept_modified.png -->
+![image](/uploads/image_1786488418148_gr8d3s.png)
 
-> **Giải thích:** `%3C` = `<`, `%3E` = `>` (URL encode). Server echo lại `name` bạn gửi → đây chính là nơi sẽ dính XSS ở bài sau. Bạn vừa làm điều mà không có Burp bạn KHÔNG làm được: gửi giá trị khác với những gì trình duyệt định gửi.
+> Bạn nhận thấy chúng ta đã vừa kích hoạt một đoạn mã javascript khiến trình duyệt gặp lỗi khi hiển thị. Đây chính là lỗ hổng XSS kinh điển mà chúng ta sẽ học trong các bài tới.
+
+> Bạn cũng có thể thấy việc chỉnh tay **query string** qua url search bar hay qua burp cơ bản cũng giống nhau với phép thử trên.
 
 ### Bước 4: Gửi lại với Repeater
 
-1. Trong tab **HTTP History**, tìm request `GET /?name=...`, click phải → **Send to Repeater** (hoặc phím Ctrl+R).
-2. Sang tab **Repeater**, sửa `name` thành giá trị mới rồi bấm **Send**.
-3. Quan sát **response** bên phải — thử nhiều payload khác nhau mà không cần reload browser.
+![image](/uploads/image_1786488655243_h7s4qv.png)
 
-<!-- ẢNH: Chụp Repeater với request và response song song (bước 4). File: burp-suite-basics_03_repeater.png -->
+1. Trong tab **HTTP History**, tìm request `GET /?name=...`, click phải → **Send to Repeater** (hoặc phím Ctrl+R).
+2. Sang tab **Repeater**, sửa `?name=..` thành giá trị mới. Lưu lại với tổ hợp phím Ctrl + S -> rồi bấm **Send**.
+
+![image](/uploads/image_1786488874922_xtvx36.png)
+
+3. Quan sát **response** bên phải. (Ở đây response có nhiều tùy chọn hiển thị, nhưng thông thường chúng tôi sẽ quan tâm ở chế độ hiển thị mã nguồn)
+
+> Bạn có thể thử nhiều payload khác nhau và có thể nhận ra việc quan sát cách mà server trả về quan Burp suite có thể nhanh và dễ quan sát các thay đổi hơn là giao diện đồ họa của browser.
 
 ```http
-GET /?name=hello_world HTTP/1.1
-Host: localhost:7101
+GET /?name=waooo HTTP/1.1
+Host: <...>
 ```
+![image](/uploads/image_1786489049896_s5dvh6.png)
 
 ### Bước 5: Dùng Decoder để giải mã
 
@@ -115,7 +128,7 @@ Trong lab thường gặp chuỗi mã hóa. Tab **Decoder**:
 1. Dán chuỗi `VkxOVF9idXJwX3J1bGV6IQ==` vào Decoder.
 2. Chọn **Decode as → Base64** → ra kết quả: `VLNT_burp_rulez!`
 
-<!-- ẢNH: Chụp Decoder đã decode Base64 ra kết quả (bước 5). File: burp-suite-basics_04_decoder.png -->
+![image](/uploads/image_1786489188359_ai1z3p.png)
 
 > **Lưu ý:** Đây là kỹ năng nền — bài `crypto-basics` sẽ dạy đầy đủ. Ở đây chỉ cần biết Decoder nằm ở đâu.
 
@@ -140,6 +153,3 @@ Trong lab thường gặp chuỗi mã hóa. Tab **Decoder**:
 [ ] Khi gặp chuỗi lạ: dùng Decoder
 [ ] Khi không biết request nào đang gửi: xem HTTP History
 ```
-
----
-
