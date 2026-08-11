@@ -1,27 +1,51 @@
 # Questions: burp-suite-basics
 
 ## VI
-1. Ký tự nào dùng để comment trong SQL? (***)
-   - Answer: -- -
+1. Burp Suite hoạt động như một ______ giữa trình duyệt và server. (***)
+   - Answer: proxy
 
-2. Kỹ thuật gộp SELECT gộp 2 câu là gì? (*****)
-   - Answer: union
+2. Module nào trong Burp dùng để gửi lại request đã chỉnh sửa nhiều lần? (********)
+   - Answer: Repeater
 
-3. Hàm SQL nào nên dùng để chống SQLi? (***-***************)
-   - Answer: prepared statement
+3. Module nào dùng để mã hóa/giải mã Base64, URL, Hex? (******)
+   - Answer: Decoder
 
-4. Công cụ tự động SQLi phổ biến là gì? (******)
-   - Answer: sqlmap
+4. Cổng mặc định Burp lắng nghe proxy là bao nhiêu? (****)
+   - Answer: 8080
+
+5. Để bắt request, bạn bật tính năng nào trong tab Proxy? (**********)
+   - Answer: Intercept
+
+6. Module nào dùng để brute-force/fuzz tự động với wordlist? (********)
+   - Answer: Intruder
+
+7. Khi brute-force, ký tự nào dùng để đánh vị trí fuzz trong Intruder? (**)
+   - Answer: §
+
+8. Module nào dùng để so sánh 2 response? (********)
+   - Answer: Comparer
 
 ## EN
-1. Which character comments out the rest of SQL? (***)
-   - Answer: -- -
+1. Burp Suite acts as a ______ between browser and server. (***)
+   - Answer: proxy
 
-2. Which technique joins two SELECT statements? (*****)
-   - Answer: union
+2. Which module is used to re-send edited requests multiple times? (********)
+   - Answer: Repeater
 
-3. Which SQL feature should replace string concatenation to prevent SQLi? (***-***************)
-   - Answer: prepared statement
+3. Which module is used to encode/decode Base64, URL, Hex? (******)
+   - Answer: Decoder
 
-4. What is the most popular automated SQLi tool? (******)
-   - Answer: sqlmap
+4. What is the default port Burp listens on for proxy? (****)
+   - Answer: 8080
+
+5. To capture a request, you enable which feature in the Proxy tab? (**********)
+   - Answer: Intercept
+
+6. Which module is used for automated brute-force/fuzz with wordlists? (********)
+   - Answer: Intruder
+
+7. When brute-forcing, which character marks the fuzz position in Intruder? (**)
+   - Answer: §
+
+8. Which module compares 2 responses? (********)
+   - Answer: Comparer
