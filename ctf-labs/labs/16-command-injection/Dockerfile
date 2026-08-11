@@ -5,7 +5,7 @@ RUN rm -f /usr/bin/sudo /usr/bin/su /bin/su /usr/bin/passwd && \
     apt-get install -y --no-install-recommends iputils-ping && \
     rm -rf /var/lib/apt/lists/*
 
-RUN addgroup -S app && adduser --system -G app app && \
+RUN addgroup --system app && adduser --system -G app app && \
     chown -R app:app /var/www/html/ && \
     find /var/www/html -type d -exec chmod 755 {} \; && \
     find /var/www/html -type f -exec chmod 644 {} \; && \

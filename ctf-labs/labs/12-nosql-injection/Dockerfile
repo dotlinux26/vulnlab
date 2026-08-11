@@ -4,7 +4,7 @@ ENV NODE_ENV=production
 
 WORKDIR /app
 
-RUN addgroup -S app && adduser --system -G app app
+RUN addgroup --system app && adduser --system -G app app
 
 COPY package*.json ./
 RUN npm install --omit=dev --no-audit --no-fund && \

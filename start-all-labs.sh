@@ -26,12 +26,17 @@ if [ ! -d "$LABS_DIR" ] || [ -z "$(ls -A "$LABS_DIR")" ]; then
     exit 1
 fi
 
-# Verify Dockerfiles have correct syntax (no adduser -S)
+# Verify Dockerfiles have correct syntax (no adduser -S, no addgroup -S)
 echo "[+] Verifying Dockerfiles..."
 for dockerfile in "$LABS_DIR"/*/Dockerfile; do
     if [ -f "$dockerfile" ]; then
         if grep -q "adduser -S" "$dockerfile"; then
             echo "[!] ERROR: Found 'adduser -S' in $dockerfile - this will fail on Alpine!"
+            echo "    Run ./setup-labs.sh to sync fixed Dockerfiles from lessons-content"
+            exit 1
+        fi
+        if grep -q "addgroup -S" "$dockerfile"; then
+            echo "[!] ERROR: Found 'addgroup -S' in $dockerfile - this will fail on Alpine!"
             echo "    Run ./setup-labs.sh to sync fixed Dockerfiles from lessons-content"
             exit 1
         fi
@@ -57,7 +62,8 @@ start_lab() {
 
 # Start all labs in the labs directory
 echo "[+] Starting all labs in $LABS_DIR"
-for lab_dir in "$LABS_DIR"/*/; do
+# Sort numerically by lab number (7, 8, 10, 11... not 10, 11, 7, 8)
+for lab_dir in $(ls -d "$LABS_DIR"/*/ | sort -t'-' -k2 -n); do
     if [ -d "$lab_dir" ]; then
         start_lab "$lab_dir"
     fi

@@ -18,18 +18,17 @@ echo "=========================================="
 rm -rf "$LABS_DIR"
 mkdir -p "$LABS_DIR"
 
-# Copy labs from lessons-content to ctf-labs/labs
+# Copy labs from lessons-content to ctf-labs/labs (only if lab/ folder exists)
 echo "[+] Copying labs from lessons-content..."
-cp -r "$SCRIPT_DIR/lessons-content/7-burp-suite-basics/lab" "$LABS_DIR/7-burp-suite-basics"
-cp -r "$SCRIPT_DIR/lessons-content/8-web-recon/lab" "$LABS_DIR/8-web-recon"
-cp -r "$SCRIPT_DIR/lessons-content/9-fuzzing-content-discovery/lab" "$LABS_DIR/9-fuzzing-content-discovery"
-cp -r "$SCRIPT_DIR/lessons-content/10-http-header-exploitation/lab" "$LABS_DIR/10-http-header-exploitation"
-cp -r "$SCRIPT_DIR/lessons-content/11-sqli-basics/lab" "$LABS_DIR/11-sqli-basics"
-cp -r "$SCRIPT_DIR/lessons-content/12-nosql-injection/lab" "$LABS_DIR/12-nosql-injection"
-cp -r "$SCRIPT_DIR/lessons-content/13-sqli-blind/lab" "$LABS_DIR/13-sqli-blind"
-cp -r "$SCRIPT_DIR/lessons-content/14-lfi-rfi/lab" "$LABS_DIR/14-lfi-rfi"
-cp -r "$SCRIPT_DIR/lessons-content/15-xxe/lab" "$LABS_DIR/15-xxe"
-cp -r "$SCRIPT_DIR/lessons-content/16-command-injection/lab" "$LABS_DIR/16-command-injection"
+for lesson in "$LESSONS_DIR"/*/; do
+    lab_name=$(basename "$lesson")
+    if [ -d "$lesson/lab" ]; then
+        cp -r "$lesson/lab" "$LABS_DIR/$lab_name"
+        echo "  ✓ Copied $lab_name"
+    else
+        echo "  ⊘ Skipped $lab_name (no lab/ folder)"
+    fi
+done
 
 echo "[+] All labs synced to $LABS_DIR"
 ls -la "$LABS_DIR"
