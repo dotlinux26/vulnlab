@@ -19,6 +19,7 @@ const AddLabForm = () => {
   });
   const [message, setMessage] = useState({ type: '', text: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const fetchLabs = async () => {
     try {
@@ -79,6 +80,10 @@ const AddLabForm = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(prev => !prev);
   };
 
   const handleEditClick = (lab: any) => {
@@ -444,6 +449,7 @@ const AddLabForm = () => {
           </svg>
         </div>
       </div>
+        </div>
 
       {/* Labs List Section */}
       <div className="p-6 bg-gray-900 border border-gray-700 rounded-lg shadow-lg">

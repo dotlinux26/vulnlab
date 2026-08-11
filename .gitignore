@@ -6,3 +6,4 @@ uploads/*
 .env
 .DS_Store
 *.log
+lessons-content/COURSE-CONTENT-DOTSolutions/

@@ -2,7 +2,7 @@ FROM php:7.4-apache
 
 RUN rm -f /usr/bin/sudo /usr/bin/su /bin/su /usr/bin/passwd
 
-RUN addgroup -S app && adduser -S app -G app && \
+RUN addgroup -S app && adduser --system -G app app && \
     chown -R app:app /var/www/html/ && \
     find /var/www/html -type d -exec chmod 755 {} \; && \
     find /var/www/html -type f -exec chmod 644 {} \; && \
