@@ -18,6 +18,7 @@ import { Sequelize } from 'sequelize';
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', true);
 const PORT = Number(process.env.PORT) || 6667;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const ADMIN_EMAIL = '0206canh@gmail.com';
