@@ -4,7 +4,7 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { OAuth2Client } from 'google-auth-library';
-import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress, LessonQuestion, LessonAnswerLog, LessonComment, LearningPath, PathLesson, PathProgress, LabState } from './src/db';
+import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress, LessonQuestion, LessonAnswerLog, LessonComment, LearningPath, PathLesson, PathProgress, LabState, sequelize } from './src/db';
 import { sanitizeComment, linkify, extractImageUrl, isImageUrl } from './src/commentFilter';
 import crypto from 'crypto'; // Dùng để gen mã Hash
 import dotenv from 'dotenv';
