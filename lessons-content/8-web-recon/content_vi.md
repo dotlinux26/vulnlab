@@ -60,7 +60,10 @@ Google có thể tìm file/thông tin bị lộ trên website:
 ```bash
 cd web-recon/lab
 docker compose up -d
-# Lab tại: http://localhost:7102
+
+> 💡 **Lấy link lab:** Mở bài học này trên trang **Learning Detail** → bấm **"Truy cập Lab"** để hệ thống cấp link thực tế (VD: `https://vuln.ghedahaui.online/labs-env/...`). Thay `<LAB_ADDRESS>` bằng link đó trong các lệnh dưới đây.
+
+# Lab tại: <LAB_ADDRESS>
 ```
 
 Lab mô phỏng một website "trông bình thường" nhưng ẩn nhiều thứ: robots.txt tiết lộ thư mục ẩn, comment trong source, header server bị lộ, và một admin panel không có trong menu.
@@ -68,7 +71,7 @@ Lab mô phỏng một website "trông bình thường" nhưng ẩn nhiều thứ
 ### Bước 2: Xem robots.txt — bản đồ thư mục ẩn
 
 ```bash
-$ curl -s http://localhost:7102/robots.txt
+$ curl -s <LAB_ADDRESS>/robots.txt
 User-agent: *
 Disallow: /hidden/
 Disallow: /backup/
@@ -82,7 +85,7 @@ Disallow: /config.php
 ### Bước 3: Đọc source HTML — tìm comment ẩn
 
 ```bash
-$ curl -s http://localhost:7102/ | grep -iE "comment|hidden|todo|flag|admin"
+$ curl -s <LAB_ADDRESS>/ | grep -iE "comment|hidden|todo|flag|admin"
 ```
 
 <!-- ẢNH: Chụp output grep tìm thấy comment ẩn chứa đường dẫn (bước 3). File: web-recon_02_source_comment.png -->
@@ -92,14 +95,14 @@ $ curl -s http://localhost:7102/ | grep -iE "comment|hidden|todo|flag|admin"
 ### Bước 4: Nhận diện công nghệ (fingerprinting)
 
 ```bash
-$ whatweb http://localhost:7102
+$ whatweb <LAB_ADDRESS>
 # Kết quả mẫu: Apache[2.4.57], PHP[8.2.12], Country[...]
 ```
 
 Xem trực tiếp header server:
 
 ```bash
-$ curl -sI http://localhost:7102
+$ curl -sI <LAB_ADDRESS>
 HTTP/1.1 200 OK
 Server: Apache/2.4.57 (Debian)
 X-Powered-By: PHP/8.2.12
@@ -112,7 +115,7 @@ X-Powered-By: PHP/8.2.12
 ### Bước 5: Dò tìm endpoint với gobuster
 
 ```bash
-$ gobuster dir -u http://localhost:7102 -w /usr/share/seclists/Discovery/Web-Content/common.txt -t 20 -x php,txt,html
+$ gobuster dir -u <LAB_ADDRESS> -w /usr/share/seclists/Discovery/Web-Content/common.txt -t 20 -x php,txt,html
 ```
 
 > **Wordlist:** File `common.txt` nằm trong **SecLists** — tải tại `https://github.com/danielmiessler/SecLists` (hoặc `sudo apt install -y seclists`). Bài `fuzzing-content-discovery` hướng dẫn tải đầy đủ.
@@ -133,7 +136,7 @@ Kết quả mẫu:
 Truy cập `/config.php` — lab này "lơ đãng" hiện nội dung cấu hình:
 
 ```bash
-$ curl -s http://localhost:7102/config.php
+$ curl -s <LAB_ADDRESS>/config.php
 DB_HOST=localhost
 DB_USER=root
 DB_PASS=Sup3rS3cr3t

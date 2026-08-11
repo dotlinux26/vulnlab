@@ -54,8 +54,6 @@ sudo apt update && sudo apt install -y burpsuite
   - HTTP Proxy: `127.0.0.1`, Port: `8080`
 - Tắt `Intercept` (Proxy tab) để duyệt web bình thường; bật để bắt request.
 
-> ⚠️ **Khi học lab trong Docker:** Lab chạy ở `http://localhost:PORT`. Cấu hình proxy xong, mở lab qua browser là request tự động đi qua Burp.
-
 ---
 
 ## Phần B — Khai thác: Bắt & Sửa Request
@@ -65,13 +63,16 @@ sudo apt update && sudo apt install -y burpsuite
 ```bash
 cd burp-suite-basics/lab
 docker compose up -d
-# Lab tại: http://localhost:7101 — một app PHP echo lại request của bạn
+
+> 💡 **Lấy link lab:** Mở bài học này trên trang **Learning Detail** → bấm **"Truy cập Lab"** để hệ thống cấp link thực tế (VD: `https://vuln.ghedahaui.online/labs-env/...`). Thay `<LAB_ADDRESS>` bằng link đó trong các lệnh dưới đây.
+
+# Lab tại: <LAB_ADDRESS> — một app PHP echo lại request của bạn
 ```
 
 ### Bước 2: Bật Intercept và bắt request
 
 1. Mở Burp → tab **Proxy** → tab **Intercept** → nhấn **Intercept is off** để bật thành **on**.
-2. Trên browser mở `http://localhost:7101/?name=admin` và bấm Enter.
+2. Trên browser mở `<LAB_ADDRESS>/?name=admin` và bấm Enter.
 3. Quay lại Burp — request bị "treo" ở đây, chờ bạn quyết định.
 
 <!-- ẢNH: Chụp tab Proxy Intercept trong Burp đang giữ một request GET (bước 2). File: burp-suite-basics_01_intercept.png -->

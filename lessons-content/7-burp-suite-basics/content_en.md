@@ -65,13 +65,16 @@ sudo apt update && sudo apt install -y burpsuite
 ```bash
 cd burp-suite-basics/lab
 docker compose up -d
-# Lab at: http://localhost:7101 — a PHP app that echoes your request back
+
+> 💡 **Get Lab Link:** Open this lesson on **Learning Detail** → click **"Access Lab"** to get the real link (e.g., `https://vuln.ghedahaui.online/labs-env/...`). Replace `<LAB_ADDRESS>` with that link in commands below.
+
+# Lab at: <LAB_ADDRESS> — a PHP app that echoes your request back
 ```
 
 ### Step 2: Turn on Intercept and capture a request
 
 1. Open Burp → **Proxy** tab → **Intercept** tab → click **Intercept is off** to turn it **on**.
-2. In the browser open `http://localhost:7101/?name=admin` and press Enter.
+2. In the browser open `<LAB_ADDRESS>/?name=admin` and press Enter.
 3. Back in Burp — the request is "frozen" here, waiting for your decision.
 
 
