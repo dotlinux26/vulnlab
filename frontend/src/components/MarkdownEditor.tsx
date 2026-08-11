@@ -182,12 +182,6 @@ const MarkdownEditor = ({
     fileInputRef.current?.click();
   };
 
-  const toggleSplitDirection = () => {
-    setSplitDirection(prev => prev === "horizontal" ? "vertical" : "horizontal");
-  }
-
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
   };
 
   return (
