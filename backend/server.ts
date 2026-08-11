@@ -271,19 +271,32 @@ async function startServer() {
         return;
       }
 
-      const { exec } = require('child_process');
-      const { promisify } = require('util');
-      const execAsync = promisify(exec);
+      const { spawn } = require('child_process');
+
+      const runCommand = (cmd: string, args: string[], options: any) => {
+        return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+          const child = spawn(cmd, args, { ...options, shell: false });
+          let stdout = '';
+          let stderr = '';
+          child.stdout.on('data', (data: Buffer) => { stdout += data.toString(); });
+          child.stderr.on('data', (data: Buffer) => { stderr += data.toString(); });
+          child.on('close', (code: number) => {
+            if (code === 0) resolve({ stdout, stderr });
+            else reject(new Error(`Command failed with code ${code}: ${stderr}`));
+          });
+          child.on('error', (err: Error) => reject(err));
+        });
+      };
 
       try {
         console.log(`[Lab Reset] Starting reset for ${lessonId} at ${composePath}`);
         
         // docker compose down -v
-        await execAsync(`docker compose down -v`, { cwd: composePath, timeout: 30000 });
+        await runCommand('docker', ['compose', 'down', '-v'], { cwd: composePath, timeout: 30000 });
         console.log(`[Lab Reset] ${lessonId} down -v completed`);
         
         // docker compose up -d
-        await execAsync(`docker compose up -d`, { cwd: composePath, timeout: 60000 });
+        await runCommand('docker', ['compose', 'up', '-d'], { cwd: composePath, timeout: 60000 });
         console.log(`[Lab Reset] ${lessonId} up -d completed`);
 
         // Wait for containers to be ready, then health check
