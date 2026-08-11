@@ -251,7 +251,7 @@ const LearningDetail = () => {
 
           {/* Lab Card */}
           {lesson.labEnabled && (
-            <div className="glass-card rounded-xl p-6 mb-6 border border-primary/30 bg-primary/10">
+            <div className="glass-card rounded-xl p-6 mb-6">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-lg gradient-primary flex items-center justify-center shrink-0">
                   <Terminal size={22} className="text-primary-foreground" />

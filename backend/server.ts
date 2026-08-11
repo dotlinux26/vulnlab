@@ -891,14 +891,17 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         if (!lesson.labUrl) return res.status(400).json({ error: 'LAB_URL_NOT_CONFIGURED' });
 
         // Atomic lock: only AVAILABLE can be claimed
+        const now = new Date();
+        const resetTimeout = lesson.labResetTimeout || 60;
+        const resetDeadlineAt = new Date(now.getTime() + resetTimeout * 1000);
         const [affected] = await sequelize.query(`
           UPDATE lab_states
           SET status = 'RESETTING',
-              reset_started_at = datetime('now'),
-              reset_deadline_at = datetime('now', '+' || (SELECT labResetTimeout FROM lessons WHERE id = ?) || ' seconds')
+              reset_started_at = ?,
+              reset_deadline_at = ?
           WHERE lesson_id = ? AND status = 'AVAILABLE'
         `, {
-          replacements: [lesson.id, lesson.id],
+          replacements: [now.toISOString(), resetDeadlineAt.toISOString(), lesson.id],
           type: sequelize.QueryTypes.UPDATE
         });
 
