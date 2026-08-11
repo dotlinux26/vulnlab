@@ -3,18 +3,22 @@
 # ============================================
 # VULNLAB - Auto Start All Labs Script
 # ============================================
-# Starts all docker compose labs in ctf-labs/labs/
-# Port mappings are defined in ctf-labs/lab-routes.json
+# Dynamic paths based on script location
+# Usage: ./start-all-labs.sh
 
 set -e
 
-CTF_LABS_DIR="/home/nguyenduccanh/Documents/vulnlab/ctf-labs"
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CTF_LABS_DIR="$SCRIPT_DIR/ctf-labs"
 LABS_DIR="$CTF_LABS_DIR/labs"
 ROUTES_FILE="$CTF_LABS_DIR/lab-routes.json"
 
 echo "=========================================="
 echo "VULNLAB - Starting All Labs"
 echo "=========================================="
+echo "[+] Project root: $SCRIPT_DIR"
+echo "[+] Labs directory: $LABS_DIR"
 
 # Function to start a single lab
 start_lab() {
@@ -44,7 +48,11 @@ echo ""
 echo "=========================================="
 echo "All labs started. Port mappings:"
 echo "=========================================="
-cat "$ROUTES_FILE" | jq -r 'to_entries[] | "\(.key) -> \(.value)"'
+if [ -f "$ROUTES_FILE" ]; then
+    cat "$ROUTES_FILE" | jq -r 'to_entries[] | "\(.key) -> \(.value)"'
+else
+    echo "Routes file not found: $ROUTES_FILE"
+fi
 echo ""
 echo "Gateway: http://localhost:7777"
 echo "Access labs via: http://localhost:7777<path>"
