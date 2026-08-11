@@ -1,0 +1,27 @@
+# Questions: burp-suite-basics
+
+## VI
+1. Ký tự nào dùng để comment trong SQL? (***)
+   - Answer: -- -
+
+2. Kỹ thuật gộp SELECT gộp 2 câu là gì? (*****)
+   - Answer: union
+
+3. Hàm SQL nào nên dùng để chống SQLi? (***-***************)
+   - Answer: prepared statement
+
+4. Công cụ tự động SQLi phổ biến là gì? (******)
+   - Answer: sqlmap
+
+## EN
+1. Which character comments out the rest of SQL? (***)
+   - Answer: -- -
+
+2. Which technique joins two SELECT statements? (*****)
+   - Answer: union
+
+3. Which SQL feature should replace string concatenation to prevent SQLi? (***-***************)
+   - Answer: prepared statement
+
+4. What is the most popular automated SQLi tool? (******)
+   - Answer: sqlmap

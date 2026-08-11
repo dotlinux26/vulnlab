@@ -1,0 +1,21 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = sqli-basics
+title = SQL Injection Căn Bản — Boolean, Union & Error Based
+title_en = SQL Injection Basics — Boolean, Union & Error Based
+description = Hiểu và khai thác SQL Injection: boolean, error-based, union, login bypass, sqlmap. Lỗ hổng OWASP A03 nghiêm trọng nhất.
+description_en = Understand and exploit SQL Injection: boolean, error-based, union, login bypass, sqlmap. The most severe OWASP A03 vulnerability.
+category = Web
+difficulty = Medium
+level = intermediate
+orderIndex = 11
+
+# ==== LAB ====
+lab_name = sqli-basics-lab
+lab_path = lab/
+lab_port = 7104
+lab_stack = php-apache + mysql (login + search)
+lab_flag = FLAG{sql1_m4st3r_2026}
+lab_reset = yes
+
+# ==== ẢNH ====
+images = sqli-basics_01_login_page.png, sqli-basics_02_boolean_confirm.png, sqli-basics_03_error_based.png, sqli-basics_04_order_by.png, sqli-basics_05_union_dump.png, sqli-basics_06_login_bypass.png, sqli-basics_07_sqlmap.png

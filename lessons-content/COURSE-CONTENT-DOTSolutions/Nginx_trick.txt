@@ -1,0 +1,266 @@
+pm2 logs
+ 1136  sudo ufw allow 6666
+ 1137  sudo nano /etc/nginx/sites-available/default
+ 1138  sudo nano /etc/nginx/sites-available/ghedahaui
+ 1139  cat  /etc/nginx/sites-available/ghedahaui
+ 1140  sudo nginx -t
+ 1141  sudo systemctl restart nginx
+ 1142  cat  /etc/nginx/sites-available/ghedahaui
+ 1143  sudo nano /etc/nginx/sites-available/ghedahaui
+ 1144  cat  /etc/nginx/sites-available/ghedahaui
+ 1145  sudo nginx -t && sudo systemctl restart nginx
+ 1146  mv ../admin-server.js ghedahaui
+ 1147  cd ..
+ 1148  ls
+ 1149  cd ghedahaui/
+ 1150  pm2 restart all
+ 1151  pm2 save
+ 1152  pm2 logs
+ 1153  cat  /etc/nginx/sites-available/ghedahaui
+ 1154  sudo nano /etc/nginx/sites-available/ghedahaui
+ 1155  cat  /etc/nginx/sites-available/ghedahaui
+ 1156  sudo nginx -t && sudo systemctl restart nginx
+ 1157  pm2 restart all
+ 1158  pm2 save
+ 1159  mv ../admin-server.js ghedahaui
+ 1160  pm2 restart all
+ 1161  pm2 save
+ 1162  sudo nano /etc/nginx/sites-available/ghedahaui
+ 1163  sudo nginx -t && sudo systemctl restart nginx
+ 1164  sudo nano /etc/nginx/sites-available/ghedahaui
+ 1165  sudo nginx -t && sudo systemctl restart nginx
+ 1166  cd ..
+ 1167  ls
+ 1168  mv admin-server.js ghedahaui
+ 1169  cd ghedahaui/
+ 1170  pm2 restart all
+ 1171  pm2 save
+ 1172  pm2 status
+ 1173  ls
+ 1174  cd ghedahaui/
+ 1175  ls
+ 1176  cd public/
+ 1177  ls
+ 1178  cat index.html 
+ 1179  ls
+ 1180  nano index.html 
+ 1181  pm2 list
+ 1182  pm2 restart ghedahaui
+ 1183  pm2 save
+ 1184  nano index.html 
+ 1185  cat index.html 
+ 1186  nano index.html 
+ 1187  pm2 restart ghedahaui
+ 1188  pm2 save
+ 1189  cat index.html 
+ 1190  nano index.html 
+ 1191  pm2 restart ghedahaui | pm2 save
+ 1192  pm2 restart ghedahaui 
+ 1193  pm2 save
+ 1194  cd ..
+ 1195  ls
+ 1196  exit
+ 1197  ls
+ 1198  cd ghedahaui/
+ 1199  ls
+ 1200  cat server.js 
+ 1201  nano server.js 
+ 1202  pm2 restart ghedahaui
+ 1203  pm2 save
+ 1204  cd ..
+ 1205  ls
+ 1206  zip -r ghedahauiv4.zip ghedahaui
+ 1207  ls
+ 1208  pwd
+ 1209  exit
+ 1210  pm2 list
+ 1211  ls
+ 1212  cd ghedahaui/
+ 1213  ls
+ 1214  cat server.js 
+ 1215  ls
+ 1216  cat admin-server.js 
+ 1217  cd ..
+ 1218  ls
+ 1219  sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 8080:8090 -j ACCEPT
+ 1220  sudo netfilter-persistent save
+ 1221  history 
+ubuntu@shellmap-origin:~$ history | nginx 
+nginx: [alert] could not open error log file: open() "/var/log/nginx/error.log" failed (13: Permission denied)
+2026/04/07 08:11:15 [warn] 1483465#1483465: the "user" directive makes sense only if the master process runs with super-user privileges, ignored in /etc/nginx/nginx.conf:1
+2026/04/07 08:11:15 [emerg] 1483465#1483465: cannot load certificate "/etc/letsencrypt/live/ghedahaui.online/fullchain.pem": BIO_new_file() failed (SSL: error:8000000D:system library::Permission denied:calling fopen(/etc/letsencrypt/live/ghedahaui.online/fullchain.pem, r) error:10080002:BIO routines::system lib)
+ubuntu@shellmap-origin:~$ sudo nano /etc/nginx/sites-available/ghedahaui
+ubuntu@shellmap-origin:~$ sudo cat /etc/nginx/sites-available/ghedahaui
+server {
+    server_name ghedahaui.online www.ghedahaui.online;
+
+    location /admin-portal/ {
+
+        rewrite ^/admin-portal/(.*) /$1 break;
+        proxy_pass http://localhost:6666;
+
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade $http_upgrade;
+
+        proxy_set_header Connection 'upgrade';
+
+        proxy_set_header Host $host;
+
+        proxy_cache_bypass $http_upgrade;
+
+        proxy_set_header X-Real-IP $remote_addr;
+
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+    }
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/ghedahaui.online/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/ghedahaui.online/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+}
+server {
+    if ($host = www.ghedahaui.online) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = ghedahaui.online) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80;
+    server_name ghedahaui.online www.ghedahaui.online;
+    return 404; # managed by Certbot
+
+
+
+
+}
+ubuntu@shellmap-origin:~$ sudo rm  /etc/nginx/sites-available/ghedahaui
+ubuntu@shellmap-origin:~$ sudo nano /etc/nginx/sites-available/ghedahaui
+ubuntu@shellmap-origin:~$ sudo nano /etc/nginx/sites-available/ghedahaui
+ubuntu@shellmap-origin:~$ sudo nginx -t
+sudo systemctl restart nginx
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+ubuntu@shellmap-origin:~$ ffuf -h
+Command 'ffuf' not found, but can be installed with:
+sudo apt install ffuf
+ubuntu@shellmap-origin:~$ pm2 list
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 1  │ admin-panel        │ fork     │ 4    │ online    │ 0%       │ 73.6mb   │
+│ 0  │ ghedahaui          │ fork     │ 42   │ online    │ 0%       │ 77.4mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+ubuntu@shellmap-origin:~$ sudo cat /etc/nginx/sites-available/ghedahaui
+# ====================================================
+# PHẦN 1: WEB THẬT CỦA SẾP JUNA (GIỮ NGUYÊN 100%)
+# ====================================================
+server {
+    server_name ghedahaui.online www.ghedahaui.online;
+
+    location /admin-portal/ {
+        rewrite ^/admin-portal/(.*) /$1 break;
+        proxy_pass http://localhost:6666;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/ghedahaui.online/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/ghedahaui.online/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+# Block này Certbot tự tạo để ép HTTP sang HTTPS cho web chính
+server {
+    if ($host = www.ghedahaui.online) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    if ($host = ghedahaui.online) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    server_name ghedahaui.online www.ghedahaui.online;
+    return 404; # managed by Certbot
+}
+
+# ====================================================
+# PHẦN 2: MA TRẬN LAB CHO 2K3 (CHẠY TRÊN PORT 80)
+# ====================================================
+
+# 1. BẪY CATCH-ALL (Dạy lọc SIZE -fs)
+server {
+    listen 80 default_server;
+    server_name _; 
+    return 200 "Trang chu Ghedahaui. He thong dang duoc nang cap. Vui long cho!";
+    add_header Content-Type text/plain;
+}
+
+# 2. VULN (Subdomain cấp 1)
+server {
+    listen 80;
+    server_name vuln.ghedahaui.online;
+    return 200 "Chuc mung! Ban da tim ra VULN. Flag: {VULN_1}";
+    add_header Content-Type text/plain;
+}
+
+# 3. DEV (Subdomain cấp 1 - Báo 403)
+server {
+    listen 80;
+    server_name dev.ghedahaui.online;
+    return 403 "Cam truy cap! Khu vuc DEV chi danh cho Admin.";
+    add_header Content-Type text/plain;
+}
+
+# 4. TEST.DEV (Subdomain cấp 2)
+server {
+    listen 80;
+    server_name test.dev.ghedahaui.online;
+    return 200 "Khu vuc Test cua Dev. Flag: {TEST_DEV_OK}";
+    add_header Content-Type text/plain;
+}
+
+# 5. LAB.VULN.DEV (Trùm cuối)
+server {
+    listen 80;
+    server_name lab.vuln.dev.ghedahaui.online;
+    return 200 "Trum cuoi! The nay ma cung tim ra? Flag: {MASTER_RECON}";
+    add_header Content-Type text/plain;
+}

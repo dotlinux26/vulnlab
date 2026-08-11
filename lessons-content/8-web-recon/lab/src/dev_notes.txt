@@ -1,0 +1,1 @@
+admin panel: /admin (default creds: admin:admin123)

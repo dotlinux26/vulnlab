@@ -1,0 +1,21 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = template-lesson
+title = Tên Bài Học (tiếng Việt)
+title_en = Lesson Title (English)
+description = Mô tả ngắn tiếng Việt.
+description_en = Short English description.
+category = Web
+difficulty = Easy
+level = beginner
+orderIndex = 0
+
+# ==== LAB ====
+lab_name = template-lesson-lab
+lab_path = lab/
+lab_port = 7101
+lab_stack = (ví dụ) node-express | php-apache+mysql
+lab_flag = FLAG{template_2026}
+lab_reset = yes
+
+# ==== ẢNH ====
+images = template-lesson_01_<mo-ta>.png, template-lesson_02_<mo-ta>.png

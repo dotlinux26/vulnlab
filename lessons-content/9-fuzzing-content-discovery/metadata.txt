@@ -1,0 +1,21 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = fuzzing-content-discovery
+title = Fuzzing & Content Discovery — ffuf & gobuster
+title_en = Fuzzing & Content Discovery — ffuf & gobuster
+description = Học dùng ffuf và gobuster để khám phá thư mục, file, parameter, virtual host. Kỹ năng recon active cốt lõi.
+description_en = Learn ffuf and gobuster to discover directories, files, parameters, and virtual hosts. Core active recon skill.
+category = Web
+difficulty = Easy
+level = beginner
+orderIndex = 9
+
+# ==== LAB ====
+lab_name = none (dùng lab ffuf-mastery có sẵn trên hệ thống)
+lab_path = none
+lab_port = none
+lab_stack = none
+lab_flag = none
+lab_reset = no
+
+# ==== ẢNH ====
+images = fuzzing-content-discovery_01_ffuf_dir.png, fuzzing-content-discovery_02_ffuf_ext.png, fuzzing-content-discovery_03_ffuf_param.png, fuzzing-content-discovery_04_ffuf_vhost.png, fuzzing-content-discovery_05_gobuster.png

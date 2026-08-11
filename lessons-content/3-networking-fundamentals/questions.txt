@@ -1,0 +1,14 @@
+# Questions: networking-fundamentals (Vietnamese/English)
+
+## VI
+1. Mạng máy tính là gì? (*****)
+   - Answer: Kết nối các thiết bị tính toán
+
+2. Protocol TCP/IP mô tả như thế nào? (*****)
+   - Answer: Bộ giao thức truyền dữ liệu
+
+3. Cổng well-known là gì? (*****)
+   - Answer: 1-1023
+
+4. DNS hoạt động như thế nào? (*****)
+   - Answer: Chuyển đổi domain thành IP

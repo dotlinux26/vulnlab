@@ -1,0 +1,10 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = linux-intro
+title = Linux Fundamentals
+title_en = Linux Fundamentals
+description = Hệ điều hành mã nguồn mở
+description_en = Open source operating system
+category = Forensics
+difficulty = Easy
+level = beginner
+orderIndex = 1

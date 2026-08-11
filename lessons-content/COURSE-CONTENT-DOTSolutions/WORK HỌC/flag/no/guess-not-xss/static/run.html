@@ -1,0 +1,12 @@
+<script>
+fetch("http://darling-heliotrope-3eeb1c.netlify.app/index.html")
+  .then(res => res.blob())
+  .then(blob => {
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "index.html";
+    document.body.appendChild(a);
+    a.click();
+  });
+</script>

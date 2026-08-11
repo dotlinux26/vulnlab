@@ -1,0 +1,27 @@
+# Questions: fuzzing-content-discovery (Vietnamese/English)
+
+## VI
+1. Mục tiêu của Fuzzing là gì? (*****)
+   - Answer: Tìm lỗ hổng bảo mật
+
+2. Fuzzing có thể loại lỗ hổng nào? (*******)
+   - Answer: SQLi, XSS, Command Injection
+
+3. Công cụ fuzzing phổ biến nhất là gì? (******)
+   - Answer:ffuf, wfuzz, Burp Suite
+
+4. Input validation là gì và tại sao quan trọng? (*******)
+   - Answer: Kiểm tra đầu vào trước khi xử lý
+
+## EN
+1. What is the goal of Fuzzing? (*****)
+   - Answer: Find security vulnerabilities
+
+2. What type of vulnerabilities can Fuzzing find? (*******)
+   - Answer: SQLi, XSS, Command Injection
+
+3. What is the most popular fuzzing tool? (******)
+   - Answer:ffuf, wfuzz, Burp Suite
+
+4. Why is input validation important? (*******)
+   - Answer: Validate input before processing

@@ -1,0 +1,33 @@
+# Questions: nosql-injection (NoSQL Injection)
+
+## VI
+1. NoSQL database phổ biến nhất dùng JSON để truy vấn là gì? (*******)
+   - Answer: mongodb
+
+2. Operator nào nghĩa là "not equal" dùng để bypass login? (***)
+   - Answer: $ne
+
+3. Operator nào dùng để trích xuất từng ký tự như blind? (******)
+   - Answer: $regex
+
+4. Operator nào nghĩa là "greater than"? (***)
+   - Answer: $gt
+
+5. Loại payload bạn chèn vào NoSQLi là gì — string hay object JSON? (******)
+   - Answer: object
+
+## EN
+1. What is the most popular NoSQL database that queries with JSON? (*******)
+   - Answer: mongodb
+
+2. Which operator means "not equal" and bypasses login? (***)
+   - Answer: $ne
+
+3. Which operator extracts chars one by one like blind? (******)
+   - Answer: $regex
+
+4. Which operator means "greater than"? (***)
+   - Answer: $gt
+
+5. What kind of payload do you inject in NoSQLi — a string or a JSON object? (******)
+   - Answer: object

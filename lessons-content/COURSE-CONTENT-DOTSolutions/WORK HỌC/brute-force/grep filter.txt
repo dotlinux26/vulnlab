@@ -1,0 +1,7 @@
+Minimum Length: 6 characters
+Must Include:
+At least one uppercase letter
+At least one lowercase letter
+At least one number
+At least two special characters (from the set !@#$%^&*)
+grep -E '^.{6,}$' jane.txt | grep -E '[A-Z]' | grep -E '[a-z]' | grep -E '[0-9]' | grep -E '([!@#$%^&*].*){2,}' > jane-filtered.txt

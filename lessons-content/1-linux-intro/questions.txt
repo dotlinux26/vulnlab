@@ -1,0 +1,14 @@
+# Questions: linux-intro (Vietnamese/English)
+
+## VI
+1. Hệ điều hành Linux là gì? (*****)
+   - Answer: Hệ điều hành mã nguồn mở
+
+2. Phân phối Linux phổ biến là gì? (*****)
+   - Answer: Ubuntu, Debian, CentOS
+
+3. Cách điều hướng thư mục là? (*****)
+   - Answer: cd, ls, pwd
+
+4. Cách quản lý quyền là? (*****)
+   - Answer: chmod, chown

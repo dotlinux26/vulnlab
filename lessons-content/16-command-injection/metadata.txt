@@ -1,0 +1,21 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = command-injection
+title = Command Injection
+title_en = Command Injection
+description = Chèn lệnh shell qua ; && | $() đọc file, quét mạng. OWASP A03.
+description_en = Inject shell commands via ; && | $() to read files, scan networks. OWASP A03.
+category = Web
+difficulty = Easy
+level = beginner
+orderIndex = 14
+
+# ==== LAB ====
+lab_name = command-injection-lab
+lab_path = lab/
+lab_port = 7107
+lab_stack = php-apache (ping tool gọi system())
+lab_flag = FLAG{cmd_1nj3ct10n_2026}
+lab_reset = yes
+
+# ==== ẢNH ====
+images = command-injection_01_ping_page.png, command-injection_02_normal_ping.png, command-injection_03_semicolon_id.png, command-injection_04_cat_flag.png, command-injection_05_variants.png, command-injection_06_further.png

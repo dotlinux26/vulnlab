@@ -1,0 +1,33 @@
+# Questions: command-injection (Command Injection)
+
+## VI
+1. Ký tự nào dùng để chạy lệnh tiếp theo bất kể lệnh trước đúng hay sai? (*)
+   - Answer: ;
+
+2. Ký tự nào nghĩa là "chạy lệnh sau chỉ khi lệnh trước thành công"? (**)
+   - Answer: &&
+
+3. Cách hiện đại để chèn lệnh vào giữa chuỗi bằng output là gì? (***)
+   - Answer: $()
+
+4. Trong Python, hàm nào an toàn vì truyền danh sách đối số mà không qua shell? (************)
+   - Answer: subprocess
+
+5. Kết quả của lệnh `id` cho biết lệnh chạy dưới quyền user nào? (*****)
+   - Answer: www-data
+
+## EN
+1. Which character runs the next command regardless of success? (*)
+   - Answer: ;
+
+2. Which character means "run the next only if the previous succeeded"? (**)
+   - Answer: &&
+
+3. What is the modern way to embed a command via its output? (***)
+   - Answer: $()
+
+4. In Python, which function is safe because it takes an argument list without a shell? (************)
+   - Answer: subprocess
+
+5. The `id` command output tells you the command runs as which user? (*****)
+   - Answer: www-data

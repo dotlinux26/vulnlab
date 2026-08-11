@@ -1,0 +1,10 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = networking-fundamentals
+title = Networking Fundamentals
+title_en = Networking Fundamentals
+description = Kiến thức cơ bản về mạng máy tính
+description_en = Basic computer networking knowledge
+category = Network
+difficulty = Easy
+level = beginner
+orderIndex = 1

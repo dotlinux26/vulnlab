@@ -1,0 +1,21 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = burp-suite-basics
+title = Burp Suite Căn Bản — Nghe Lén & Sửa Đổi Request
+title_en = Burp Suite Basics — Intercepting & Modifying Requests
+description = Học dùng Burp Suite làm proxy: bắt và sửa request, Repeater, Decoder. Nền tảng bắt buộc cho mọi bài khai thác web.
+description_en = Learn Burp Suite as a proxy: intercept and modify requests, Repeater, Decoder. Required foundation for all web exploitation lessons.
+category = Web
+difficulty = Easy
+level = beginner
+orderIndex = 7
+
+# ==== LAB ====
+lab_name = burp-echo-lab
+lab_path = lab/
+lab_port = 7101
+lab_stack = php-apache (echo request)
+lab_flag = FLAG{burp_pr0xy_2026}
+lab_reset = yes
+
+# ==== ẢNH ====
+images = burp-suite-basics_01_intercept.png, burp-suite-basics_02_intercept_modified.png, burp-suite-basics_03_repeater.png, burp-suite-basics_04_decoder.png

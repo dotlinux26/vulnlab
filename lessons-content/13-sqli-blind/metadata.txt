@@ -1,0 +1,21 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = sqli-blind
+title = SQL Injection Blind — Boolean & Time Based
+title_en = Blind SQL Injection — Boolean & Time Based
+description = Khai thác blind SQLi: boolean-based, time-based, viết script python tự động lấy flag từng ký tự, sqlmap.
+description_en = Exploit blind SQLi: boolean-based, time-based, write a python script to extract the flag character by character, sqlmap.
+category = Web
+difficulty = Medium
+level = intermediate
+orderIndex = 12
+
+# ==== LAB ====
+lab_name = sqli-blind-lab
+lab_path = lab/
+lab_port = 7105
+lab_stack = php-apache + mysql (tra cứu ID không hiện dữ liệu)
+lab_flag = FLAG{bl1nd_sql1_2026}
+lab_reset = yes
+
+# ==== ẢNH ====
+images = sqli-blind_01_boolean_confirm.png, sqli-blind_02_length.png, sqli-blind_03_first_char.png, sqli-blind_04_script.png, sqli-blind_05_timebased.png, sqli-blind_06_sqlmap.png

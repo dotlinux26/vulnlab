@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")"
+
+echo "[*] Dừng và xóa container + volume cũ..."
+docker compose down -v
+
+echo "[*] Dựng lại lab (bao gồm MongoDB)..."
+docker compose up -d --build
+
+echo "[+] Lab đã reset. Truy cập: http://localhost:7106 (đợi ~10s cho MongoDB khởi động)"

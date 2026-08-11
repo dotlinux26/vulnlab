@@ -1,0 +1,33 @@
+# Questions: lfi-rfi (LFI / RFI — File Inclusion)
+
+## VI
+1. LFI đọc file nội bộ còn RFI nạp file từ đâu? (*****)
+   - Answer: remote
+
+2. Wrapper nào đọc source code PHP dưới dạng base64? (********)
+   - Answer: php://filter
+
+3. Cấu hình PHP nào phải bật để RFI hoạt động? (*****************)
+   - Answer: allow_url_include
+
+4. Kỹ thuật từ LFI thành chạy mã từ xa được viết tắt là gì? (***)
+   - Answer: rce
+
+5. Cách phòng thủ an toàn nhất cho tham số page là gì? (*********)
+   - Answer: whitelist
+
+## EN
+1. LFI reads internal files while RFI loads files from where? (*****)
+   - Answer: remote
+
+2. Which wrapper reads PHP source code as base64? (********)
+   - Answer: php://filter
+
+3. Which PHP setting must be enabled for RFI to work? (*****************)
+   - Answer: allow_url_include
+
+4. What is the abbreviation for turning LFI into remote code execution? (***)
+   - Answer: rce
+
+5. What is the safest defense for a page parameter? (*********)
+   - Answer: whitelist

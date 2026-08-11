@@ -1,0 +1,33 @@
+# Questions: sqli-blind (Blind SQL Injection)
+
+## VI
+1. Blind SQLi khi không có tín hiệu true/false thì dựa vào yếu tố gì? (*****-*****)
+   - Answer: time-based
+
+2. Hàm nào dùng để lấy một đoạn ký tự từ chuỗi? (***********)
+   - Answer: substring
+
+3. Hàm nào trả về mã ASCII của một ký tự? (*****)
+   - Answer: ascii
+
+4. Trong MySQL, hàm nào làm chậm response để tạo tín hiệu time-based? (*****)
+   - Answer: sleep
+
+5. Script dùng để tự động hỏi từng ký tự của flag thường viết bằng ngôn ngữ nào? (******)
+   - Answer: python
+
+## EN
+1. What does Blind SQLi rely on when there's no true/false signal? (*****-*****)
+   - Answer: time-based
+
+2. Which function extracts a substring from a string? (***********)
+   - Answer: substring
+
+3. Which function returns the ASCII code of a character? (*****)
+   - Answer: ascii
+
+4. In MySQL, which function delays the response for time-based signals? (*****)
+   - Answer: sleep
+
+5. What language is commonly used for scripts that brute-force flag chars one by one? (******)
+   - Answer: python

@@ -1,0 +1,14 @@
+jane
+janesmith
+jane.smith
+janesmit
+janes
+j.smith
+jsmith
+sjane
+s.jane
+smithj
+smith
+smith.j
+smith.jane
+js

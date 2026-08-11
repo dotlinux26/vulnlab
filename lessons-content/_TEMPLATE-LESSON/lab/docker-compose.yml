@@ -1,0 +1,25 @@
+version: "3.8"
+
+name: template-lesson-lab
+
+services:
+  lab:
+    build: .
+    container_name: template-lesson-lab
+    ports:
+      - "7101:80"
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+      - /var/log/apache2
+      - /var/run/apache2
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"

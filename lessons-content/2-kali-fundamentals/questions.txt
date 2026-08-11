@@ -1,0 +1,27 @@
+# Questions: kali-fundamentals (Vietnamese/English)
+
+## VI
+1. Kali Linux là gì? (*****)
+   - Answer: Phát hành Linux dành cho kiểm thử xâm nhập
+
+2. Tools phổ biến trong Kali có gì? (******)
+   - Answer: Nmap, Wireshark, Metasploit
+
+3. Cách cập nhật Kali Linux là? (*******)
+   - Answer: apt update && apt upgrade
+
+4. Cách tạo user mới là? (*******)
+   - Answer: adduser -m username
+
+## EN
+1. What is Kali Linux? (*****)
+   - Answer: Linux distribution for penetration testing
+
+2. What tools are popular in Kali? (******)
+   - Answer: Nmap, Wireshark, Metasploit
+
+3. How to update Kali Linux? (*******)
+   - Answer: apt update && apt upgrade
+
+4. How to create a new user? (*******)
+   - Answer: adduser -m username

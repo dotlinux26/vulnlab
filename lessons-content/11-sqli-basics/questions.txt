@@ -1,0 +1,33 @@
+# Questions: sqli-basics (SQL Injection Căn Bản)
+
+## VI
+1. Loại SQLi nào dựa vào sự khác biệt true/false trong response? (*******)
+   - Answer: boolean
+
+2. Ký tự nào dùng để comment bỏ phần còn lại của câu SQL? (***)
+   - Answer: -- -
+
+3. Kỹ thuật nào gộp 2 câu SELECT cùng số cột để đọc dữ liệu trực tiếp? (*****)
+   - Answer: union
+
+4. Hàm SQL nào nên dùng thay cho nối chuỗi để chống SQLi? (***-***************)
+   - Answer: prepared statement
+
+5. Công cụ tự động hóa khai thác SQLi phổ biến nhất? (******)
+   - Answer: sqlmap
+
+## EN
+1. Which SQLi type relies on true/false differences in the response? (*******)
+   - Answer: boolean
+
+2. Which character comments out the rest of the SQL statement? (***)
+   - Answer: -- -
+
+3. Which technique joins two SELECT statements with matching columns to read data directly? (*****)
+   - Answer: union
+
+4. Which SQL feature should replace string concatenation to prevent SQLi? (***-***************)
+   - Answer: prepared statement
+
+5. What is the most popular automated SQLi exploitation tool? (******)
+   - Answer: sqlmap

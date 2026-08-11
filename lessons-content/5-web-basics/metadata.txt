@@ -1,0 +1,10 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = web-basics
+title = Web Basics
+title_en = Web Basics
+description = Cơ bản về HTML, JavaScript & Web Development
+description_en = Basic HTML, JavaScript & Web Development
+category = Web
+difficulty = Easy
+level = beginner
+orderIndex = 1

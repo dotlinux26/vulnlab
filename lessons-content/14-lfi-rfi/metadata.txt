@@ -1,0 +1,21 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = lfi-rfi
+title = LFI / RFI — File Inclusion
+title_en = LFI / RFI — File Inclusion
+description = Đọc file nhạy cảm, php://filter đọc source, RFI nạp webshell RCE.
+description_en = Read sensitive files, php://filter source disclosure, RFI webshell RCE.
+category = Web
+difficulty = Medium
+level = intermediate
+orderIndex = 15
+
+# ==== LAB ====
+lab_name = lfi-rfi-lab
+lab_path = lab/
+lab_port = 7108
+lab_stack = php (old) + apache, allow_url_include=On (RFI)
+lab_flag = FLAG{l0c4l_f1l3_1ncl_2026}
+lab_reset = yes
+
+# ==== ẢNH ====
+images = lfi-rfi_01_lfi_page.png, lfi-rfi_02_normal_view.png, lfi-rfi_03_etc_passwd.png, lfi-rfi_04_php_filter.png, lfi-rfi_05_read_flag.png, lfi-rfi_06_rfi_shell.png

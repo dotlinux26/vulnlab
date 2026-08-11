@@ -1,0 +1,27 @@
+# Questions: web-basics (Vietnamese/English)
+
+## VI
+1. HTML dùng để làm gì? (*****)
+   - Answer: Xây dựng cấu trúc trang web
+
+2. JavaScript dùng để làm gì? (*****)
+   - Answer: Thêm tính năng tương tác cho trang web
+
+3. Cách liên kết CSS là? (*****)
+   - Answer: <link rel="stylesheet" href="style.css">
+
+4. Cách đặt viewport là? (*****)
+   - Answer: <meta name="viewport" content="width=device-width, initial-scale=1">
+
+## EN
+1. What is HTML used for? (*****)
+   - Answer: Building web page structure
+
+2. What is JavaScript used for? (*****)
+   - Answer: Adding interactivity to web pages
+
+3. How to link CSS? (*****)
+   - Answer: <link rel="stylesheet" href="style.css">
+
+4. How to set viewport? (*****)
+   - Answer: <meta name="viewport" content="width=device-width, initial-scale=1">

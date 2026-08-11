@@ -1,0 +1,1 @@
+FLAG{bl1nd_sql1_2026}

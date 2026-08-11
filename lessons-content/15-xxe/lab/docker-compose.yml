@@ -1,0 +1,23 @@
+name: xxe-lab
+
+services:
+  web:
+    build: .
+    container_name: xxe-web
+    ports:
+      - "7109:80"
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+      - /var/log/apache2
+      - /var/run/apache2
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"

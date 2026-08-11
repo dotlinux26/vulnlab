@@ -1,0 +1,34 @@
+# Questions: xxe (XML External Entity)
+
+## VI
+1. XXE viết đầy đủ là gì? (*** ******* *******)
+   - Answer: xml external entity
+
+2. Từ khóa nào dùng để khai báo external entity trỏ tới file? (*******)
+   - Answer: SYSTEM
+
+3. Ký tự nào dùng để tham chiếu một entity đã khai báo? (***)
+   - Answer: &xxe;
+
+4. Kỹ thuật lợi dụng XXE để gọi tới địa chỉ nội bộ/cloud được gọi là gì? (****)
+   - Answer: ssrf
+
+5. Wrapper nào đọc nội dung file dưới dạng base64? (********)
+   - Answer: php://filter
+
+## EN
+1. What does XXE stand for? (*** ******* *******)
+   - Answer: xml external entity
+
+2. Which keyword declares an external entity pointing at a file? (******)
+   - Answer: SYSTEM
+
+3. What do you use to reference a declared entity? (***)
+   - Answer: &xxe;
+
+4. What is the technique of abusing XXE to call internal/cloud addresses? (****)
+   - Answer: ssrf
+
+5. Which wrapper reads file content as base64 to avoid breaking XML? (********)
+   - Answer: php://filter
+

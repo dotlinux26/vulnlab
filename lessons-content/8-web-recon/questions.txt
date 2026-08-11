@@ -1,0 +1,27 @@
+# Questions: web-recon (Vietnamese/English)
+
+## VI
+1. Web Recon (Information Gathering) là gì? (*****)
+   - Answer: Thu thập thông tin về mục tiêu
+
+2. Tools reconnaissance phổ biến là gì? (******)
+   - Answer: sublist3r, amass, DNSenum
+
+3. WHOIS lookup mục đích là gì? (*****)
+   - Answer: Thông tin đăng ký domain
+
+4. Cách enumerate subdomain là gì? (*****)
+   - Answer: Sử dụng wordlist và DNS resolver
+
+## EN
+1. What is Web Recon (Information Gathering)? (*****)
+   - Answer: Collect information about the target
+
+2. What are popular reconnaissance tools? (******)
+   - Answer: sublist3r, amass, DNSenum
+
+3. What is the purpose of WHOIS lookup? (*****)
+   - Answer: Domain registration information
+
+4. How to enumerate subdomains? (*****)
+   - Answer: Using wordlist and DNS resolver

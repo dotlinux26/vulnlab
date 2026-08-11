@@ -1,0 +1,10 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = kali-fundamentals
+title = Kali Fundamentals
+title_en = Kali Fundamentals
+description = Phát hành Linux dành cho kiểm thử xâm nhập
+description_en = Linux distribution for penetration testing
+category = Forensics
+difficulty = Easy
+level = beginner
+orderIndex = 1

@@ -1,0 +1,21 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = xxe
+title = XXE — XML External Entity
+title_en = XXE — XML External Entity
+description = Đọc file qua entity, php://filter, SSRF tới metadata cloud. OWASP A05.
+description_en = Read files via entities, php://filter, SSRF to cloud metadata. OWASP A05.
+category = Web
+difficulty = Medium
+level = intermediate
+orderIndex = 16
+
+# ==== LAB ====
+lab_name = xxe-lab
+lab_path = lab/
+lab_port = 7109
+lab_stack = php 7.4 + apache (parse XML dính XXE)
+lab_flag = FLAG{xx3_3xt3rn4l_2026}
+lab_reset = yes
+
+# ==== ẢNH ====
+images = xxe_01_form.png, xxe_02_normal.png, xxe_03_etc_passwd.png, xxe_04_php_filter.png, xxe_05_ssrf.png, xxe_06_flag.png

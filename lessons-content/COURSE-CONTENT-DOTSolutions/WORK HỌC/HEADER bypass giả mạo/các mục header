@@ -1,0 +1,128 @@
+Dưới đây là danh sách toàn bộ các **HTTP Headers** có thể xuất hiện trong một request hoặc response. Chúng được chia thành các loại chính: **General Headers, Request Headers, Response Headers, Entity Headers, Security Headers, Cache Headers, CORS Headers, và Custom Headers**.
+
+---
+
+## **1. General Headers (Dùng cho cả Request và Response)**  
+| Header               | Mô tả |
+|----------------------|---------------------------|
+| `Cache-Control`      | Kiểm soát cách cache hoạt động. |
+| `Connection`         | Kiểm soát việc giữ kết nối mở. |
+| `Date`              | Ngày giờ của request/response. |
+| `Pragma`            | Chỉ dẫn cache (giống `Cache-Control`). |
+| `Trailer`           | Chỉ định các headers bổ sung. |
+| `Transfer-Encoding`  | Quy định cách dữ liệu được gửi (`chunked`). |
+| `Upgrade`           | Yêu cầu nâng cấp giao thức (như HTTP/2, WebSocket). |
+| `Via`               | Chỉ định proxy trung gian. |
+| `Warning`           | Cảnh báo từ proxy hoặc server. |
+
+---
+
+## **2. Request Headers (Chỉ xuất hiện trong Request)**  
+| Header              | Mô tả |
+|---------------------|---------------------------|
+| `Accept`           | Xác định loại dữ liệu client có thể nhận. |
+| `Accept-Charset`   | Xác định bảng mã ký tự hỗ trợ. |
+| `Accept-Encoding`  | Chỉ định kiểu nén hỗ trợ (`gzip, deflate`). |
+| `Accept-Language`  | Ngôn ngữ ưu tiên của client (`en-US, vi-VN`). |
+| `Authorization`    | Chứa thông tin xác thực (`Basic`, `Bearer`). |
+| `Cookie`           | Gửi cookie đến server. |
+| `Expect`           | Yêu cầu một hành động cụ thể từ server. |
+| `From`             | Email của người gửi request. |
+| `Host`             | Chỉ định domain của request. |
+| `If-Match`         | Chỉ tiếp tục nếu tài nguyên chưa thay đổi. |
+| `If-Modified-Since` | Chỉ lấy dữ liệu nếu nó đã thay đổi từ ngày này. |
+| `If-None-Match`    | Chỉ tiếp tục nếu ETag không khớp. |
+| `If-Range`         | Yêu cầu gửi một phần tài nguyên nếu nó chưa thay đổi. |
+| `If-Unmodified-Since` | Chỉ tiếp tục nếu tài nguyên chưa bị sửa đổi. |
+| `Max-Forwards`     | Giới hạn số lần request được chuyển tiếp. |
+| `Origin`           | Chỉ định nguồn gốc của request (CORS). |
+| `Referer`          | Chỉ định trang trước đó (có thể kiểm tra referrer). |
+| `User-Agent`       | Chuỗi mô tả trình duyệt hoặc bot. |
+| `Upgrade-Insecure-Requests` | Yêu cầu chuyển hướng từ HTTP sang HTTPS. |
+| `X-Requested-With` | Dùng để xác định request từ AJAX. |
+
+---
+
+## **3. Response Headers (Chỉ xuất hiện trong Response)**  
+| Header              | Mô tả |
+|---------------------|---------------------------|
+| `Accept-Ranges`    | Chỉ định server có hỗ trợ tải một phần file không. |
+| `Age`             | Tuổi của response trong cache (giây). |
+| `ETag`            | Mã định danh của phiên bản tài nguyên. |
+| `Location`        | Chỉ định URL đích khi chuyển hướng (301, 302). |
+| `Proxy-Authenticate` | Yêu cầu xác thực proxy. |
+| `Retry-After`     | Báo thời gian cần đợi trước khi gửi lại request. |
+| `Server`          | Thông tin về server web (`nginx, Apache`). |
+| `Vary`            | Cho biết server có thay đổi phản hồi dựa trên headers nào. |
+| `WWW-Authenticate` | Yêu cầu xác thực từ client. |
+
+---
+
+## **4. Entity Headers (Thông tin về nội dung request/response)**  
+| Header             | Mô tả |
+|--------------------|---------------------------|
+| `Allow`           | Danh sách các phương thức HTTP được hỗ trợ. |
+| `Content-Encoding` | Loại nén được sử dụng (`gzip, deflate`). |
+| `Content-Language` | Ngôn ngữ của nội dung. |
+| `Content-Length`  | Độ dài nội dung (byte). |
+| `Content-Location` | URL của tài nguyên thực tế. |
+| `Content-Range`   | Chỉ định phạm vi của nội dung (`bytes 500-999/2000`). |
+| `Content-Type`    | Kiểu nội dung (`text/html, application/json`). |
+| `Expires`         | Thời điểm nội dung hết hạn (dùng cho cache). |
+| `Last-Modified`   | Thời điểm tài nguyên được chỉnh sửa lần cuối. |
+
+---
+
+## **5. Security Headers (Bảo mật và bảo vệ chống tấn công web)**  
+| Header                   | Mô tả |
+|--------------------------|---------------------------|
+| `Content-Security-Policy (CSP)` | Chống XSS bằng cách giới hạn nguồn nội dung. |
+| `X-Content-Type-Options` | Ngăn chặn MIME-type sniffing (`nosniff`). |
+| `X-Frame-Options` | Ngăn clickjacking (`DENY`, `SAMEORIGIN`). |
+| `X-XSS-Protection` | Kích hoạt bộ lọc XSS của trình duyệt. |
+| `Strict-Transport-Security (HSTS)` | Ép buộc HTTPS. |
+| `Referrer-Policy` | Kiểm soát thông tin referrer được gửi. |
+
+---
+
+## **6. Cache Headers (Kiểm soát bộ nhớ đệm của trình duyệt/server)**  
+| Header         | Mô tả |
+|---------------|---------------------------|
+| `Cache-Control` | Điều khiển cache (`no-cache, no-store, must-revalidate`). |
+| `Pragma`       | Tương tự `Cache-Control`, nhưng ít được dùng hơn. |
+| `Expires`      | Xác định thời gian tài nguyên hết hạn. |
+| `ETag`         | Định danh phiên bản tài nguyên để so sánh. |
+
+---
+
+## **7. CORS Headers (Kiểm soát quyền truy cập giữa các nguồn gốc khác nhau)**  
+| Header                 | Mô tả |
+|------------------------|---------------------------|
+| `Access-Control-Allow-Origin` | Xác định nguồn gốc nào có thể truy cập tài nguyên. |
+| `Access-Control-Allow-Methods` | Chỉ định các phương thức HTTP được phép (`GET, POST, PUT`). |
+| `Access-Control-Allow-Headers` | Chỉ định các headers có thể gửi. |
+| `Access-Control-Max-Age` | Thời gian cache của preflight request. |
+
+---
+
+## **8. Custom Headers (Các headers đặc biệt do server hoặc API định nghĩa)**  
+| Header           | Mô tả |
+|-----------------|---------------------------|
+| `X-Powered-By`  | Thông tin về công nghệ chạy server (`PHP, ASP.NET`). |
+| `X-RateLimit-Limit` | Giới hạn số request có thể gửi. |
+| `X-RateLimit-Remaining` | Số request còn lại trước khi bị giới hạn. |
+| `X-Forwarded-For` | Địa chỉ IP của client thực tế (nếu qua proxy). |
+| `X-Forwarded-Host` | Host gốc của request nếu qua proxy. |
+| `X-Forwarded-Proto` | Giao thức gốc của request (`http, https`). |
+
+---
+
+### **💡 Kết luận**
+Tùy vào bối cảnh pentest hoặc bypass, một số headers quan trọng cần chú ý:
+✅ `Referer`, `Origin` (kiểm tra bypass CORS).  
+✅ `User-Agent`, `X-Forwarded-For` (giả mạo request).  
+✅ `Authorization`, `Cookie` (thử chiếm quyền truy cập).  
+✅ `Date`, `Expires`, `Last-Modified` (thử kiểm tra cache).  
+✅ `X-Powered-By`, `Server` (đoán công nghệ backend).  
+
+💡 Cần khai thác hoặc kiểm tra header nào cụ thể không? 🚀

