@@ -493,7 +493,8 @@ const AdminLessons = () => {
                     <div className="text-orange-400">{lesson.difficulty}</div>
                     <div className="text-xs text-muted-foreground">{lesson.level}</div>
                   </td>
-                  <td className="px-4 py-3 text-center space-x-2">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
                     <button
                       onClick={() => handleEditClick(lesson)}
                       className="text-primary hover:text-primary-foreground bg-primary/10 hover:bg-primary px-3 py-1 rounded transition"
@@ -502,7 +503,7 @@ const AdminLessons = () => {
                     </button>
                     <button
                       onClick={() => togglePanel(lesson.id, "questions")}
-                      className={`px-3 py-1 rounded transition flex items-center gap-1 mx-auto ${
+                      className={`px-3 py-1 rounded transition flex items-center gap-1 ${
                         panelLesson === lesson.id && panelType === "questions"
                           ? "bg-primary text-primary-foreground"
                           : "text-cyan-400 bg-cyan-400/10 hover:bg-cyan-400/20"
@@ -513,7 +514,7 @@ const AdminLessons = () => {
                     </button>
                     <button
                       onClick={() => togglePanel(lesson.id, "comments")}
-                      className={`px-3 py-1 rounded transition flex items-center gap-1 mx-auto ${
+                      className={`px-3 py-1 rounded transition flex items-center gap-1 ${
                         panelLesson === lesson.id && panelType === "comments"
                           ? "bg-primary text-primary-foreground"
                           : "text-green-400 bg-green-400/10 hover:bg-green-400/20"
@@ -528,6 +529,7 @@ const AdminLessons = () => {
                     >
                       Xóa
                     </button>
+                    </div>
                   </td>
                 </tr>
               ))}

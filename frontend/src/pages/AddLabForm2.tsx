@@ -427,19 +427,21 @@ const AddLabForm = () => {
                       {lab.points} XP
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center space-x-2">
-                    <button
-                      onClick={() => handleEditClick(lab)}
-                      className="text-blue-400 hover:text-white bg-blue-900/30 px-3 py-1 rounded transition"
-                    >
-                      Sửa
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClick(lab.id)}
-                      className="text-red-400 hover:text-white bg-red-900/30 px-3 py-1 rounded transition"
-                    >
-                      Xóa
-                    </button>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleEditClick(lab)}
+                        className="text-blue-400 hover:text-white bg-blue-900/30 px-3 py-1 rounded transition"
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(lab.id)}
+                        className="text-red-400 hover:text-white bg-red-900/30 px-3 py-1 rounded transition"
+                      >
+                        Xóa
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
