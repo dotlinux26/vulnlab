@@ -18,6 +18,11 @@ const AdminLessons = () => {
     content_en: "",
     imageUrl: "",
     orderIndex: 0,
+    labEnabled: false,
+    labUrl: "",
+    labDuration: 900,
+    labComposePath: "",
+    labResetTimeout: 60,
   });
   const [message, setMessage] = useState({ type: "", text: "" });
   const [isLoading, setIsLoading] = useState(false);
@@ -145,6 +150,11 @@ const AdminLessons = () => {
       content_en: lesson.content_en || "",
       imageUrl: lesson.imageUrl || "",
       orderIndex: lesson.orderIndex || 0,
+      labEnabled: lesson.labEnabled || false,
+      labUrl: lesson.labUrl || "",
+      labDuration: lesson.labDuration || 900,
+      labComposePath: lesson.labComposePath || "",
+      labResetTimeout: lesson.labResetTimeout || 60,
     });
     setIsEditing(true);
     setMessage({ type: "success", text: `Đang chỉnh sửa: ${lesson.id}` });
@@ -187,6 +197,11 @@ const AdminLessons = () => {
       content_en: "",
       imageUrl: "",
       orderIndex: 0,
+      labEnabled: false,
+      labUrl: "",
+      labDuration: 900,
+      labComposePath: "",
+      labResetTimeout: 60,
     });
     setIsEditing(false);
   };
@@ -464,6 +479,83 @@ const AdminLessons = () => {
               onChange={handleChange}
               className="w-32 p-2 bg-accent border border-border rounded text-foreground"
             />
+          </div>
+
+          {/* Lab Config Section */}
+          <div className="border-t border-border pt-6 mt-6">
+            <h3 className="text-lg font-bold mb-4 text-foreground flex items-center gap-2">
+              <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs">🧪</span>
+              Cấu hình Lab Thực Hành
+            </h3>
+            
+            <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg mb-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="labEnabled"
+                  checked={formData.labEnabled}
+                  onChange={handleChange}
+                  className="w-5 h-5 accent-primary cursor-pointer"
+                />
+                <span className="font-bold text-foreground">Kích hoạt Lab cho bài học này</span>
+              </label>
+              <p className="text-xs text-muted-foreground mt-1 ml-8">
+                Khi bật, học viên sẽ thấy thẻ "Lab Thực Hành" trên trang chi tiết bài học.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block font-bold mb-1 text-foreground">Lab URL *</label>
+                <input
+                  type="text"
+                  name="labUrl"
+                  value={formData.labUrl}
+                  onChange={handleChange}
+                  placeholder="https://vuln.ghedahaui.online/labs/sqli"
+                  className="w-full p-2 bg-accent border border-border rounded text-foreground"
+                />
+                <p className="text-xs text-muted-foreground mt-1">URL công khai của lab (ví dụ: /labs/sqli)</p>
+              </div>
+              <div>
+                <label className="block font-bold mb-1 text-foreground">Thời lượng (giây) *</label>
+                <input
+                  type="number"
+                  name="labDuration"
+                  value={formData.labDuration}
+                  onChange={handleChange}
+                  min="60"
+                  max="3600"
+                  className="w-full p-2 bg-accent border border-border rounded text-foreground"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Thời gian tối đa học viên được dùng lab (mặc định 900 = 15 phút)</p>
+              </div>
+              <div>
+                <label className="block font-bold mb-1 text-foreground">Docker Compose Path *</label>
+                <input
+                  type="text"
+                  name="labComposePath"
+                  value={formData.labComposePath}
+                  onChange={handleChange}
+                  placeholder="ctf-labs/labs/11-sqli-basics"
+                  className="w-full p-2 bg-accent border border-border rounded text-foreground"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Đường dẫn tương đối đến thư mục chứa docker-compose.yml</p>
+              </div>
+              <div>
+                <label className="block font-bold mb-1 text-foreground">Reset Timeout (giây) *</label>
+                <input
+                  type="number"
+                  name="labResetTimeout"
+                  value={formData.labResetTimeout}
+                  onChange={handleChange}
+                  min="10"
+                  max="300"
+                  className="w-full p-2 bg-accent border border-border rounded text-foreground"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Thời gian tối đa chờ lab khởi động (mặc định 60 giây)</p>
+              </div>
+            </div>
           </div>
 
           <div>

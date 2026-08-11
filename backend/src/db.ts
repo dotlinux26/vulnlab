@@ -152,6 +152,11 @@ export class Lesson extends Model {
   declare content_en: string;
   declare imageUrl: string;
   declare orderIndex: number;
+  declare labEnabled: boolean;
+  declare labUrl: string;
+  declare labDuration: number;
+  declare labComposePath: string;
+  declare labResetTimeout: number;
 }
 
 Lesson.init({
@@ -167,7 +172,31 @@ Lesson.init({
   content_en: { type: DataTypes.TEXT, allowNull: true },
   imageUrl: { type: DataTypes.STRING },
   orderIndex: { type: DataTypes.INTEGER, defaultValue: 0 },
+  labEnabled: { type: DataTypes.BOOLEAN, defaultValue: false },
+  labUrl: { type: DataTypes.STRING, allowNull: true },
+  labDuration: { type: DataTypes.INTEGER, defaultValue: 900 },
+  labComposePath: { type: DataTypes.STRING, allowNull: true },
+  labResetTimeout: { type: DataTypes.INTEGER, defaultValue: 60 },
 }, { sequelize, modelName: 'lesson' });
+
+// Lab State - tracks lab availability for shared lab system
+export class LabState extends Model {
+  declare lessonId: string;
+  declare status: string;
+  declare sessionStartedAt: Date | null;
+  declare sessionExpiresAt: Date | null;
+  declare resetStartedAt: Date | null;
+  declare resetDeadlineAt: Date | null;
+}
+
+LabState.init({
+  lessonId: { type: DataTypes.STRING, primaryKey: true, references: { model: 'lessons', key: 'id' } },
+  status: { type: DataTypes.STRING, defaultValue: 'AVAILABLE' }, // AVAILABLE / BUSY / RESETTING / ERROR
+  sessionStartedAt: { type: DataTypes.DATE, allowNull: true },
+  sessionExpiresAt: { type: DataTypes.DATE, allowNull: true },
+  resetStartedAt: { type: DataTypes.DATE, allowNull: true },
+  resetDeadlineAt: { type: DataTypes.DATE, allowNull: true },
+}, { sequelize, modelName: 'lab_state', timestamps: true });
 
 export class LessonProgress extends Model {
   declare id: number;
@@ -322,6 +351,11 @@ export const initDb = async () => {
   try {
     await addColumnIfMissing('users', 'voucherXp', 'INTEGER DEFAULT 0');
     try { await sequelize.query(`DROP TABLE IF EXISTS users_backup`); } catch {}
+    await addColumnIfMissing('lessons', 'labEnabled', 'BOOLEAN DEFAULT 0');
+    await addColumnIfMissing('lessons', 'labUrl', 'TEXT');
+    await addColumnIfMissing('lessons', 'labDuration', 'INTEGER DEFAULT 900');
+    await addColumnIfMissing('lessons', 'labComposePath', 'TEXT');
+    await addColumnIfMissing('lessons', 'labResetTimeout', 'INTEGER DEFAULT 60');
     await sequelize.sync();
     await addColumnIfMissing('labs', 'title_en', 'STRING');
     await addColumnIfMissing('labs', 'description_en', 'TEXT');

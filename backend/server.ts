@@ -4,7 +4,7 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { OAuth2Client } from 'google-auth-library';
-import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress, LessonQuestion, LessonAnswerLog, LessonComment, LearningPath, PathLesson, PathProgress } from './src/db';
+import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress, LessonQuestion, LessonAnswerLog, LessonComment, LearningPath, PathLesson, PathProgress, LabState } from './src/db';
 import { sanitizeComment, linkify, extractImageUrl, isImageUrl } from './src/commentFilter';
 import crypto from 'crypto'; // Dùng để gen mã Hash
 import dotenv from 'dotenv';
@@ -259,6 +259,67 @@ async function startServer() {
         } else {
             res.status(403).json({ success: false, message: 'Forbidden: Bạn không phải là Admin!' });
         }
+    };
+
+    // Trigger lab reset using docker compose
+    const triggerLabReset = async (lessonId: string, composePath: string | null, resetTimeout: number) => {
+      if (!composePath) {
+        console.error(`No compose path for ${lessonId}`);
+        const labState = await LabState.findByPk(lessonId);
+        if (labState) await labState.update({ status: 'ERROR' });
+        return;
+      }
+
+      const { exec } = require('child_process');
+      const { promisify } = require('util');
+      const execAsync = promisify(exec);
+
+      try {
+        console.log(`[Lab Reset] Starting reset for ${lessonId} at ${composePath}`);
+        
+        // docker compose down -v
+        await execAsync(`docker compose down -v`, { cwd: composePath, timeout: 30000 });
+        console.log(`[Lab Reset] ${lessonId} down -v completed`);
+        
+        // docker compose up -d
+        await execAsync(`docker compose up -d`, { cwd: composePath, timeout: 60000 });
+        console.log(`[Lab Reset] ${lessonId} up -d completed`);
+
+        // Wait for containers to be ready, then health check
+        const labState = await LabState.findByPk(lessonId);
+        const lesson = await Lesson.findByPk(lessonId);
+        if (!lesson || !lesson.labUrl) return;
+
+        const deadline = Date.now() + resetTimeout * 1000;
+        let healthy = false;
+        
+        while (Date.now() < deadline) {
+          await new Promise(r => setTimeout(r, 3000));
+          try {
+            const response = await fetch(lesson.labUrl, { method: 'GET', signal: AbortSignal.timeout(5000) });
+            if (response.ok) {
+              healthy = true;
+              break;
+            }
+          } catch (e) {
+            // Not ready yet
+          }
+        }
+
+        if (labState) {
+          if (healthy) {
+            await labState.update({ status: 'BUSY', sessionStartedAt: new Date(), sessionExpiresAt: new Date(Date.now() + (lesson.labDuration || 900) * 1000) });
+            console.log(`[Lab Reset] ${lessonId} READY -> BUSY`);
+          } else {
+            await labState.update({ status: 'ERROR' });
+            console.log(`[Lab Reset] ${lessonId} TIMEOUT -> ERROR`);
+          }
+        }
+      } catch (error: any) {
+        console.error(`[Lab Reset] ${lessonId} failed:`, error);
+        const labState = await LabState.findByPk(lessonId);
+        if (labState) await labState.update({ status: 'ERROR' });
+      }
     };
 
     app.post('/api/auth/verify', authLimiter, async (req: Request, res: Response) => {
@@ -819,6 +880,108 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
       }
     });
 
+    // ===== LAB ACCESS & STATUS =====
+    // POST /api/learning/:slug/lab/access - Atomic lock + trigger reset
+    app.post('/api/learning/:slug/lab/access', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const lesson = await Lesson.findOne({ where: { id: req.params.slug } });
+        if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+        if (!lesson.labEnabled) return res.status(400).json({ error: 'LAB_DISABLED' });
+        if (!lesson.labUrl) return res.status(400).json({ error: 'LAB_URL_NOT_CONFIGURED' });
+
+        // Atomic lock: only AVAILABLE can be claimed
+        const [affected] = await sequelize.query(`
+          UPDATE lab_states
+          SET status = 'RESETTING',
+              reset_started_at = datetime('now'),
+              reset_deadline_at = datetime('now', '+' || (SELECT labResetTimeout FROM lessons WHERE id = ?) || ' seconds')
+          WHERE lesson_id = ? AND status = 'AVAILABLE'
+        `, {
+          replacements: [lesson.id, lesson.id],
+          type: sequelize.QueryTypes.UPDATE
+        });
+
+        if ((affected as any)?.length === 0 || (affected as any)?.[1] === 0) {
+          // Lab not available - check current status
+          const labState = await LabState.findByPk(lesson.id);
+          if (!labState) {
+            // First time - create state and retry
+            await LabState.create({ lessonId: lesson.id, status: 'RESETTING', resetStartedAt: new Date(), resetDeadlineAt: new Date(Date.now() + lesson.labResetTimeout * 1000) });
+            return res.json({ accessUrl: lesson.labUrl, expiresAt: new Date(Date.now() + lesson.labDuration * 1000).toISOString() });
+          }
+          if (labState.status === 'BUSY' && labState.sessionExpiresAt) {
+            const remaining = Math.max(0, Math.ceil((new Date(labState.sessionExpiresAt).getTime() - Date.now()) / 1000));
+            return res.status(409).json({ error: 'LAB_BUSY', remainingSeconds: remaining });
+          }
+          if (labState.status === 'RESETTING') {
+            return res.status(202).json({ status: 'RESETTING', message: 'Lab đang được chuẩn bị...' });
+          }
+          if (labState.status === 'ERROR') {
+            return res.status(500).json({ error: 'RESET_FAILED', message: 'Lab khởi động thất bại. Vui lòng thử lại sau.' });
+          }
+          return res.status(409).json({ error: 'LAB_BUSY', remainingSeconds: 60 });
+        }
+
+        // Trigger reset immediately (in background)
+        triggerLabReset(lesson.id, lesson.labComposePath, lesson.labResetTimeout).catch(err => {
+          console.error(`Reset failed for ${lesson.id}:`, err);
+        });
+
+        return res.status(202).json({ 
+          status: 'RESETTING', 
+          message: 'Lab đang được chuẩn bị...',
+          timeoutSeconds: lesson.labResetTimeout
+        });
+      } catch (error) {
+        console.error('Lab access error:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+      }
+    });
+
+    // GET /api/learning/:slug/lab/status - Poll status
+    app.get('/api/learning/:slug/lab/status', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const lesson = await Lesson.findOne({ where: { id: req.params.slug } });
+        if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+        if (!lesson.labEnabled) return res.status(400).json({ error: 'LAB_DISABLED' });
+
+        const labState = await LabState.findByPk(lesson.id);
+        if (!labState) return res.json({ status: 'AVAILABLE' });
+
+        const now = Date.now();
+
+        if (labState.status === 'RESETTING') {
+          if (labState.resetDeadlineAt && new Date(labState.resetDeadlineAt).getTime() < now) {
+            await labState.update({ status: 'ERROR' });
+            return res.json({ status: 'ERROR', message: 'Lab khởi động quá thời gian cho phép' });
+          }
+          return res.json({ status: 'RESETTING' });
+        }
+
+        if (labState.status === 'BUSY') {
+          if (labState.sessionExpiresAt && new Date(labState.sessionExpiresAt).getTime() < now) {
+            // Session expired - trigger reset
+            await labState.update({ status: 'RESETTING', resetStartedAt: new Date(), resetDeadlineAt: new Date(now + lesson.labResetTimeout * 1000) });
+            triggerLabReset(lesson.id, lesson.labComposePath, lesson.labResetTimeout).catch(err => {
+              console.error(`Reset failed for ${lesson.id}:`, err);
+            });
+            return res.json({ status: 'RESETTING' });
+          }
+          const remaining = Math.max(0, Math.ceil((new Date(labState.sessionExpiresAt!).getTime() - now) / 1000));
+          return res.json({ status: 'BUSY', remainingSeconds: remaining });
+        }
+
+        if (labState.status === 'ERROR') {
+          return res.json({ status: 'ERROR', message: 'Lab khởi động thất bại. Vui lòng thử lại sau.' });
+        }
+
+        return res.json({ status: 'AVAILABLE' });
+      } catch (error) {
+        console.error('Lab status error:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+      }
+    });
+
     // =========================================================
     // Learning Paths APIs (student-facing)
     // =========================================================
@@ -1349,6 +1512,31 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         res.json({ success: true, message: 'Cập nhật thành công!', lesson });
       } catch (error) {
         res.status(500).json({ success: false, message: 'Lỗi server khi sửa.' });
+      }
+    });
+
+    // PUT /api/admin/lessons/:id/lab-config - Admin config lab
+    app.put('/api/admin/lessons/:id/lab-config', authenticate, requireAdmin, async (req: Request, res: Response) => {
+      try {
+        const { labEnabled, labUrl, labDuration, labComposePath, labResetTimeout } = req.body;
+        const lesson: any = await Lesson.findByPk(req.params.id);
+        if (!lesson) return res.status(404).json({ success: false, message: 'Không tìm thấy bài học!' });
+
+        await lesson.update({
+          labEnabled: !!labEnabled,
+          labUrl: labUrl || '',
+          labDuration: labDuration || 900,
+          labComposePath: labComposePath || '',
+          labResetTimeout: labResetTimeout || 60
+        });
+
+        // Ensure lab state exists
+        await LabState.findOrCreate({ where: { lessonId: lesson.id }, defaults: { status: 'AVAILABLE' } });
+
+        res.json({ success: true, message: 'Cập nhật lab config thành công!', lesson });
+      } catch (error) {
+        console.error('Lab config error:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
       }
     });
 
