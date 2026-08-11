@@ -54,30 +54,33 @@ sudo apt update && sudo apt install -y burpsuite
   - HTTP Proxy: `127.0.0.1`, Port: `8080`
 - Turn **Intercept off** (Proxy tab) to browse normally; turn it on to capture requests.
 
-> ⚠️ **When practicing with Docker labs:** The lab runs at `http://localhost:PORT`. After proxy setup, just open the lab in your browser and requests will automatically pass through Burp.
-
 ---
 
 ## Part B — Exploit: Capture & Modify Requests
 
 ### Step 1: Start the lab
 
-```bash
-cd burp-suite-basics/lab
-docker compose up -d
-
 > 💡 **Get Lab Link:** Open this lesson on **Learning Detail** → click **"Access Lab"** to get the real link (e.g., `https://vuln.ghedahaui.online/labs-env/...`). Replace `<LAB_ADDRESS>` with that link in commands below.
 
 # Lab at: <LAB_ADDRESS> — a PHP app that echoes your request back
-```
 
 ### Step 2: Turn on Intercept and capture a request
 
-1. Open Burp → **Proxy** tab → **Intercept** tab → click **Intercept is off** to turn it **on**.
-2. In the browser open `<LAB_ADDRESS>/?name=admin` and press Enter.
-3. Back in Burp — the request is "frozen" here, waiting for your decision.
+1. Open Burp → **Proxy** tab → **Intercept** tab → Click **Open Browser** button.
 
+![image](/uploads/image_1786487558298_likeig.png)
 
+2. An embedded browser in Burp will pop up. Navigate to `<LAB_ADDRESS>/?name=admin` and press Enter.
+
+![image](/uploads/image_1786487711305_7dyceq.png)
+
+3. We can see this is a lab where the application reflects any URL parameter (specifically the `name` parameter from step 2) and renders it via HTML in the page display.
+
+4. Go back to Burp, enable **Intercept On** in Proxy → Intercept. Then reload the page!
+
+![image](/uploads/image_1786487958936_ydhv5j.png)
+
+> Notice the reload action is "frozen" in the browser? Exactly — with Burp's intercept feature, the browser request has been synced and sent through the proxy channel directly into Burp.
 
 ### Step 3: Edit the request right in Intercept
 
@@ -91,24 +94,32 @@ Accept: text/html,...
 Connection: close
 ```
 
-**Modify** the line `name=admin` to `name=test_xss%3Cscript%3E` then click **Forward**:
+**Modify** the line `name=admin` to `name=<script>alert(1)</script>` then click **Forward**:
 
+![image](/uploads/image_1786488418148_gr8d3s.png)
 
+> You'll notice we just triggered a piece of JavaScript that causes an alert when rendered. This is a classic XSS vulnerability we'll cover in later lessons.
 
-> **Explanation:** `%3C` = `<`, `%3E` = `>` (URL encoded). The server echoes the `name` you send → this is exactly where XSS will appear in a later lesson. You just did something you CANNOT do without Burp: send a value different from what the browser intended to send.
+> You can also see that manually editing the **query string** via the URL search bar or via Burp is essentially the same test.
 
 ### Step 4: Re-send with Repeater
 
-1. In **HTTP History** tab, find the `GET /?name=...` request, right-click → **Send to Repeater** (or Ctrl+R).
-2. Go to **Repeater** tab, change `name` to a new value, click **Send**.
-3. Watch the **response** on the right — try many payloads without reloading the browser.
+![image](/uploads/image_1786488655243_h7s4qv.png)
 
+1. In the **HTTP History** tab, find the `GET /?name=...` request, right-click → **Send to Repeater** (or Ctrl+R).
+2. Go to the **Repeater** tab, change `?name=..` to a new value. Save with Ctrl+S → then click **Send**.
 
+![image](/uploads/image_1786488874922_xtvx36.png)
+
+3. Observe the **response** on the right. (The response has multiple display options, but we typically care about the raw source view).
+
+> You can try many different payloads and notice that observing how the server responds via Burp Suite is much faster and easier to track changes than the browser's graphical UI.
 
 ```http
-GET /?name=hello_world HTTP/1.1
-Host: localhost:7101
+GET /?name=waooo HTTP/1.1
+Host: <...>
 ```
+![image](/uploads/image_1786489049896_s5dvh6.png)
 
 ### Step 5: Use Decoder to decode strings
 
@@ -117,7 +128,7 @@ Labs often contain encoded strings. **Decoder** tab:
 1. Paste the string `VkxOVF9idXJwX3J1bGV6IQ==` into Decoder.
 2. Choose **Decode as → Base64** → result: `VLNT_burp_rulez!`
 
-
+![image](/uploads/image_1786489188359_ai1z3p.png)
 
 > **Note:** This is foundational — the `crypto-basics` lesson covers it fully. Here you just need to know where Decoder lives.
 
@@ -142,6 +153,3 @@ Labs often contain encoded strings. **Decoder** tab:
 [ ] Weird string? Use Decoder
 [ ] Don't know what request is being sent? Check HTTP History
 ```
-
----
-
