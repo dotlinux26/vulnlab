@@ -495,13 +495,14 @@ const AdminLessons = () => {
                   : "XUẤT BẢN LÊN HỆ THỐNG"}
             </button>
             {isEditing && (
-<button
-              type="button"
-              onClick={resetForm}
-              className="bg-accent hover:bg-accent/80 text-foreground px-6 font-bold rounded transition"
-            >
-              HỦY
-            </button>
+              <button
+                type="button"
+                onClick={resetForm}
+                className="bg-accent hover:bg-accent/80 text-foreground px-6 font-bold rounded transition"
+              >
+                HỦY
+              </button>
+            )}
           </div>
         </form>
         {/* Resize handle for form width */}
