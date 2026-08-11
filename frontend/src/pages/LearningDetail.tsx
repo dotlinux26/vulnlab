@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Loader2, ArrowLeft, BookOpen, CheckCircle, Circle, Lock, ArrowRight, Trophy, MapPin } from "lucide-react";
+import { Loader2, ArrowLeft, BookOpen, CheckCircle, Circle, Lock, ArrowRight, Trophy, MapPin, Terminal, Clock, AlertCircle, PlayCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Navbar from "@/components/Navbar";
@@ -49,6 +49,70 @@ const LearningDetail = () => {
 
   const { lang, setLang, t } = useLanguage();
   const userName = localStorage.getItem("user_name") || "Học viên";
+
+  const [labStatus, setLabStatus] = useState<"AVAILABLE" | "BUSY" | "RESETTING" | "ERROR" | null>(null);
+  const [labRemaining, setLabRemaining] = useState<number>(0);
+  const [labPolling, setLabPolling] = useState(false);
+  const [labAccessUrl, setLabAccessUrl] = useState<string | null>(null);
+
+  const pollLabStatus = async () => {
+    if (!lesson?.id || !lesson.labEnabled) return;
+    try {
+      const res = await fetch(`/api/learning/${lesson.id}/lab/status`, { credentials: "include" });
+      const data = await res.json();
+      setLabStatus(data.status);
+      if (data.remainingSeconds) setLabRemaining(data.remainingSeconds);
+      if (data.accessUrl) setLabAccessUrl(data.accessUrl);
+    } catch (e) {
+      console.error("Lab status poll error:", e);
+    }
+  };
+
+  const handleLabAccess = async () => {
+    if (!lesson?.id || !lesson.labEnabled) return;
+    setLabPolling(true);
+    setLabAccessUrl(null);
+    try {
+      const res = await fetch(`/api/learning/${lesson.id}/lab/access`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.error === "LAB_BUSY") {
+        setLabStatus("BUSY");
+        setLabRemaining(data.remainingSeconds || 0);
+      } else if (data.status === "RESETTING") {
+        setLabStatus("RESETTING");
+        // Poll until ready
+        const poll = setInterval(async () => {
+          await pollLabStatus();
+          if (labStatus === "BUSY" || labStatus === "ERROR") {
+            clearInterval(poll);
+          }
+        }, 3000);
+        // Stop polling after 60s
+        setTimeout(() => clearInterval(poll), 60000);
+      } else if (data.accessUrl) {
+        setLabAccessUrl(data.accessUrl);
+        setLabStatus("BUSY");
+        setLabRemaining(data.expiresAt ? Math.max(0, Math.ceil((new Date(data.expiresAt).getTime() - Date.now()) / 1000)) : 900);
+      }
+    } catch (e) {
+      console.error("Lab access error:", e);
+      setLabStatus("ERROR");
+    } finally {
+      setLabPolling(false);
+    }
+  };
+
+  useEffect(() => {
+    if (lesson?.labEnabled) {
+      pollLabStatus();
+      const interval = setInterval(pollLabStatus, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [lesson?.id, lesson?.labEnabled]);
 
   const loadPathContext = (lessonId: string) => {
     fetchLessonPathContext(lessonId)
@@ -184,6 +248,117 @@ const LearningDetail = () => {
               )}
             </div>
           </div>
+
+          {/* Lab Card */}
+          {lesson.labEnabled && (
+            <div className="glass-card rounded-xl p-6 mb-6 border border-primary/20 bg-primary/5">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-lg gradient-primary flex items-center justify-center shrink-0">
+                  <Terminal size={22} className="text-primary-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-bold text-foreground mb-2">
+                    🧪 {contentLang === "en" ? "Lab Practice" : "Lab Thực Hành"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {contentLang === "en"
+                      ? "Practice directly on a live lab environment related to this lesson."
+                      : "Thực hành trực tiếp trên môi trường lab thực tế liên quan đến bài học này."}
+                  </p>
+
+                  <div className="flex items-center gap-4 flex-wrap mb-4">
+                    {labStatus === "AVAILABLE" && (
+                      <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-neon-green/10 border border-neon-green/30 text-neon-green">
+                        <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse" />
+                        {contentLang === "en" ? "Lab Ready" : "Lab Sẵn Sàng"}
+                      </span>
+                    )}
+                    {labStatus === "BUSY" && (
+                      <>
+                        <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-orange-400/10 border border-orange-400/30 text-orange-400">
+                          <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+                          {contentLang === "en" ? "In Use" : "Đang Sử Dụng"}
+                        </span>
+                        <span className="text-xs text-orange-400 font-mono">
+                          {contentLang === "en" ? "Available in" : "Còn"} {Math.floor(labRemaining / 60)}:{String(labRemaining % 60).padStart(2, "0")}
+                        </span>
+                      </>
+                    )}
+                    {labStatus === "RESETTING" && (
+                      <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary">
+                        <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        {contentLang === "en" ? "Preparing Lab..." : "Đang Chuẩn Bị Lab..."}
+                      </span>
+                    )}
+                    {labStatus === "ERROR" && (
+                      <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-destructive/10 border border-destructive/30 text-destructive">
+                        <AlertCircle size={12} />
+                        {contentLang === "en" ? "Failed to Start" : "Khởi Động Thất Bại"}
+                      </span>
+                    )}
+                    {labStatus === null && (
+                      <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-border text-muted-foreground">
+                        <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        {contentLang === "en" ? "Checking..." : "Đang Kiểm Tra..."}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {labStatus === "AVAILABLE" && (
+                      <button
+                        onClick={handleLabAccess}
+                        disabled={labPolling}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-lg gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                      >
+                        <PlayCircle size={18} />
+                        {contentLang === "en" ? "Access Lab" : "Truy Cập Lab"}
+                      </button>
+                    )}
+                    {labStatus === "RESETTING" && labPolling && (
+                      <button disabled className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary/10 border border-primary/30 text-primary font-semibold cursor-not-allowed">
+                        <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        {contentLang === "en" ? "Preparing..." : "Đang Chuẩn Bị..."}
+                      </button>
+                    )}
+                    {labStatus === "BUSY" && !labAccessUrl && (
+                      <button disabled className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-orange-400/10 border border-orange-400/30 text-orange-400 font-semibold cursor-not-allowed">
+                        <Clock size={18} />
+                        {contentLang === "en" ? "Wait for Slot" : "Đợi Chỗ Trống"}
+                      </button>
+                    )}
+                    {labAccessUrl && (
+                      <a
+                        href={labAccessUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-lg gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
+                      >
+                        <Terminal size={18} />
+                        {contentLang === "en" ? "Open Lab" : "Mở Lab"}
+                      </a>
+                    )}
+                    {labStatus === "ERROR" && (
+                      <button
+                        onClick={handleLabAccess}
+                        disabled={labPolling}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive font-semibold hover:bg-destructive/20 transition-colors disabled:opacity-50"
+                      >
+                        <AlertCircle size={18} />
+                        {contentLang === "en" ? "Retry" : "Thử Lại"}
+                      </button>
+                    )}
+                  </div>
+
+                  {labAccessUrl && labStatus === "BUSY" && (
+                    <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs text-primary">
+                      <strong>{contentLang === "en" ? "Lab URL:" : "Link Lab:"}</strong> <code className="ml-2 break-all">{labAccessUrl}</code>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {progressError && (
             <div className="mb-6 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
