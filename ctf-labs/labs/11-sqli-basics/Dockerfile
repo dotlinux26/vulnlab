@@ -5,13 +5,15 @@ RUN rm -f /usr/bin/sudo /usr/bin/su /bin/su /usr/bin/passwd && \
     apt-get install -y --no-install-recommends iputils-ping && \
     rm -rf /var/lib/apt/lists/*
 
-RUN addgroup --system app && adduser --system -G app app && \
-    chown -R app:app /var/www/html/ && \
+# Setup www-data user permissions (like lfi-poison-lab)
+RUN chown -R root:root /var/www/html/ && \
     find /var/www/html -type d -exec chmod 755 {} \; && \
     find /var/www/html -type f -exec chmod 644 {} \; && \
     chmod 444 /flag.txt
 
-USER app
+# Create writable directories for Apache
+RUN mkdir -p /var/run/apache2 /var/log/apache2 /tmp && \
+    chown -R www-data:www-data /var/run/apache2 /var/log/apache2 /tmp
 
 COPY src/ /var/www/html/
 COPY flag.txt /flag.txt

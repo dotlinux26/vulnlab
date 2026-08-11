@@ -1,21 +1,22 @@
-FROM node:20-alpine
+FROM php:8.2-apache
 
-ENV NODE_ENV=production
+RUN rm -f /usr/bin/sudo /usr/bin/su /bin/su /usr/bin/passwd && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends iputils-ping && \
+    rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-
-RUN addgroup --system app && adduser --system -G app app
-
-COPY package*.json ./
-RUN npm install --omit=dev --no-audit --no-fund && \
-    rm -rf /root/.npm
-
-COPY src/ /app/
-COPY flag.txt /flag.txt
-
-RUN chown -R app:app /app && \
+# Setup www-data user permissions (like lfi-poison-lab)
+RUN chown -R root:root /var/www/html/ && \
+    find /var/www/html -type d -exec chmod 755 {} \; && \
+    find /var/www/html -type f -exec chmod 644 {} \; && \
     chmod 444 /flag.txt
 
-USER app
-EXPOSE 3000
-CMD ["node", "index.js"]
+# Create writable directories for Apache
+RUN mkdir -p /var/run/apache2 /var/log/apache2 /tmp && \
+    chown -R www-data:www-data /var/run/apache2 /var/log/apache2 /tmp
+
+COPY src/ /var/www/html/
+COPY flag.txt /flag.txt
+
+EXPOSE 80
+CMD ["apache2-foreground"]
