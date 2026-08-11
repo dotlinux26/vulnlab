@@ -1,21 +1,26 @@
 # ==== LESSON METADATA — VULNLAB ====
 id = command-injection
-title = Command Injection
-title_en = Command Injection
-description = Chèn lệnh shell qua ; && | $() đọc file, quét mạng. OWASP A03.
-description_en = Inject shell commands via ; && | $() to read files, scan networks. OWASP A03.
+title = Command Injection — RCE Qua System Call
+title_en = Command Injection — RCE Via System Call
+description = Command injection: ;, &&, |, $(...), backticks. Bypass filter, blind RCE, reverse shell.
+description_en = Command injection: ;, &&, |, $(...), backticks. Filter bypass, blind RCE, reverse shell.
 category = Web
-difficulty = Easy
-level = beginner
-orderIndex = 14
+difficulty = Hard
+level = advanced
+orderIndex = 16
 
 # ==== LAB ====
+lab_enabled = true
+lab_url = https://vuln.ghedahaui.online/labs-env/cmd
+lab_duration = 900
+lab_compose_path = ctf-labs/labs/16-command-injection
+lab_reset_timeout = 60
 lab_name = command-injection-lab
 lab_path = lab/
 lab_port = 7107
-lab_stack = php-apache (ping tool gọi system())
-lab_flag = FLAG{cmd_1nj3ct10n_2026}
+lab_stack = php-apache (command injection challenges)
+lab_flag = FLAG{cmd_injection_rce}
 lab_reset = yes
 
 # ==== ẢNH ====
-images = command-injection_01_ping_page.png, command-injection_02_normal_ping.png, command-injection_03_semicolon_id.png, command-injection_04_cat_flag.png, command-injection_05_variants.png, command-injection_06_further.png
+images = cmd_inj_01_basic.png, cmd_inj_02_blind.png, cmd_inj_03_reverse_shell.png

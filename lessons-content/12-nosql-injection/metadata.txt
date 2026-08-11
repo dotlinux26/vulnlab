@@ -1,21 +1,26 @@
 # ==== LESSON METADATA — VULNLAB ====
 id = nosql-injection
-title = NoSQL Injection — MongoDB Operator Bypass
-title_en = NoSQL Injection — MongoDB Operator Bypass
-description = Bypass login bằng operator $ne/$gt/$regex, trích xuất dữ liệu từ MongoDB. OWASP A03.
-description_en = Bypass login with $ne/$gt/$regex operators, extract data from MongoDB. OWASP A03.
+title = NoSQL Injection — MongoDB Operator Injection
+title_en = NoSQL Injection — MongoDB Operator Injection
+description = NoSQLi: operator injection ($ne, $gt, $regex), bypass auth, data exfiltration.
+description_en = NoSQLi: operator injection ($ne, $gt, $regex), auth bypass, data exfiltration.
 category = Web
 difficulty = Medium
 level = intermediate
-orderIndex = 13
+orderIndex = 12
 
 # ==== LAB ====
+lab_enabled = true
+lab_url = https://vuln.ghedahaui.online/labs-env/nosql
+lab_duration = 900
+lab_compose_path = ctf-labs/labs/12-nosql-injection
+lab_reset_timeout = 60
 lab_name = nosql-injection-lab
 lab_path = lab/
 lab_port = 7106
-lab_stack = nodejs + express + mongodb (API login JSON)
-lab_flag = FLAG{n0sql_0p3r4t0r_2026}
+lab_stack = php-apache + mongodb (nosqli challenges)
+lab_flag = FLAG{nosql_operator_injection}
 lab_reset = yes
 
 # ==== ẢNH ====
-images = nosql-injection_01_login_page.png, nosql-injection_02_valid_login.png, nosql-injection_03_ne_bypass.png, nosql-injection_04_gt_regex.png, nosql-injection_05_regex_extract.png, nosql-injection_06_extract_script.png
+images = nosql_01_bypass.png, nosql_02_data.png, nosql_03_regex.png

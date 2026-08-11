@@ -10,6 +10,11 @@ level = beginner
 orderIndex = 7
 
 # ==== LAB ====
+lab_enabled = true
+lab_url = https://vuln.ghedahaui.online/labs-env/burp
+lab_duration = 900
+lab_compose_path = ctf-labs/labs/7-burp-suite-basics
+lab_reset_timeout = 60
 lab_name = burp-echo-lab
 lab_path = lab/
 lab_port = 7101

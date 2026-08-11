@@ -1,21 +1,26 @@
 # ==== LESSON METADATA — VULNLAB ====
 id = web-recon
-title = Web Recon — Trinh Sát Web Application
-title_en = Web Recon — Web Application Reconnaissance
-description = Học trinh sát web: robots.txt, view-source, fingerprinting công nghệ, gobuster dò endpoint. Nền tảng trước khi khai thác.
-description_en = Learn web recon: robots.txt, view-source, tech fingerprinting, gobuster endpoint discovery. Foundation before exploitation.
+title = Web Recon — Thu Thập Thông Tin Mục Tiêu
+title_en = Web Recon — Information Gathering
+description = Kỹ thuật recon: subdomain enum, tech stack detection, directory brute-force, JS analysis.
+description_en = Recon techniques: subdomain enumeration, tech stack detection, directory brute-force, JS analysis.
 category = Web
 difficulty = Easy
 level = beginner
 orderIndex = 8
 
 # ==== LAB ====
+lab_enabled = true
+lab_url = https://vuln.ghedahaui.online/labs-env/recon
+lab_duration = 900
+lab_compose_path = ctf-labs/labs/8-web-recon
+lab_reset_timeout = 60
 lab_name = web-recon-lab
 lab_path = lab/
 lab_port = 7102
-lab_stack = php-apache (app ẩn endpoint + config lộ)
-lab_flag = FLAG{r3c0n_f1rst_2026}
+lab_stack = php-apache (recon targets)
+lab_flag = FLAG{recon_master_2026}
 lab_reset = yes
 
 # ==== ẢNH ====
-images = web-recon_01_robots_txt.png, web-recon_02_source_comment.png, web-recon_03_headers.png, web-recon_04_gobuster.png, web-recon_05_flag.png
+images = web-recon_01_subfinder.png, web-recon_02_httpx.png, web-recon_03_ffuf.png
