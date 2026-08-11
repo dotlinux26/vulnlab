@@ -897,9 +897,9 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         const [affected] = await sequelize.query(`
           UPDATE lab_states
           SET status = 'RESETTING',
-              reset_started_at = ?,
-              reset_deadline_at = ?
-          WHERE lesson_id = ? AND status = 'AVAILABLE'
+              "resetStartedAt" = ?,
+              "resetDeadlineAt" = ?
+          WHERE "lessonId" = ? AND status = 'AVAILABLE'
         `, {
           replacements: [now.toISOString(), resetDeadlineAt.toISOString(), lesson.id],
           type: sequelize.QueryTypes.UPDATE
