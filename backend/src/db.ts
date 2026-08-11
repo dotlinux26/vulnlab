@@ -356,6 +356,8 @@ export const initDb = async () => {
     await addColumnIfMissing('lessons', 'labDuration', 'INTEGER DEFAULT 900');
     await addColumnIfMissing('lessons', 'labComposePath', 'TEXT');
     await addColumnIfMissing('lessons', 'labResetTimeout', 'INTEGER DEFAULT 60');
+    await addColumnIfMissing('lab_states', 'resetStartedAt', 'TEXT');
+    await addColumnIfMissing('lab_states', 'resetDeadlineAt', 'TEXT');
     await sequelize.sync();
     await addColumnIfMissing('labs', 'title_en', 'STRING');
     await addColumnIfMissing('labs', 'description_en', 'TEXT');
