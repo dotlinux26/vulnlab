@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+react, { useState, useEffect, useRef } from 'react';
 
 const AddLabForm = () => {
   const [labs, setLabs] = useState([]);
@@ -144,10 +144,56 @@ const AddLabForm = () => {
     setIsEditing(false);
   };
 
+  const [formWidth, setFormWidth] = useState(900);
+  const [isResizingForm, setIsResizingForm] = useState(false);
+  const formContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const savedWidth = localStorage.getItem("addlab-form-width");
+    if (savedWidth) setFormWidth(parseInt(savedWidth, 10));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("addlab-form-width", formWidth.toString());
+  }, [formWidth]);
+
+  const handleFormResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+    setIsResizingForm(true);
+  };
+
+  useEffect(() => {
+    if (isResizingForm) {
+      const handleMouseMove = (e: MouseEvent) => {
+        const containerRect = formContainerRef.current?.getBoundingClientRect();
+        if (!containerRect) return;
+        const newWidth = e.clientX - containerRect.left;
+        setFormWidth(Math.max(500, Math.min(1600, newWidth)));
+      };
+      const handleMouseUp = () => {
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      };
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", () => {
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      });
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, []);
+
   return (
     <div className="space-y-8">
       {/* Form Section */}
-      <div className="p-6 bg-gray-900 border border-gray-700 rounded-lg shadow-lg">
+      <div ref={formContainerRef} className="relative" style={{ width: formWidth, maxWidth: 1600 }}>
+        <div className="p-6 bg-gray-900 border border-gray-700 rounded-lg shadow-lg">
         <h2 className="text-xl font-bold mb-4 text-white">
           {isEditing ? `📝 CHỈNH SỬA: ${formData.id}` : '➕ TẠO NỘI DUNG MỚI'}
         </h2>
@@ -379,6 +425,24 @@ const AddLabForm = () => {
             )}
           </div>
         </form>
+        {/* Resize handle for form width */}
+        <div
+          className="w-1 h-full absolute right-0 top-0 cursor-ew-resize flex items-center justify-center bg-transparent hover:bg-gray-500 transition-colors select-none"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            document.body.style.cursor = "ew-resize";
+            document.body.style.userSelect = "none";
+            // Set a global flag for resizing
+            (window as any).__resizingForm = true;
+          }}
+          style={{ height: "100%", minHeight: "100%" }}
+          title="Kéo trái/phải để thay đổi độ rộng form"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500">
+            <path d="M9 5l-2 2 2 2M15 19l2 2-2 2M12 3v18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
       </div>
 
       {/* Labs List Section */}
