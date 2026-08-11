@@ -20,6 +20,25 @@ echo "=========================================="
 echo "[+] Project root: $SCRIPT_DIR"
 echo "[+] Labs directory: $LABS_DIR"
 
+# Check if labs directory exists and has docker-compose files
+if [ ! -d "$LABS_DIR" ] || [ -z "$(ls -A "$LABS_DIR")" ]; then
+    echo "[!] Labs directory empty or missing. Run ./setup-labs.sh first to sync labs from lessons-content."
+    exit 1
+fi
+
+# Verify Dockerfiles have correct syntax (no adduser -S)
+echo "[+] Verifying Dockerfiles..."
+for dockerfile in "$LABS_DIR"/*/Dockerfile; do
+    if [ -f "$dockerfile" ]; then
+        if grep -q "adduser -S" "$dockerfile"; then
+            echo "[!] ERROR: Found 'adduser -S' in $dockerfile - this will fail on Alpine!"
+            echo "    Run ./setup-labs.sh to sync fixed Dockerfiles from lessons-content"
+            exit 1
+        fi
+    fi
+done
+echo "[+] All Dockerfiles verified OK"
+
 # Function to start a single lab
 start_lab() {
     local lab_dir="$1"
