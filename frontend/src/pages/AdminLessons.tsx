@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { HelpCircle, MessageSquare, Plus, Trash2, Pencil, X, Loader2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { HelpCircle, MessageSquare, Plus, Trash2, Pencil, X, Loader2, GripVertical } from "lucide-react";
 import MarkdownEditor from "@/components/MarkdownEditor";
 
 const AdminLessons = () => {
@@ -21,6 +21,49 @@ const AdminLessons = () => {
   });
   const [message, setMessage] = useState({ type: "", text: "" });
   const [isLoading, setIsLoading] = useState(false);
+
+  const [formWidth, setFormWidth] = useState(900);
+  const [isResizingForm, setIsResizingForm] = useState(false);
+  const formContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const savedWidth = localStorage.getItem("admin-lessons-form-width");
+    if (savedWidth) setFormWidth(parseInt(savedWidth, 10));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("admin-lessons-form-width", formWidth.toString());
+  }, [formWidth]);
+
+  const handleFormResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+    setIsResizingForm(true);
+  };
+
+  useEffect(() => {
+    if (isResizingForm) {
+      const handleMouseMove = (e: MouseEvent) => {
+        const containerRect = formContainerRef.current?.getBoundingClientRect();
+        if (!containerRect) return;
+        const newWidth = e.clientX - containerRect.left;
+        setFormWidth(Math.max(500, Math.min(1600, newWidth)));
+      };
+      const handleMouseUp = () => {
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        setIsResizingForm(false);
+      };
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isResizingForm]);
 
   // Q&A management
   const [panelLesson, setPanelLesson] = useState<string | null>(null);
@@ -249,7 +292,8 @@ const AdminLessons = () => {
 
   return (
     <div className="space-y-8">
-      <div className="p-6 bg-card border border-border rounded-xl">
+      <div ref={formContainerRef} className="relative" style={{ width: formWidth, maxWidth: 1600 }}>
+        <div className="p-6 bg-card border border-border rounded-xl">
         <h2 className="text-xl font-bold mb-4 text-foreground">
           {isEditing ? `CHỈNH SỬA: ${formData.id}` : "TẠO BÀI HỌC MỚI"}
         </h2>
@@ -451,16 +495,25 @@ const AdminLessons = () => {
                   : "XUẤT BẢN LÊN HỆ THỐNG"}
             </button>
             {isEditing && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="bg-accent hover:bg-accent/80 text-foreground px-6 font-bold rounded transition"
-              >
-                HỦY
-              </button>
-            )}
+<button
+              type="button"
+              onClick={resetForm}
+              className="bg-accent hover:bg-accent/80 text-foreground px-6 font-bold rounded transition"
+            >
+              HỦY
+            </button>
           </div>
         </form>
+        {/* Resize handle for form width */}
+        <div
+          className="w-1 h-full absolute right-0 top-0 cursor-ew-resize flex items-center justify-center bg-transparent hover:bg-border transition-colors select-none"
+          onMouseDown={handleFormResizeStart}
+          style={{ height: "100%", minHeight: "100%" }}
+          title="Kéo trái/phải để thay đổi độ rộng form"
+        >
+          <GripVertical size={16} className="text-muted-foreground" />
+        </div>
+      </div>
       </div>
 
       <div className="p-6 bg-card border border-border rounded-xl">
