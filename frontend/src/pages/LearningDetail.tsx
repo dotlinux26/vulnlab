@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Loader2, ArrowLeft, BookOpen, CheckCircle, Circle, Lock, ArrowRight, Trophy, MapPin, Terminal, Clock, AlertCircle, PlayCircle } from "lucide-react";
+import { Loader2, ArrowLeft, BookOpen, CheckCircle, Circle, Lock, ArrowRight, Trophy, MapPin, Terminal, Clock, AlertCircle, PlayCircle, Power } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Navbar from "@/components/Navbar";
@@ -54,6 +54,7 @@ const LearningDetail = () => {
   const [labRemaining, setLabRemaining] = useState<number>(0);
   const [labPolling, setLabPolling] = useState(false);
   const [labAccessUrl, setLabAccessUrl] = useState<string | null>(null);
+  const [labOwned, setLabOwned] = useState(false);
 
   const pollLabStatus = async () => {
     if (!lesson?.id || !lesson.labEnabled) return;
@@ -61,8 +62,13 @@ const LearningDetail = () => {
       const res = await fetch(`/api/learning/${lesson.id}/lab/status`, { credentials: "include" });
       const data = await res.json();
       setLabStatus(data.status);
-      if (data.remainingSeconds) setLabRemaining(data.remainingSeconds);
-      if (data.accessUrl) setLabAccessUrl(data.accessUrl);
+      if (data.remainingSeconds !== undefined) setLabRemaining(data.remainingSeconds);
+      if (data.owned !== undefined) setLabOwned(data.owned);
+      if (data.accessUrl) {
+        setLabAccessUrl(data.accessUrl);
+      } else {
+        setLabAccessUrl(null);
+      }
     } catch (e) {
       console.error("Lab status poll error:", e);
     }
@@ -72,6 +78,7 @@ const LearningDetail = () => {
     if (!lesson?.id || !lesson.labEnabled) return;
     setLabPolling(true);
     setLabAccessUrl(null);
+    setLabOwned(false);
     try {
       const res = await fetch(`/api/learning/${lesson.id}/lab/access`, {
         method: "POST",
@@ -82,19 +89,17 @@ const LearningDetail = () => {
       if (data.error === "LAB_BUSY") {
         setLabStatus("BUSY");
         setLabRemaining(data.remainingSeconds || 0);
-      } else if (data.status === "RESETTING") {
+      } else if (data.status === "RESETTING" || res.status === 202) {
         setLabStatus("RESETTING");
-        // Poll until ready
+        // Poll until the reset finishes (only the claimer will receive the URL)
+        const deadline = Date.now() + (data.timeoutSeconds || 60) * 1000;
         const poll = setInterval(async () => {
           await pollLabStatus();
-          if (labStatus === "BUSY" || labStatus === "ERROR") {
-            clearInterval(poll);
-          }
+          if (Date.now() > deadline) clearInterval(poll);
         }, 3000);
-        // Stop polling after 60s
-        setTimeout(() => clearInterval(poll), 60000);
       } else if (data.accessUrl) {
         setLabAccessUrl(data.accessUrl);
+        setLabOwned(true);
         setLabStatus("BUSY");
         setLabRemaining(data.expiresAt ? Math.max(0, Math.ceil((new Date(data.expiresAt).getTime() - Date.now()) / 1000)) : 900);
       }
@@ -103,6 +108,26 @@ const LearningDetail = () => {
       setLabStatus("ERROR");
     } finally {
       setLabPolling(false);
+    }
+  };
+
+  const handleLabEnd = async () => {
+    if (!lesson?.id || !lesson.labEnabled) return;
+    try {
+      const res = await fetch(`/api/learning/${lesson.id}/lab/end`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.status === "AVAILABLE") {
+        setLabStatus("AVAILABLE");
+        setLabAccessUrl(null);
+        setLabOwned(false);
+        setLabRemaining(0);
+      }
+    } catch (e) {
+      console.error("Lab end error:", e);
     }
   };
 
@@ -315,28 +340,37 @@ const LearningDetail = () => {
                         {contentLang === "en" ? "Access Lab" : "Truy Cập Lab"}
                       </button>
                     )}
-                    {labStatus === "RESETTING" && labPolling && (
+                    {labStatus === "RESETTING" && (
                       <button disabled className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary/10 border border-primary/30 text-primary font-semibold cursor-not-allowed">
                         <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                         {contentLang === "en" ? "Preparing..." : "Đang Chuẩn Bị..."}
                       </button>
                     )}
-                    {labStatus === "BUSY" && !labAccessUrl && (
+                    {labStatus === "BUSY" && !labOwned && (
                       <button disabled className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-orange-400/10 border border-orange-400/30 text-orange-400 font-semibold cursor-not-allowed">
                         <Clock size={18} />
                         {contentLang === "en" ? "Wait for Slot" : "Đợi Chỗ Trống"}
                       </button>
                     )}
-                    {labAccessUrl && (
-                      <a
-                        href={labAccessUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-lg gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
-                      >
-                        <Terminal size={18} />
-                        {contentLang === "en" ? "Open Lab" : "Mở Lab"}
-                      </a>
+                    {labStatus === "BUSY" && labOwned && labAccessUrl && (
+                      <>
+                        <a
+                          href={labAccessUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-lg gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
+                        >
+                          <Terminal size={18} />
+                          {contentLang === "en" ? "Open Lab" : "Mở Lab"}
+                        </a>
+                        <button
+                          onClick={handleLabEnd}
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-destructive/40 text-destructive font-semibold hover:bg-destructive/10 transition-colors"
+                        >
+                          <Power size={18} />
+                          {contentLang === "en" ? "End Lab Session" : "Kết Thúc Phòng Lab"}
+                        </button>
+                      </>
                     )}
                     {labStatus === "ERROR" && (
                       <button
@@ -350,9 +384,12 @@ const LearningDetail = () => {
                     )}
                   </div>
 
-                  {labAccessUrl && labStatus === "BUSY" && (
+                  {labAccessUrl && labStatus === "BUSY" && labOwned && (
                     <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs text-primary">
                       <strong>{contentLang === "en" ? "Lab URL:" : "Link Lab:"}</strong> <code className="ml-2 break-all">{labAccessUrl}</code>
+                      <div className="mt-1 text-primary/70">
+                        {contentLang === "en" ? "This slot is reserved for you until the session ends." : "Phòng lab này được giữ cho bạn đến khi phiên kết thúc."}
+                      </div>
                     </div>
                   )}
                 </div>

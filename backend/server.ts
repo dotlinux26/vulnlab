@@ -4,7 +4,7 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { OAuth2Client } from 'google-auth-library';
-import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress, LessonQuestion, LessonAnswerLog, LessonComment, LearningPath, PathLesson, PathProgress, LabState, sequelize } from './src/db';
+import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress, LessonQuestion, LessonAnswerLog, LessonComment, LearningPath, PathLesson, PathProgress, LabState } from './src/db';
 import { sanitizeComment, linkify, extractImageUrl, isImageUrl } from './src/commentFilter';
 import crypto from 'crypto'; // Dùng để gen mã Hash
 import dotenv from 'dotenv';
@@ -263,7 +263,7 @@ async function startServer() {
     };
 
     // Trigger lab reset using docker compose
-    const triggerLabReset = async (lessonId: string, composePath: string | null, resetTimeout: number) => {
+    const triggerLabReset = async (lessonId: string, composePath: string | null, resetTimeout: number, userId?: string | null) => {
       if (!composePath) {
         console.error(`[Lab Reset] No compose path for ${lessonId}`);
         const labState = await LabState.findByPk(lessonId);
@@ -364,8 +364,8 @@ async function startServer() {
 
         if (labState) {
           if (healthy) {
-            await labState.update({ status: 'BUSY', sessionStartedAt: new Date(), sessionExpiresAt: new Date(Date.now() + (lesson.labDuration || 900) * 1000) });
-            console.log(`[Lab Reset] ${lessonId} READY -> BUSY`);
+            await labState.update({ status: 'BUSY', userId: userId || labState.userId, sessionStartedAt: new Date(), sessionExpiresAt: new Date(Date.now() + (lesson.labDuration || 900) * 1000) });
+            console.log(`[Lab Reset] ${lessonId} READY -> BUSY (owner ${userId || labState.userId})`);
           } else {
             await labState.update({ status: 'ERROR' });
             console.log(`[Lab Reset] ${lessonId} TIMEOUT -> ERROR`);
@@ -945,51 +945,42 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         if (!lesson.labEnabled) return res.status(400).json({ error: 'LAB_DISABLED' });
         if (!lesson.labUrl) return res.status(400).json({ error: 'LAB_URL_NOT_CONFIGURED' });
 
-        // Atomic lock: only AVAILABLE can be claimed
+        await LabState.findOrCreate({ where: { lessonId: lesson.id }, defaults: { status: 'AVAILABLE' } });
+
+        // Atomic lock: only AVAILABLE (or a failed ERROR) can be claimed. Store the claimer as userId.
         const now = new Date();
         const resetTimeout = lesson.labResetTimeout || 60;
         const resetDeadlineAt = new Date(now.getTime() + resetTimeout * 1000);
-        const [affected] = await sequelize.query(`
-          UPDATE lab_states
-          SET status = 'RESETTING',
-              "resetStartedAt" = ?,
-              "resetDeadlineAt" = ?
-          WHERE "lessonId" = ? AND status = 'AVAILABLE'
-        `, {
-          replacements: [now.toISOString(), resetDeadlineAt.toISOString(), lesson.id],
-          type: sequelize.QueryTypes.UPDATE
-        });
+        const [affected] = await LabState.update(
+          { status: 'RESETTING', resetStartedAt: now, resetDeadlineAt, userId: req.user.id },
+          { where: { lessonId: lesson.id, status: ['AVAILABLE', 'ERROR'] } }
+        );
 
-        if ((affected as any)?.length === 0 || (affected as any)?.[1] === 0) {
+        if (affected === 0) {
           // Lab not available - check current status
           const labState = await LabState.findByPk(lesson.id);
-          if (!labState) {
-            // First time - create state and retry
-            await LabState.create({ lessonId: lesson.id, status: 'RESETTING', resetStartedAt: new Date(), resetDeadlineAt: new Date(Date.now() + lesson.labResetTimeout * 1000) });
-            return res.json({ accessUrl: lesson.labUrl, expiresAt: new Date(Date.now() + lesson.labDuration * 1000).toISOString() });
-          }
-          if (labState.status === 'BUSY' && labState.sessionExpiresAt) {
+          if (labState?.status === 'BUSY' && labState.sessionExpiresAt) {
             const remaining = Math.max(0, Math.ceil((new Date(labState.sessionExpiresAt).getTime() - Date.now()) / 1000));
             return res.status(409).json({ error: 'LAB_BUSY', remainingSeconds: remaining });
           }
-          if (labState.status === 'RESETTING') {
+          if (labState?.status === 'RESETTING') {
             return res.status(202).json({ status: 'RESETTING', message: 'Lab đang được chuẩn bị...' });
           }
-          if (labState.status === 'ERROR') {
+          if (labState?.status === 'ERROR') {
             return res.status(500).json({ error: 'RESET_FAILED', message: 'Lab khởi động thất bại. Vui lòng thử lại sau.' });
           }
           return res.status(409).json({ error: 'LAB_BUSY', remainingSeconds: 60 });
         }
 
-        // Trigger reset immediately (in background)
-        triggerLabReset(lesson.id, lesson.labComposePath, lesson.labResetTimeout).catch(err => {
+        // Trigger reset immediately (in background), keeping the claimer
+        triggerLabReset(lesson.id, lesson.labComposePath, lesson.labResetTimeout, req.user.id).catch(err => {
           console.error(`Reset failed for ${lesson.id}:`, err);
         });
 
         return res.status(202).json({ 
           status: 'RESETTING', 
           message: 'Lab đang được chuẩn bị...',
-          timeoutSeconds: lesson.labResetTimeout
+          timeoutSeconds: resetTimeout
         });
       } catch (error) {
         console.error('Lab access error:', error);
@@ -1004,6 +995,7 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
         if (!lesson.labEnabled) return res.status(400).json({ error: 'LAB_DISABLED' });
 
+        await LabState.findOrCreate({ where: { lessonId: lesson.id }, defaults: { status: 'AVAILABLE' } });
         const labState = await LabState.findByPk(lesson.id);
         if (!labState) return res.json({ status: 'AVAILABLE' });
 
@@ -1019,15 +1011,18 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
 
         if (labState.status === 'BUSY') {
           if (labState.sessionExpiresAt && new Date(labState.sessionExpiresAt).getTime() < now) {
-            // Session expired - trigger reset
-            await labState.update({ status: 'RESETTING', resetStartedAt: new Date(), resetDeadlineAt: new Date(now + lesson.labResetTimeout * 1000) });
-            triggerLabReset(lesson.id, lesson.labComposePath, lesson.labResetTimeout).catch(err => {
-              console.error(`Reset failed for ${lesson.id}:`, err);
-            });
-            return res.json({ status: 'RESETTING' });
+            // Session expired - release the slot (no auto docker reset; next claimer gets a fresh reset)
+            await labState.update({ status: 'AVAILABLE', userId: null, sessionStartedAt: null, sessionExpiresAt: null });
+            return res.json({ status: 'AVAILABLE' });
           }
           const remaining = Math.max(0, Math.ceil((new Date(labState.sessionExpiresAt!).getTime() - now) / 1000));
-          return res.json({ status: 'BUSY', remainingSeconds: remaining });
+          const owned = labState.userId === req.user.id;
+          return res.json({
+            status: 'BUSY',
+            remainingSeconds: remaining,
+            owned,
+            ...(owned ? { accessUrl: lesson.labUrl } : {}),
+          });
         }
 
         if (labState.status === 'ERROR') {
@@ -1037,6 +1032,30 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         return res.json({ status: 'AVAILABLE' });
       } catch (error) {
         console.error('Lab status error:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+      }
+    });
+
+    // POST /api/learning/:slug/lab/end - End the lab session early (owner only)
+    app.post('/api/learning/:slug/lab/end', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const lesson = await Lesson.findOne({ where: { id: req.params.slug } });
+        if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+        if (!lesson.labEnabled) return res.status(400).json({ error: 'LAB_DISABLED' });
+
+        const labState = await LabState.findByPk(lesson.id);
+        if (!labState || labState.status !== 'BUSY') {
+          return res.status(400).json({ error: 'LAB_NOT_ACTIVE', message: 'Lab không đang được sử dụng' });
+        }
+        if (labState.userId !== req.user.id) {
+          return res.status(403).json({ error: 'NOT_OWNER', message: 'Bạn không sở hữu phiên lab này' });
+        }
+
+        await labState.update({ status: 'AVAILABLE', userId: null, sessionStartedAt: null, sessionExpiresAt: null });
+        console.log(`[Lab End] ${lesson.id} session ended by ${req.user.id} -> AVAILABLE`);
+        return res.json({ status: 'AVAILABLE' });
+      } catch (error) {
+        console.error('Lab end error:', error);
         res.status(500).json({ error: 'Lỗi server' });
       }
     });

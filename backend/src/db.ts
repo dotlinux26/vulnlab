@@ -187,6 +187,7 @@ export class LabState extends Model {
   declare sessionExpiresAt: Date | null;
   declare resetStartedAt: Date | null;
   declare resetDeadlineAt: Date | null;
+  declare userId: string | null;
 }
 
 LabState.init({
@@ -196,6 +197,7 @@ LabState.init({
   sessionExpiresAt: { type: DataTypes.DATE, allowNull: true },
   resetStartedAt: { type: DataTypes.DATE, allowNull: true },
   resetDeadlineAt: { type: DataTypes.DATE, allowNull: true },
+  userId: { type: DataTypes.STRING, allowNull: true },
 }, { sequelize, modelName: 'lab_state', timestamps: true });
 
 export class LessonProgress extends Model {
@@ -358,6 +360,7 @@ export const initDb = async () => {
     await addColumnIfMissing('lessons', 'labResetTimeout', 'INTEGER DEFAULT 60');
     await addColumnIfMissing('lab_states', 'resetStartedAt', 'TEXT');
     await addColumnIfMissing('lab_states', 'resetDeadlineAt', 'TEXT');
+    await addColumnIfMissing('lab_states', 'userId', 'TEXT');
     await sequelize.sync();
     await addColumnIfMissing('labs', 'title_en', 'STRING');
     await addColumnIfMissing('labs', 'description_en', 'TEXT');
