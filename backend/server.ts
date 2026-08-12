@@ -285,7 +285,7 @@ async function startServer() {
         return;
       }
 
-      const resolvedLabPath = path.resolve(process.cwd(), composePath);
+      const resolvedLabPath = path.resolve(process.cwd(), '..', composePath);
       if (!fs.existsSync(resolvedLabPath)) {
         console.error(`[Lab Reset] Lab path does not exist: ${resolvedLabPath}`);
         const labState = await LabState.findByPk(lessonId);
