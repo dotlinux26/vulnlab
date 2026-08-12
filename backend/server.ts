@@ -292,11 +292,12 @@ async function startServer() {
         console.log(`[Lab Reset] Starting reset for ${lessonId} at ${composePath}`);
         
         // docker compose down -v
-        await runCommand('docker', ['compose', 'down', '-v'], { cwd: composePath, timeout: 30000 });
+        await runCommand('/usr/bin/docker', ['compose', 'down', '-v'], { cwd: composePath, timeout: 30000 });
         console.log(`[Lab Reset] ${lessonId} down -v completed`);
         
         // docker compose up -d
-        await runCommand('docker', ['compose', 'up', '-d'], { cwd: composePath, timeout: 60000 });
+        await runCommand('/usr/bin/docker', ['compose', 'up', '-d'], { cwd: composePath, timeout: 60000 });
+        console.log(`[Lab Reset] ${lessonId} up -d completed`);
         console.log(`[Lab Reset] ${lessonId} up -d completed`);
 
         // Wait for containers to be ready, then health check
