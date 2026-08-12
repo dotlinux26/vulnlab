@@ -265,39 +265,80 @@ async function startServer() {
     // Trigger lab reset using docker compose
     const triggerLabReset = async (lessonId: string, composePath: string | null, resetTimeout: number) => {
       if (!composePath) {
-        console.error(`No compose path for ${lessonId}`);
+        console.error(`[Lab Reset] No compose path for ${lessonId}`);
         const labState = await LabState.findByPk(lessonId);
         if (labState) await labState.update({ status: 'ERROR' });
         return;
       }
 
       const { spawn } = require('child_process');
+      const fs = require('fs');
+      const path = require('path');
 
-      const runCommand = (cmd: string, args: string[], options: any) => {
+      const dockerPath = '/usr/bin/docker';
+
+      // Validate before running
+      if (!fs.existsSync(dockerPath)) {
+        console.error(`[Lab Reset] Docker binary not found at ${dockerPath}`);
+        const labState = await LabState.findByPk(lessonId);
+        if (labState) await labState.update({ status: 'ERROR' });
+        return;
+      }
+
+      const resolvedLabPath = path.resolve(composePath);
+      if (!fs.existsSync(resolvedLabPath)) {
+        console.error(`[Lab Reset] Lab path does not exist: ${resolvedLabPath}`);
+        const labState = await LabState.findByPk(lessonId);
+        if (labState) await labState.update({ status: 'ERROR' });
+        return;
+      }
+
+      const composeFile = path.join(resolvedLabPath, 'docker-compose.yml');
+      if (!fs.existsSync(composeFile)) {
+        console.error(`[Lab Reset] docker-compose.yml not found at ${composeFile}`);
+        const labState = await LabState.findByPk(lessonId);
+        if (labState) await labState.update({ status: 'ERROR' });
+        return;
+      }
+
+      console.log(`[Lab Reset] Starting reset for ${lessonId}`);
+      console.log(`[Lab Reset] Lab path: ${resolvedLabPath}`);
+      console.log(`[Lab Reset] Docker: ${dockerPath}`);
+
+      const runDocker = (args: string[], options: any = {}) => {
         return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
-          const child = spawn(cmd, args, { ...options, shell: false });
+          const child = spawn('/usr/bin/docker', args, {
+            ...options,
+            cwd: resolvedLabPath,
+            env: process.env,
+            shell: false,
+            stdio: ['ignore', 'pipe', 'pipe'],
+          });
+
           let stdout = '';
           let stderr = '';
+
           child.stdout.on('data', (data: Buffer) => { stdout += data.toString(); });
           child.stderr.on('data', (data: Buffer) => { stderr += data.toString(); });
+
+          child.on('error', reject);
+
           child.on('close', (code: number) => {
             if (code === 0) resolve({ stdout, stderr });
-            else reject(new Error(`Command failed with code ${code}: ${stderr}`));
+            else reject(new Error(`docker ${args.join(' ')} exited with ${code}\n${stderr}`));
           });
-          child.on('error', (err: Error) => reject(err));
         });
       };
 
       try {
-        console.log(`[Lab Reset] Starting reset for ${lessonId} at ${composePath}`);
-        
+        console.log(`[Lab Reset] Starting reset for ${lessonId} at ${resolvedLabPath}`);
+
         // docker compose down -v
-        await runCommand('/usr/bin/docker', ['compose', 'down', '-v'], { cwd: composePath, timeout: 30000 });
+        await runDocker(['compose', 'down', '-v']);
         console.log(`[Lab Reset] ${lessonId} down -v completed`);
-        
+
         // docker compose up -d
-        await runCommand('/usr/bin/docker', ['compose', 'up', '-d'], { cwd: composePath, timeout: 60000 });
-        console.log(`[Lab Reset] ${lessonId} up -d completed`);
+        await runDocker(['compose', 'up', '-d']);
         console.log(`[Lab Reset] ${lessonId} up -d completed`);
 
         // Wait for containers to be ready, then health check
@@ -307,7 +348,7 @@ async function startServer() {
 
         const deadline = Date.now() + resetTimeout * 1000;
         let healthy = false;
-        
+
         while (Date.now() < deadline) {
           await new Promise(r => setTimeout(r, 3000));
           try {
