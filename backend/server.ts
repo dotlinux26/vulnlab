@@ -18,7 +18,8 @@ import { Sequelize, Op } from 'sequelize';
 dotenv.config();
 
 const app = express();
-app.set('trust proxy', true);
+// Trust only the first proxy (nginx) for proper rate limiting behind reverse proxy
+app.set('trust proxy', 1);
 const PORT = Number(process.env.PORT) || 6667;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const ADMIN_EMAIL = '0206canh@gmail.com';
@@ -33,7 +34,7 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
 const CERT_SALT = process.env.CERT_SALT || 'default_salt_if_missing';
 
 const LABS_BASE_PATH = process.env.LABS_BASE_PATH 
-  || path.resolve(__dirname, '..', '..');
+  || path.resolve(__dirname, '..', '..', '..'); // /home/ubuntu/vulnghedahauilab
 
 function resolveLabPath(composePath: string): string {
   const root = path.resolve(LABS_BASE_PATH);
