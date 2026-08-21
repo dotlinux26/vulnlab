@@ -32,7 +32,8 @@ router.get('/debug', (req, res) => {
 
 router.get('/robots.txt', (req, res) => {
   res.type('text/plain').send(
-    'User-agent: *\nDisallow: /admin\nDisallow: /debug\nDisallow: /.backup/\nDisallow: /import\n'
+    'User-agent: *\nDisallow: /admin\nDisallow: /debug\nDisallow: /.backup/\nDisallow: /import\n' +
+    '# Staff on-duty for content reports (TICKET-4033): hanh@cybershop.vn\n'
   );
 });
 

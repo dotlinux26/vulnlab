@@ -1,0 +1,26 @@
+<%- include('partials/header', { title: t('forgot_title') }) %>
+<div class="card narrow">
+  <h1><%= t('forgot_title') %></h1>
+  <% if (msg) { %><p class="<%= msg.ok ? 'ok' : 'error' %>"><%= msg.text %></p><% } %>
+  <% if (state === 'ask' || state === 'done') { %>
+    <form method="POST" action="/auth/forgot">
+      <label><%= t('email') %><input type="text" name="email" value="<%= email %>" required></label>
+      <button type="submit"><%= t('forgot_send') %></button>
+    </form>
+  <% } else if (state === 'sent') { %>
+    <p><%= t('otp_sent_msg') %> <b><%= email %></b></p>
+    <form method="POST" action="/auth/otp-verify">
+      <input type="hidden" name="email" value="<%= email %>">
+      <label><%= t('otp_code') %><input type="text" name="code" maxlength="4" inputmode="numeric" required></label>
+      <button type="submit"><%= t('otp_verify') %></button>
+    </form>
+  <% } else if (state === 'verified') { %>
+    <form method="POST" action="/auth/reset-password">
+      <input type="hidden" name="email" value="<%= email %>">
+      <input type="hidden" name="code" value="<%= code %>">
+      <label><%= t('new_password') %><input type="password" name="password" required></label>
+      <button type="submit"><%= t('reset_btn') %></button>
+    </form>
+  <% } %>
+</div>
+<%- include('partials/footer') %>

@@ -57,15 +57,58 @@ router.get('/auth/me', async (req, res) => {
   res.json(doc);
 });
 
-// OTP flow — VULN (C6): no rate limiting on verification
-router.get('/auth/otp', (req, res) => res.render('otp', { result: null }));
-router.post('/auth/otp-verify', (req, res) => {
-  const { email, code } = req.body;
-  // Seed: demo@cybershop.vn has OTP 1337. No attempt counter, no lockout, no delay.
-  if (email === 'demo@cybershop.vn' && String(code) === '1337') {
-    return res.render('otp', { result: { ok: true, msg: `OTP verified. Recovery link sent. Flag: ${readFlag('c6')}` } });
+// Forgot-password flow — VULN (C6): 4-digit OTP, no rate limiting on
+// verification (no attempt counter, no lockout, no delay) → brute-forceable.
+router.get('/auth/forgot', (req, res) => res.render('forgot', { state: 'ask', email: '', msg: null }));
+router.get('/auth/otp', (req, res) => res.redirect('/auth/forgot'));
+
+router.post('/auth/forgot', async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const user = await getMongo().collection('users').findOne({ email });
+  if (user) {
+    const code = String(Math.floor(1000 + Math.random() * 9000));
+    await getMongo().collection('otp_tokens').updateOne(
+      { email },
+      { $set: { code, expiresAt: Date.now() + 5 * 60 * 1000 } },
+      { upsert: true }
+    );
+    // "Mail server" của lab: OTP nằm trong log container web
+    console.log(`[mail] to ${email}: your password reset code is ${code} (valid 5 min)`);
   }
-  res.render('otp', { result: { ok: false, msg: 'Invalid or expired OTP' } });
+  // Thông báo chung chung bất kể email tồn tại hay không (tránh enumeration)
+  res.render('forgot', { state: 'sent', email, msg: null });
+});
+
+router.post('/auth/otp-verify', async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const code = String(req.body.code || '').trim();
+  const rec = await getMongo().collection('otp_tokens').findOne({ email });
+  if (rec && rec.code === code && Date.now() < rec.expiresAt) {
+    return res.render('forgot', {
+      state: 'verified', email, code,
+      msg: { ok: true, text: `OTP verified. Flag: ${readFlag('c6')}` },
+    });
+  }
+  res.render('forgot', {
+    state: 'sent', email,
+    msg: { ok: false, text: 'Invalid or expired OTP' },
+  });
+});
+
+router.post('/auth/reset-password', async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const code = String(req.body.code || '').trim();
+  const password = String(req.body.password || '');
+  const rec = await getMongo().collection('otp_tokens').findOne({ email });
+  if (!(rec && rec.code === code && Date.now() < rec.expiresAt)) {
+    return res.render('forgot', { state: 'ask', email: '', msg: { ok: false, text: 'OTP expired — start again' } });
+  }
+  if (password.length < 4) {
+    return res.render('forgot', { state: 'verified', email, code, msg: { ok: false, text: 'Password too short (min 4)' } });
+  }
+  await getMongo().collection('users').updateOne({ email }, { $set: { password } });
+  await getMongo().collection('otp_tokens').deleteOne({ email });
+  res.render('forgot', { state: 'done', email: '', msg: { ok: true, text: 'Password updated. You can sign in now.' } });
 });
 
 router.post('/logout', (req, res) => {

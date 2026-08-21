@@ -63,6 +63,13 @@ async function seedMongo() {
       password: 'ModBot#2024',
     },
     {
+      // Human moderator — the C6 forgot-password / OTP brute-force target
+      // (leaked in robots.txt). Separate from the bot service account on
+      // purpose: resetting her password must not break xss-bot.
+      email: 'hanh@cybershop.vn', name: 'Hanh Nguyen', role: 'moderator',
+      password: 'Qw7#vLp2', // students never need this — they RESET it via OTP
+    },
+    {
       email: 'john@cybershop.vn', name: 'John Tran', role: 'customer',
       password: 'jordan23', // rockyou: yes — crackable after SQLi dump
     },

