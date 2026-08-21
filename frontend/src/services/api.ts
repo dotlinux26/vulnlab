@@ -310,6 +310,21 @@ export const resetLab = async (lessonId: string): Promise<{ status: string; retr
     return data;
 };
 
+export const adminResetLab = async (lessonId: string): Promise<{ status: string }> => {
+    const res = await fetch(`/api/admin/lessons/${lessonId}/lab/reset`, {
+        ...fetchOptions,
+        method: 'POST',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        const err: any = new Error(data.message || 'Failed to reset lab');
+        err.status = res.status;
+        err.data = data;
+        throw err;
+    }
+    return data;
+};
+
 export interface Notification {
     id: number;
     userId: string;

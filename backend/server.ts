@@ -275,7 +275,7 @@ async function startServer() {
         }
     };
 
-    // Trigger lab reset by invoking the lab's own reset.sh (canonical source of truth)
+// Trigger lab reset by invoking the lab's own reset.sh (canonical source of truth)
     const triggerLabReset = async (lessonId: string, composePath: string | null, userId?: string | null) => {
       if (!composePath) {
         console.error(`[Lab Reset] No compose path for ${lessonId}`);
@@ -302,8 +302,10 @@ async function startServer() {
         return;
       }
 
-      console.log(`[Lab Reset] Starting reset for ${lessonId} via reset.sh`);
+      console.log(`[Lab Reset] ===== STARTING RESET FOR ${lessonId} =====`);
       console.log(`[Lab Reset] Lab path: ${labPath}`);
+      console.log(`[Lab Reset] Reset script: ${resetScript}`);
+      console.log(`[Lab Reset] Working directory: ${labPath}`);
 
       const { spawn } = require('child_process');
       const child = spawn('bash', [resetScript], {
@@ -313,16 +315,32 @@ async function startServer() {
       });
 
       let stdout = '', stderr = '';
-      child.stdout.on('data', d => stdout += d.toString());
-      child.stderr.on('data', d => stderr += d.toString());
+      child.stdout.on('data', d => {
+        const msg = d.toString();
+        stdout += msg;
+        console.log(`[Lab Reset:${lessonId}] STDOUT: ${msg.trim()}`);
+      });
+      child.stderr.on('data', d => {
+        const msg = d.toString();
+        stderr += msg;
+        console.error(`[Lab Reset:${lessonId}] STDERR: ${msg.trim()}`);
+      });
+
+      child.on('error', (err: any) => {
+        console.error(`[Lab Reset:${lessonId}] SPAWN ERROR:`, err.message);
+      });
 
       const exitCode = await new Promise<number>(resolve => child.on('close', resolve));
 
       const labState = await LabState.findByPk(lessonId);
       const lesson = await Lesson.findByPk(lessonId);
 
+      console.log(`[Lab Reset] ${lessonId} exited with code ${exitCode}`);
+      if (stdout) console.log(`[Lab Reset] ${lessonId} STDOUT:\n${stdout}`);
+      if (stderr) console.error(`[Lab Reset] ${lessonId} STDERR:\n${stderr}`);
+
       if (exitCode === 0) {
-        const cooldownUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+        const cooldownUntil = new Date(Date.now() + 15 * 60 * 1000);
         await labState?.update({
           status: 'BUSY',
           userId,

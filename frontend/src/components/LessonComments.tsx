@@ -131,6 +131,8 @@ const LessonComments = ({ lessonId }: LessonCommentsProps) => {
         setError(res.message || t("lesson.comments.sendError"));
         startCooldown();
       }
+      // Auto-reload comments after posting to get latest state
+      await loadFirst();
       } catch (e: any) {
         if (e?.status === 429) {
           setError(e?.message || t("lesson.comments.cooldown"));

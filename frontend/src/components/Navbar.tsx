@@ -94,9 +94,15 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
 
   const handleMarkRead = async (id: number) => {
     try {
+      const notification = notifications.find(n => n.id === id);
       await markNotificationRead(id);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
+      
+      // Navigate to the lesson if the notification has a lessonId
+      if (notification?.lessonId) {
+        navigate(`/learning/${notification.lessonId}`);
+      }
     } catch {}
   };
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { HelpCircle, MessageSquare, Plus, Trash2, Pencil, X, Loader2, GripVertical } from "lucide-react";
+import { HelpCircle, MessageSquare, Plus, Trash2, Pencil, X, Loader2, GripVertical, RotateCcw, AlertTriangle, RefreshCw } from "lucide-react";
 import MarkdownEditor from "@/components/MarkdownEditor";
+import { adminResetLab } from "@/services/api";
 
 const AdminLessons = () => {
   const [lessons, setLessons] = useState<any[]>([]);
@@ -687,6 +688,30 @@ const AdminLessons = () => {
                     >
                       <MessageSquare size={13} />
                       Bình luận
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm(`Reset lab cho bài học "${lesson.id}"?`)) return;
+                        try {
+                          const res = await fetch(`/api/admin/lessons/${lesson.id}/lab/reset`, {
+                            method: "POST",
+                            credentials: "include",
+                          });
+                          const data = await res.json();
+                          if (data.status === "resetting") {
+                            alert("Đang reset lab...");
+                          } else {
+                            alert(data.message || "Lỗi reset lab");
+                          }
+                        } catch {
+                          alert("Lỗi kết nối");
+                        }
+                      }}
+                      className="px-3 py-1 rounded transition flex items-center gap-1 text-orange-400 bg-orange-400/10 hover:bg-orange-400/20"
+                      title="Reset lab này"
+                    >
+                      <RefreshCw size={13} />
+                      Reset Lab
                     </button>
                     <button
                       onClick={() => handleDeleteClick(lesson.id)}
