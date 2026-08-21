@@ -288,7 +288,8 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
                 </div>
               )}
             </div>
-          ) : (
+          </div>
+        ) : (
             <Link to="/login" className="gradient-primary text-primary-foreground px-5 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
               {t("nav.login")}
             </Link>
