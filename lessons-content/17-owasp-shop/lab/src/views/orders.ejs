@@ -1,0 +1,16 @@
+<%- include('partials/header', { title: t('orders_title') }) %>
+<div class="card">
+  <h1><%= t('orders_title') %></h1>
+  <% if (!orders.length) { %><p class="muted">—</p><% } %>
+  <table>
+    <tr><th><%= t('order_id') %></th><th><%= t('total') %></th><th><%= t('status') %></th></tr>
+    <% orders.forEach(o => { %>
+      <tr>
+        <td><a href="/orders/<%= o.id %>">#<%= o.id %></a></td>
+        <td>$<%= o.total %></td>
+        <td><%= o.status %></td>
+      </tr>
+    <% }); %>
+  </table>
+</div>
+<%- include('partials/footer') %>

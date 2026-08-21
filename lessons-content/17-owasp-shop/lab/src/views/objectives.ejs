@@ -1,0 +1,48 @@
+<%- include('partials/header', { title: t('obj_title') }) %>
+
+<div class="card">
+  <h1><%= t('obj_title') %></h1>
+  <p class="muted"><%= t('obj_intro') %></p>
+
+  <% if (result) { %>
+    <% if (result.ok) { const o = result.objective; %>
+      <div class="alert alert-success objective-complete">
+        <h2>&#10003; <%= t('obj_complete') %></h2>
+        <p><strong><%= t('obj_evidence') %></strong> <%= o.flag %></p>
+        <p><%= t('obj_demonstrated') %></p>
+        <ul>
+          <% o.demo.forEach(function (d) { %>
+            <li>[&#10003;] <%= d %></li>
+          <% }) %>
+        </ul>
+        <p><strong><%= t('obj_technique') %></strong> <%= o.learned %></p>
+        <p><strong><%= t('obj_next') %></strong> <%= o.next %></p>
+      </div>
+    <% } else { %>
+      <div class="alert alert-error"><%= t('obj_not_recognized') %></div>
+    <% } %>
+  <% } %>
+
+  <table class="table">
+    <thead>
+      <tr><th><%= t('obj_number') %></th><th><%= t('obj_objective') %></th><th><%= t('obj_status') %></th></tr>
+    </thead>
+    <tbody>
+      <% objectives.forEach(function (o, i) { %>
+        <tr>
+          <td><%= i + 1 %></td>
+          <td><%= o.title %></td>
+          <td>&#9675; <%= t('obj_unknown') %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <form method="post" action="/objectives/check" class="objective-form">
+    <label for="flag"><%= t('obj_submit_label') %></label>
+    <input type="text" id="flag" name="flag" placeholder="FLAG{...}" required />
+    <button type="submit" class="btn"><%= t('obj_verify') %></button>
+  </form>
+</div>
+
+<%- include('partials/footer') %>

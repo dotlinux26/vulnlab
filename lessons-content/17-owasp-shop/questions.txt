@@ -1,0 +1,39 @@
+# Questions: owasp-shop (CyberShop Capstone)
+
+## VI
+1. Trong pentest, bước nào nên làm TRƯỚC khi thử payload khai thác? (*****)
+   - Answer: recon
+
+2. Khi tìm thấy IDOR, evidence quan trọng nhất là gì? (**** *****)
+   - Answer: root cause
+
+3. SSRF cho phép server truy cập tài nguyên ở đâu mà trình duyệt không tới được? (******** *******)
+   - Answer: internal network
+
+4. Mass assignment xảy ra khi server làm gì với dữ liệu client gửi lên? (****** *** ****)
+   - Answer: bind tất cả fields
+
+5. Vì sao flag KHÔNG đủ làm evidence của một lỗ hổng? (******* ******)
+   - Answer: thiếu root cause
+
+6. Remediation đúng cho SQLi là gì? (*********** *******)
+   - Answer: parameterized queries
+
+## EN
+1. Which phase must come BEFORE attempting exploit payloads? (*****)
+   - Answer: recon
+
+2. When you find an IDOR, what is the most important evidence? (**** *****)
+   - Answer: root cause
+
+3. SSRF lets the server reach resources where the browser cannot? (******** *******)
+   - Answer: internal network
+
+4. Mass assignment happens when the server does what with client data? (****** *** ****)
+   - Answer: binds all fields
+
+5. Why is a flag NOT sufficient evidence of a vulnerability? (******* ******)
+   - Answer: missing root cause
+
+6. What is the correct remediation for SQLi? (*********** *******)
+   - Answer: parameterized queries

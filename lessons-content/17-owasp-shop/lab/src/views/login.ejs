@@ -1,0 +1,26 @@
+<%- include('partials/header', { title: t('login_title') }) %>
+<div class="card narrow">
+  <h1><%= t('login_title') %></h1>
+  <% if (typeof msg !== 'undefined' && msg) { %>
+    <!-- VULN: raw output — reflected XSS sink -->
+    <p class="ok"><%- msg %></p>
+  <% } %>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="POST" action="/login" id="login-form">
+    <label><%= t('email') %><input type="text" name="email" required></label>
+    <label><%= t('password') %><input type="password" name="password" required></label>
+    <button type="submit"><%= t('login_btn') %></button>
+  </form>
+  <p class="muted"><%= t('demo_account') %></p>
+  <p class="muted"><a href="/auth/otp"><%= t('otp_title') %></a></p>
+</div>
+<script>
+// JSON mode for API-style logins (used by tooling); form posts urlencoded normally
+document.getElementById('login-form').addEventListener('submit', function (e) {
+  if (this.dataset.json) {
+    e.preventDefault();
+    fetch('/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: JSON.parse(this.email.value), password: JSON.parse(this.password.value) }) });
+  }
+});
+</script>
+<%- include('partials/footer') %>

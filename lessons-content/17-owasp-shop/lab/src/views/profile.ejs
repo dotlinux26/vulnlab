@@ -1,0 +1,39 @@
+<%- include('partials/header', { title: t('profile_title') }) %>
+<!-- <%= csrfFlagComment %> -->
+<div class="card">
+  <h1><%= t('profile_title') %></h1>
+  <p><strong><%= t('email') %>:</strong> <%= profile.email || (user && user.id) %> · <strong>Role:</strong> <%= profile.role || (user && user.role) %></p>
+
+  <h2>Bio</h2>
+  <!-- VULN: raw output but owner-only visibility → SELF-XSS (not stored XSS: nobody else sees this) -->
+  <% if (profile.bio) { %>
+    <div class="review"><%- profile.bio %></div>
+  <% } %>
+  <form method="POST" action="/profile/bio" class="stacked">
+    <textarea name="bio" placeholder="<%= t('bio_placeholder') %>"><%= profile.bio || '' %></textarea>
+    <button type="submit"><%= t('save') %></button>
+  </form>
+
+  <h2><%= t('change_password') %></h2>
+  <!-- VULN: no CSRF token on this endpoint -->
+  <form method="POST" action="/profile/password" class="stacked">
+    <label><%= t('new_password') %><input type="password" name="password" required></label>
+    <button type="submit"><%= t('submit') %></button>
+  </form>
+  <% if (typeof pwChanged !== 'undefined' && pwChanged) { %><p class="ok">Password updated.</p><% } %>
+
+  <h2><%= t('avatar_url') %></h2>
+  <form method="POST" action="/profile/avatar" class="stacked">
+    <input type="text" name="url" placeholder="https://example.com/avatar.png" required>
+    <button type="submit"><%= t('fetch_avatar') %></button>
+  </form>
+  <% if (avatarResult) { %>
+    <% if (avatarResult.ok) { %>
+      <p class="ok">Fetched status <%= avatarResult.status %>. Preview:</p>
+      <pre class="preview"><%= avatarResult.preview %></pre>
+    <% } else { %>
+      <p class="error">Fetch failed: <%= avatarResult.error %></p>
+    <% } %>
+  <% } %>
+</div>
+<%- include('partials/footer') %>

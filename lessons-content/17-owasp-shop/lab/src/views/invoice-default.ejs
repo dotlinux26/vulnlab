@@ -1,0 +1,8 @@
+<h2><%= t('invoice_title') %> #<%= order.id %></h2>
+<table>
+  <tr><th>Item</th><th>Qty</th><th>Price</th></tr>
+  <% (order.items || []).forEach(i => { %>
+    <tr><td><%= i.name %></td><td><%= i.qty %></td><td>$<%= Number(i.price).toFixed(2) %></td></tr>
+  <% }); %>
+</table>
+<p class="price">Total: $<%= Number(order.total || 0).toFixed(2) %></p>

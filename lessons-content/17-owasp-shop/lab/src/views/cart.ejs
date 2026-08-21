@@ -1,0 +1,18 @@
+<%- include('partials/header', { title: t('cart_title') }) %>
+<div class="card">
+  <h1><%= t('cart_title') %></h1>
+  <% if (!items.length) { %><p class="muted"><%= t('empty_cart') %></p><% } else { %>
+    <table>
+      <tr><th>#</th><th><%= t('nav_shop') %></th><th><%= t('price') %></th><th></th></tr>
+      <% items.forEach((it, i) => { %>
+        <tr>
+          <td><%= i + 1 %></td><td><%= it.name %></td><td>$<%= it.price %></td>
+          <td><form method="POST" action="/cart/remove/<%= i %>"><button class="linklike"><%= t('remove') %></button></form></td>
+        </tr>
+      <% }); %>
+      <tr><td colspan="2"><strong><%= t('total') %></strong></td><td colspan="2"><strong>$<%= total %></strong></td></tr>
+    </table>
+    <form method="POST" action="/checkout"><button type="submit"><%= t('checkout') %></button></form>
+  <% } %>
+</div>
+<%- include('partials/footer') %>

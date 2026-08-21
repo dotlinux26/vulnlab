@@ -1,0 +1,7 @@
+<%- include('../partials/header', { title: t('admin_audit') }) %>
+<div class="card">
+  <h1><%= t('admin_audit') %></h1>
+  <pre class="preview"><% lines.forEach(l => { %><%= l %>
+<% }); %></pre>
+</div>
+<%- include('../partials/footer') %>

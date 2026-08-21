@@ -1,0 +1,25 @@
+<%- include('partials/header', { title: t('shop_name') }) %>
+<!-- <%= flagComment %> -->
+<h1 class="tagline"><%= t('tagline') %></h1>
+<% if (typeof q !== 'undefined' && q) { %>
+  <!-- VULN: raw output — reflected XSS sink -->
+  <h2 class="search-echo"><%- q %></h2>
+<% } %>
+<form method="GET" action="/catalog" class="searchbar">
+  <input type="text" name="q" placeholder="<%= t('search_placeholder') %>" value="<%= typeof q !== 'undefined' ? q : '' %>">
+  <button type="submit"><%= t('search_btn') %></button>
+</form>
+<% if (typeof dbError !== 'undefined' && dbError) { %>
+  <p class="error">SQL Error: <%= dbError %></p>
+<% } %>
+<div class="grid">
+  <% (products || []).forEach(p => { %>
+    <a class="card product" href="/product/<%= p.id %>">
+      <div class="emoji">🛒</div>
+      <h3><%= p.name %></h3>
+      <p class="muted"><%= p.short_desc %></p>
+      <p class="price">$<%= p.price %></p>
+    </a>
+  <% }); %>
+</div>
+<%- include('partials/footer') %>

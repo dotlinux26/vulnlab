@@ -1,0 +1,13 @@
+<%- include('../partials/header', { title: t('admin_panel') }) %>
+<div class="card">
+  <h1>🛠️ <%= t('admin_panel') %></h1>
+  <p><%= t('welcome') %>, <strong><%= user.name %></strong> (admin)</p>
+  <ul class="admin-links">
+    <li><a href="/admin/api/audit"><%= t('admin_audit') %></a></li>
+    <li><a href="/admin/tools/diag"><%= t('admin_diag') %></a></li>
+    <li><a href="/admin/reviews"><%= t('admin_reviews') %></a></li>
+    <li><a href="/api/admin/users"><%= t('admin_users_api') %></a></li>
+    <li><a href="/import"><%= t('import_title') %></a></li>
+  </ul>
+</div>
+<%- include('../partials/footer') %>

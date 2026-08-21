@@ -1,0 +1,13 @@
+<%- include('partials/header', { title: t('otp_title') }) %>
+<div class="card narrow">
+  <h1><%= t('otp_title') %></h1>
+  <% if (result) { %>
+    <p class="<%= result.ok ? 'ok' : 'error' %>"><%= result.msg %></p>
+  <% } %>
+  <form method="POST" action="/auth/otp-verify">
+    <label><%= t('email') %><input type="text" name="email" value="demo@cybershop.vn"></label>
+    <label><%= t('otp_code') %><input type="text" name="code" maxlength="4" inputmode="numeric"></label>
+    <button type="submit"><%= t('otp_verify') %></button>
+  </form>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,14 @@
+<%- include('partials/header', { title: t('notes_title') }) %>
+<div class="card">
+  <h1><%= t('notes_title') %></h1>
+  <form method="POST" action="/api/notes?redirect=1" class="stacked">
+    <textarea name="text" required></textarea>
+    <button type="submit"><%= t('send') %></button>
+  </form>
+  <div class="notes-list">
+    <% notes.forEach(n => { %>
+      <div class="review"><span class="muted"><%= new Date(n.createdAt).toISOString() %></span><br><%= n.text %></div>
+    <% }); %>
+  </div>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,127 @@
+name: owasp-shop-lab
+
+services:
+  web:
+    build: .
+    container_name: cybershop-web
+    restart: unless-stopped
+    ports:
+      - "7110:3000"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/cybershop
+      - MYSQL_HOST=mysql
+      - MYSQL_USER=shopuser
+      - MYSQL_PASS=shoppass2024
+      - MYSQL_DB=cybershop
+      - JWT_SECRET=cybershop-secret-2024
+      - FLAG_SERVICE_URL=http://flag-service:8080
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/log
+      - /app/.npm
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    networks:
+      - lab_17_edge
+      - lab_17_net
+
+  mongo:
+    image: mongo:7
+    container_name: cybershop-mongo
+    # INTERNAL ONLY - khong expose port ra host
+    expose:
+      - "27017"
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    networks:
+      - lab_17_net
+
+  mysql:
+    image: mysql:8
+    container_name: cybershop-mysql
+    # INTERNAL ONLY - khong expose port ra host
+    expose:
+      - "3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpass2024
+      - MYSQL_DATABASE=cybershop
+      - MYSQL_USER=shopuser
+      - MYSQL_PASSWORD=shoppass2024
+    volumes:
+      - ./src/seed/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpass2024"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    networks:
+      - lab_17_net
+
+  flag-service:
+    build: ./flagservice
+    container_name: cybershop-flag-service
+    # INTERNAL ONLY - khong expose port ra host (SSRF target)
+    expose:
+      - "8080"
+    environment:
+      - FLAG=FLAG{c9}
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    networks:
+      - lab_17_net
+
+  xss-bot:
+    build: ./bot
+    container_name: cybershop-xss-bot
+    environment:
+      - WEB_URL=http://web:3000
+      - BOT_ADMIN_EMAIL=admin@cybershop.vn
+      - BOT_ADMIN_PASS=Admin#1337
+    # INTERNAL ONLY - bot khong co internet, chi noi mang lab
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /root
+      - /home/bot
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - lab_17_net
+
+networks:
+  # Edge: duy nhat co published port — host/gateway chi cham duoc web qua day
+  lab_17_edge:
+    driver: bridge
+  # Internal: khong route ra Internet, khong publish — mongo/mysql/flag-service/bot o day
+  lab_17_net:
+    driver: bridge
+    internal: true

@@ -1,0 +1,12 @@
+<%- include('../partials/header', { title: t('admin_diag') }) %>
+<div class="card">
+  <h1><%= t('admin_diag') %></h1>
+  <form method="POST" action="/admin/tools/diag" class="stacked">
+    <label><%= t('diag_target') %><input type="text" name="target" placeholder="mongo / mysql / flag-service"></label>
+    <button type="submit"><%= t('run') %></button>
+  </form>
+  <% if (output !== null) { %>
+    <pre class="preview"><%= output %></pre>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

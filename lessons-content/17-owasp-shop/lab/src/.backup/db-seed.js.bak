@@ -1,0 +1,27 @@
+// ============================================================
+// LEGACY BACKUP — db-seed.js (rotated 2024-11-02)
+// DO NOT DEPLOY THIS FOLDER TO PRODUCTION
+// ============================================================
+//
+// Original seed script (superseded by config/db.js):
+//
+//   users.insertMany([
+//     { email: 'admin@cybershop.vn', role: 'admin', password: 'Admin#1337' },
+//     { email: 'demo@cybershop.vn',  role: 'customer', password: 'demo123' },
+//   ]);
+//
+// NOTES FOR NEXT ENGINEER:
+//   - JWT secret was rotated after the incident: it is now loaded from env
+//     JWT_SECRET (default fallback still 'cybershop-secret-2024' on old pods).
+//   - OTP rate limiting module was disabled by TICKET-4019 (perf), re-enable ASAP.
+//   - Legacy API key (still valid on staging, rotate ASAP): FLAG{c1}
+//   - Internal moderation key (do not share): FLAG{c14}
+//   - Admin panel lives at /admin (not linked anywhere by design).
+//   - Challenge flags ship inside the image at /app/flags/c<NN>.txt
+//     (one file per exercise) plus the classic /flag.txt. Do NOT expose these
+//     through the web root — ops keeps forgetting the /.backup/ folder exists.
+//     Example from last audit: cat /app/flags/c10.txt
+//     (invoice custom templates also embed a session-store key, see
+//      /app/config/session-store.key — rotated quarterly)
+//
+// module.exports = { legacySeed };

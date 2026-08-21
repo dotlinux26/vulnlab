@@ -1,0 +1,8 @@
+FROM mcr.microsoft.com/playwright:v1.48.0-jammy
+
+WORKDIR /app
+COPY package.json ./
+RUN npm install --omit=dev && npm cache clean --force
+COPY bot.js .
+
+CMD ["node", "bot.js"]

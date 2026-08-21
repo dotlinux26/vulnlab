@@ -1,0 +1,15 @@
+<%- include('partials/header', { title: t('order_id') + ' #' + order.id }) %>
+<div class="card">
+  <h1><%= t('order_id') %> #<%= order.id %></h1>
+  <p><strong><%= t('status') %>:</strong> <%= order.status %> · <strong><%= t('total') %>:</strong> $<%= order.total %></p>
+  <table>
+    <tr><th><%= t('nav_shop') %></th><th>Qty</th><th><%= t('price') %></th></tr>
+    <% (order.items || []).forEach(it => { %>
+      <tr><td><%= it.name %></td><td><%= it.qty %></td><td>$<%= it.price %></td></tr>
+    <% }); %>
+  </table>
+  <% if (order.note) { %>
+    <p class="note"><strong><%= t('note') %>:</strong> <%= order.note %></p>
+  <% } %>
+</div>
+<%- include('partials/footer') %>

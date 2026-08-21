@@ -1,0 +1,267 @@
+# ====================================================
+# 1. CATCH-ALL & RECON LAB (Port 80 - Mục tiêu cho Ffuf)
+# ====================================================
+
+# [TRẬN ĐỒ CATCH-ALL] - Để học viên lọc -fs
+server {
+    listen 80 default_server;
+    server_name _;
+    location / {
+        add_header Content-Type "text/plain; charset=utf-8";
+        return 200 "Trang chu Ghedahaui. He thong dang duoc nang cap. Vui long cho!";
+    }
+}
+
+# [FLAG 2] - dev.ghedahaui.online (Có Directory Fuzzing)
+server {
+    listen 80;
+    server_name dev.ghedahaui.online;
+
+    location /menu/ {
+        add_header Content-Type "text/plain; charset=utf-8";
+        return 200 "Flag 2 part 1/2 : {SECRET_DIREC";
+    }
+
+    location ~ ^/config/?$ {
+        add_header Content-Type "text/plain; charset=utf-8";
+        return 200 "Flag 2 part 2/2 : T_FOUND}";
+    }
+
+    location / {
+        add_header Content-Type "text/plain; charset=utf-8";
+        return 403 "Cam truy cap! Khu vuc DEV chi danh cho Admin.";
+    }
+}
+
+# [FLAG 1] - test.dev.ghedahaui.online
+server {
+    listen 80;
+    server_name test.dev.ghedahaui.online;
+    location / {
+        add_header Content-Type "text/plain; charset=utf-8";
+        return 200 "Khu vuc Test cua Dev. Flag 1: {TEST_DEV_OK}";
+    }
+}
+
+
+server {
+    listen 80;
+    server_name vuln.dev.ghedahaui.online;
+    location / {
+        add_header Content-Type "text/plain; charset=utf-8";
+        return 402 "Something mustn't be your mind :V good luck!!!!!!!!!!!!!!!!!!!!";
+    }
+
+}
+
+
+# [FLAG 3] - lab.vuln.dev.ghedahaui.online (Trùm cuối)
+server {
+    listen 80;
+    server_name lab.vuln.dev.ghedahaui.online;
+    location / {
+        add_header Content-Type "text/plain; charset=utf-8";
+        return 200 "Trum cuoi! Flag 3: {MASTER_RECON}";
+    }
+}
+
+# REDIRECT CÁC DỊCH VỤ CHÍNH SANG HTTPS
+server {
+    listen 80;
+    server_name ghedahaui.online www.ghedahaui.online vuln.ghedahaui.online admin.ghedahaui.online;
+    return 301 https://$host$request_uri;
+}
+
+# ====================================================
+# 2. HTTPS SERVICES (Sếp Juna's Legacy)
+# ====================================================
+
+# VULN SUBDOMAIN - HỆ THỐNG LAB CHÍNH
+server {
+    listen 443 ssl;
+    server_name vuln.ghedahaui.online;
+
+    ssl_certificate /etc/letsencrypt/live/vuln.ghedahaui.online/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/vuln.ghedahaui.online/privkey.pem;
+    client_max_body_size 50M;
+ 
+    location /uploads {
+            # Bypass authentication middleware
+            auth_request off;
+            
+            # Proxy tới backend
+            proxy_pass http://localhost:6667;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # CORS headers
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, OPTIONS' always;
+            
+            # Cache
+            add_header Cache-Control "public, max-age=3600" always;
+        }
+
+    # --- THÊM KHỐI NÀY VÀO TRƯỚC location / ---
+    # Ép các yêu cầu vào /labs phải sang Backend (6667) chứ không được sang Frontend (5173)
+    location /labs {
+        proxy_pass http://localhost:6667;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+    }
+
+
+    # [HỆ THỐNG LAB DOCKER MỚI] - Đẩy giao thông sang Gateway ở port 7777
+    location /labs-env/ {
+        proxy_pass http://localhost:7777/; 
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        
+        # Hỗ trợ WebSockets (Nếu sau này làm lab cần XSS realtime)
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+        
+
+    # 1. Giao diện chính (Frontend) - Đưa ra ngay trang chủ /
+    location / {
+        proxy_pass http://localhost:5173; 
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        add_header Cross-Origin-Opener-Policy "unsafe-none";
+        add_header Cross-Origin-Opener-Policy "same-origin-allow-popups";
+    }
+
+    location /api/payment {
+            proxy_pass http://127.0.0.1:6668;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+    # 2. Hệ thống API Backend
+    location /api {
+        proxy_pass http://localhost:6667; # Lưu ý: Nếu trong code backend đã có tiền tố /api thì để nguyên, nếu chưa thì dùng /api/
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ==============================================================
+    # 🎯 THÊM KHỐI NÀY CHO CHAT SERVER (WEBSOCKET PORT 6668)
+    # ==============================================================
+    location /socket.io/ {
+        proxy_pass http://127.0.0.1:6668;
+        
+        # Cấu hình Upgrade cần thiết cho WebSocket
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+        
+        # Headers bảo vệ và nhận diện IP thật
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Kéo dài thời gian timeout để không bị ngắt kết nối chat
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+    }
+ 
+}
+
+
+# MAIN DOMAIN (3000)
+server {
+    listen 443 ssl;
+    server_name ghedahaui.online www.ghedahaui.online;
+
+    ssl_certificate /etc/letsencrypt/live/ghedahaui.online/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/ghedahaui.online/privkey.pem;
+
+    location /admin/ {
+        # LƯU Ý: Có dấu / ở cuối để Nginx tự cắt chữ /admin đi
+        # Ví dụ: Client gọi /admin/api/posts -> Backend nhận /api/posts
+        proxy_pass http://localhost:6666/; 
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+  
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    
+
+
+}
+
+# DEV HTTPS (Hỗ trợ sếp check bằng Browser/Burp)
+server {
+    listen 443 ssl;
+    server_name dev.ghedahaui.online;
+
+    ssl_certificate /etc/letsencrypt/live/ghedahaui.online/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/ghedahaui.online/privkey.pem;
+
+    location /config/ {
+        add_header Content-Type "text/plain; charset=utf-8";
+        return 200 "Flag 2: SOmthing will not working in HTTPS :)) fail";
+    }
+
+    location / {
+        add_header Content-Type "text/plain; charset=utf-8";
+        return 403 "Cam truy cap! Khu vuc DEV chi danh cho Admin.";
+    }
+}
+
+
+# ==============================================================
+# OWASP SHOP CAPSTONE LAB (17) — shop.ghedahaui.online -> web:7110
+# Chạy certbot lần đầu: certbot --nginx -d shop.ghedahaui.online
+# (hoặc dùng cert của wildcard nếu có). Sau khi thêm: nginx -t && systemctl reload nginx
+# ==============================================================
+server {
+    listen 80;
+    server_name shop.ghedahaui.online;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name shop.ghedahaui.online;
+
+    ssl_certificate /etc/letsencrypt/live/shop.ghedahaui.online/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/shop.ghedahaui.online/privkey.pem;
+
+    client_max_body_size 10M;
+
+    location / {
+        proxy_pass http://localhost:7110;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Lab có XSS/socket-style tương tác — bật upgrade phòng khi cần
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}

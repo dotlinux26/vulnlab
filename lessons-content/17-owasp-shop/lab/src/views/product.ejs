@@ -1,0 +1,31 @@
+<%- include('partials/header', { title: product.name }) %>
+<div class="card">
+  <div class="product-head">
+    <div class="emoji big">🛡️</div>
+    <div>
+      <h1><%= product.name %></h1>
+      <p class="muted"><%= product.short_desc %></p>
+      <p class="price">$<%= product.price %></p>
+      <form method="POST" action="/cart/add/<%= product.id %>"><button type="submit"><%= t('add_to_cart') %></button></form>
+    </div>
+  </div>
+
+  <h2><%= t('reviews') %> (<%= reviews.length %>)</h2>
+  <% reviews.forEach(r => { %>
+    <div class="review">
+      <strong><%= r.author %></strong>
+      <!-- VULN: raw output — stored XSS sink -->
+      <%- r.text %>
+    </div>
+  <% }); %>
+
+  <% if (user) { %>
+    <form method="POST" action="/product/<%= product.id %>/review" class="review-form">
+      <textarea name="text" placeholder="<%= t('write_review') %>" required></textarea>
+      <button type="submit"><%= t('submit') %></button>
+    </form>
+  <% } else { %>
+    <p class="muted"><a href="/login"><%= t('nav_login') %></a> <%= t('write_review').toLowerCase() %>.</p>
+  <% } %>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,15 @@
+<%- include('../partials/header', { title: t('admin_reviews') }) %>
+<div class="card">
+  <h1><%= t('admin_reviews') %></h1>
+  <!-- moderation key rendered for the admin session (xss-bot target) -->
+  <p class="note">Moderation key: <code><%= moderationKey %></code></p>
+  <% if (!reviews.length) { %><p class="muted">—</p><% } %>
+  <% reviews.forEach(r => { %>
+    <div class="review">
+      <strong><%= r.author %></strong> <span class="muted">on #<%= r.product_id %> · <%= new Date(r.created_at).toISOString() %></span>
+      <!-- VULN: raw output — stored XSS executes here in the ADMIN browser -->
+      <%- r.text %>
+    </div>
+  <% }); %>
+</div>
+<%- include('../partials/footer') %>

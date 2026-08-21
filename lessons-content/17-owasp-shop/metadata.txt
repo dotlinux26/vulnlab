@@ -1,0 +1,26 @@
+# ==== LESSON METADATA — VULNLAB ====
+id = owasp-shop
+title = OWASP Capstone — CyberShop Full-Stack Pentest
+title_en = OWASP Capstone — CyberShop Full-Stack Pentest
+description = Lab capstone tích hợp: giả lập web thương mại điện tử chứa 16 lỗ hổng OWASP trong 4 mission mở. Tự recon, tự chọn attack path, chứng minh impact và nộp report.
+description_en = Integrated capstone lab: simulated e-commerce site with 16 OWASP vulnerabilities across 4 open missions. Recon, pick your attack path, prove impact, submit a report.
+category = Web
+difficulty = Hard
+level = advanced
+orderIndex = 17
+
+# ==== LAB ====
+lab_enabled = true
+lab_url = https://shop.ghedahaui.online
+lab_duration = 7200
+lab_compose_path = ctf-labs/labs/17-owasp-shop
+lab_reset_timeout = 180
+lab_name = owasp-shop-lab
+lab_path = lab/
+lab_port = 7110
+lab_stack = node20-express + mongodb + mysql + flag-service(go) + xss-bot(playwright)
+lab_flag = FLAG{owasp_shop_master}
+lab_reset = yes
+
+# ==== ẢNH ====
+images = owasp-shop_01_recon.png, owasp-shop_02_mission_board.png, owasp-shop_03_admin_access.png, owasp-shop_04_idor.png, owasp-shop_05_ssrf_internal.png, owasp-shop_06_rce.png, owasp-shop_07_report.png
