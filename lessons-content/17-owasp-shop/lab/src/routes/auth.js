@@ -19,6 +19,12 @@ router.post('/login', async (req, res) => {
 
     const token = sign({ id: user.email, name: user.name, role: user.role });
     res.cookie('token', token, { httpOnly: true });
+    // Legacy moderation console caches the key in a cookie for "quick access".
+    // NOT httpOnly (C14 teaching point: sloppy companion cookie leaks to XSS
+    // even though the session token itself is protected).
+    if (user.role === 'admin') {
+      res.cookie('moderation_key', readFlag('c14'), { httpOnly: false });
+    }
     if (req.accepts('json') && (req.is('json') || typeof req.body.email === 'object')) {
       return res.json({ ok: true, user: { email: user.email, name: user.name, role: user.role } });
     }
@@ -61,6 +67,7 @@ router.post('/auth/otp-verify', (req, res) => {
 
 router.post('/logout', (req, res) => {
   res.clearCookie('token');
+  res.clearCookie('moderation_key');
   res.redirect('/catalog');
 });
 

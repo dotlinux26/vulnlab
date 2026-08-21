@@ -53,17 +53,6 @@ router.get('/.backup/:file', (req, res) => {
 });
 
 // Public feedback box — unauthenticated write+read; doubles as XSS exfil receiver
-router.get('/notes', async (req, res) => {
-  const notes = await getMongo().collection('notes').find().sort({ createdAt: -1 }).limit(50).toArray();
-  res.render('notes', { notes });
-});
-router.post('/api/notes', async (req, res) => {
-  const text = String((req.body && req.body.text) || '').slice(0, 1000);
-  await getMongo().collection('notes').insertOne({ text, createdAt: new Date() });
-  if (req.query.redirect) return res.redirect('/notes');
-  res.json({ ok: true });
-});
-
 // Invoice — VULN (C12): user-controlled string passed straight into ejs.render (SSTI)
 router.get('/invoice/:id', async (req, res) => {
   const order = await getMongo().collection('orders').findOne({ id: Number(req.params.id) }) || { id: 0, items: [], total: 0 };

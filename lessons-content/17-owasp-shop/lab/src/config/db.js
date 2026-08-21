@@ -11,7 +11,7 @@ async function connectDbs() {
   // Retry loop: containers may still be booting when web starts
   for (let attempt = 1; attempt <= 10; attempt++) {
     try {
-      // MongoDB: users, orders, notes
+      // MongoDB: users, orders
       const client = new MongoClient(process.env.MONGO_URL || 'mongodb://mongo:27017/cybershop');
       await client.connect();
       mongoDb = client.db();

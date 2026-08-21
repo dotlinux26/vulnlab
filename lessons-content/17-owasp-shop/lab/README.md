@@ -15,9 +15,9 @@ Web e-commerce giả lập chứa **16 lỗ hổng OWASP** dùng làm capstone: 
         ┌──────────────┼────────────────┬───────────────┐
         ▼              ▼                ▼               ▼
      mongo:7       mysql:8         flag-service      xss-bot
-   users/orders   products/       (Go, :8080)    (Playwright admin
-   notes          reviews +       /flag /info     visit /admin/reviews
-                  shopusers       /metrics /health  mỗi 30s)
+   users/orders   products/       (Go, :8080)    (Playwright admin,
+   (edge: có       reviews +       /flag /info     visit /admin/reviews
+    Internet)      shopusers       /metrics /health  mỗi 30s)
 ```
 
 - **Network:** `lab_17_edge` (chỉ web, có published port) + `lab_17_net` (`internal: true` — không route ra Internet). Mongo/MySQL/flag-service/bot **không thể chạm từ host hay ngoài**.
@@ -42,7 +42,7 @@ Exit code 0 khi tất cả PASS. Chạy sau MỌI thay đổi src trước khi c
 | Kiểm tra | Kết quả |
 |---|---|
 | Host → mongo/mysql/flag-service | blocked ✓ |
-| Bot → Internet | blocked ✓ (internal network) |
+| Bot → Internet | CHO PHÉP (edge network) — cần cho exfil XSS về webhook học viên |
 | RCE trong web | uid=node, chỉ thấy mạng nội bộ lab ✓ |
 | Cross-lab (sang container lab khác) | Docker bridge isolation chặn mặc định ✓ |
 
@@ -67,7 +67,7 @@ Nguyên tắc: một primitive đọc file **không được** thu hoạch hết
 | c11 | `/opt/scripts/netdiag.secret` | dòng trong `/debug` panel |
 | c12 | `/app/config/session-store.key` | comment trong `.bak` |
 | c13 | `/app/data/state-snapshot.dat` | header comment serializer (CSPACK spec) |
-| c14 | moderation key render trên `/admin/reviews` | stored XSS + bot exfil về `/notes` |
+| c14 | cookie `moderation_key` (set khi admin login, không HttpOnly) | stored XSS trong review + bot exfil `document.cookie` về webhook học viên |
 | c15/c16 | HTML comment (discovery markers) | view-source |
 | master | `/flag.txt` | vị trí cổ điển, bằng chứng M4 |
 
@@ -79,11 +79,11 @@ Các flag emission-only (c1–c9, c14–c16 do code đọc ra) nằm ở `/app/.
 ./reset.sh          # down -v --remove-orphans + up -d --build + wait health
 ```
 
-Toàn bộ state (Mongo seed, MySQL initdb, in-memory carts, notes) sống trong container layer → `down` là sạch, `up` tự seed lại. Không dùng named volume.
+Toàn bộ state (Mongo seed, MySQL initdb, in-memory carts) sống trong container layer → `down` là sạch, `up` tự seed lại. Không dùng named volume.
 
 ## Đã E2E verify trên máy (docker compose, 2026-08)
 
-16/16 attack path chạy đúng: backup leak, debug panel, reflected XSS echo, NoSQLi bypass + secretNote, JWT alg:none → audit, mass assignment → role admin, OTP brute, IDOR #1042, SQLi UNION dump shopusers (MD5 khớp rockyou: jordan23/monkey), SSRF → flag-service /flag + /info, XXE read c10, cmdi đọc netdiag.secret + `/flag.txt` (uid=node), SSTI EJS đọc session-store.key, deser gadget đọc state-snapshot.dat, stored XSS → bot exfil moderation key về `/notes`.
+16/16 attack path chạy đúng: backup leak, debug panel, reflected XSS echo, NoSQLi bypass + secretNote, JWT alg:none → audit, mass assignment → role admin, OTP brute, IDOR #1042, SQLi UNION dump shopusers (MD5 khớp rockyou: jordan23/monkey), SSRF → flag-service /flag + /info, XXE read c10, cmdi đọc netdiag.secret + `/flag.txt` (uid=node), SSTI EJS đọc session-store.key, deser gadget đọc state-snapshot.dat, stored XSS → bot exfil cookie `moderation_key` về collector/webhook của học viên.
 
 ## Ghi chú vận hành
 

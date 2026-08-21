@@ -4,7 +4,7 @@ const dict = {
   vi: {
     shop_name: 'CyberShop', tagline: 'Cửa hàng thiết bị an ninh mạng #1 Việt Nam',
     nav_shop: 'Sản phẩm', nav_cart: 'Giỏ hàng', nav_objectives: 'Mục tiêu', nav_orders: 'Đơn hàng', nav_profile: 'Tài khoản',
-    nav_notes: 'Góp ý', nav_admin: 'Quản trị', nav_login: 'Đăng nhập', nav_register: 'Đăng ký', nav_logout: 'Thoát',
+    nav_admin: 'Quản trị', nav_login: 'Đăng nhập', nav_register: 'Đăng ký', nav_logout: 'Thoát',
     search_placeholder: 'Tìm sản phẩm...', search_btn: 'Tìm',
     login_title: 'Đăng nhập', email: 'Email', password: 'Mật khẩu', login_btn: 'Đăng nhập',
     demo_account: 'Tài khoản demo: demo@cybershop.vn / demo123',
@@ -21,7 +21,7 @@ const dict = {
     admin_panel: 'Bảng điều khiển quản trị', admin_audit: 'Nhật ký kiểm toán', admin_diag: 'Chẩn đoán mạng',
     admin_reviews: 'Kiểm duyệt đánh giá', admin_users_api: 'Danh sách người dùng (API)',
     diag_target: 'Tên miền/IP cần tra cứu', run: 'Chạy',
-    notes_title: 'Góp ý công khai (không cần đăng nhập)', send: 'Gửi góp ý',
+    
     not_found: 'Không tìm thấy trang', back_home: 'Về trang chủ',
     obj_title: 'Mục tiêu nhiệm vụ',
     obj_intro: 'Mỗi mục tiêu dưới đây mô tả một kết quả, không phải phương pháp. Khi thu được evidence token, nộp tại đây để xác nhận mục tiêu và xem bạn vừa chứng minh được điều gì. Ghi mọi finding vào journal của bạn.',
@@ -35,7 +35,7 @@ const dict = {
   en: {
     shop_name: 'CyberShop', tagline: "Vietnam's #1 cybersecurity gear store",
     nav_shop: 'Products', nav_cart: 'Cart', nav_objectives: 'Objectives', nav_orders: 'Orders', nav_profile: 'Account',
-    nav_notes: 'Feedback', nav_admin: 'Admin', nav_login: 'Login', nav_register: 'Register', nav_logout: 'Logout',
+    nav_admin: 'Admin', nav_login: 'Login', nav_register: 'Register', nav_logout: 'Logout',
     search_placeholder: 'Search products...', search_btn: 'Search',
     login_title: 'Login', email: 'Email', password: 'Password', login_btn: 'Sign in',
     demo_account: 'Demo account: demo@cybershop.vn / demo123',
@@ -52,7 +52,7 @@ const dict = {
     admin_panel: 'Admin Dashboard', admin_audit: 'Audit Log', admin_diag: 'Network Diagnostics',
     admin_reviews: 'Review Moderation', admin_users_api: 'User List (API)',
     diag_target: 'Domain/IP to resolve', run: 'Run',
-    notes_title: 'Public feedback box (no login required)', send: 'Send feedback',
+    
     not_found: 'Page not found', back_home: 'Back to home',
     obj_title: 'Mission Objectives',
     obj_intro: 'Each objective below describes an outcome, not a method. When you obtain an evidence token, submit it here to confirm the objective and see what you just demonstrated. Record every finding in your journal.',

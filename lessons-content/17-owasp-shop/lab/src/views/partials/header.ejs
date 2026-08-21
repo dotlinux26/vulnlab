@@ -16,7 +16,6 @@
     <% if (user) { %>
       <a href="/orders"><%= t('nav_orders') %></a>
       <a href="/profile"><%= t('nav_profile') %></a>
-      <a href="/notes"><%= t('nav_notes') %></a>
       <% if (user.role === 'admin') { %><a href="/admin"><%= t('nav_admin') %></a><% } %>
       <form method="POST" action="/logout" class="inline"><button class="linklike"><%= t('nav_logout') %> (<%= user.name %>)</button></form>
     <% } else { %>

