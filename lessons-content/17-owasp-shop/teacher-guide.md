@@ -15,6 +15,8 @@
 | flag-service | Go :8080 internal — /health /info /metrics **/flag** |
 | xss-bot | Playwright, login admin, visit `/admin/reviews` mỗi 30s |
 
+**Trang `/objectives` (student-facing):** danh sách 16 mục tiêu viết trung tính (chỉ mô tả kết quả, không nói kỹ thuật) + form nộp evidence token. Nộp đúng `FLAG{cN}` → hiện card "✓ OBJECTIVE COMPLETED" với checklist "You demonstrated..." + tên kỹ thuật + gợi ý bước tiếp theo ghi journal. Song ngữ theo cookie `lang` (mặc định vi). Chỉ validate, không lưu trạng thái — học viên tự tích bảng checklist in từ bài học.
+
 | Email | Password | Role | Ghi chú |
 |-------|----------|------|---------|
 | admin@cybershop.vn | Admin#1337 | admin | secretNote = c2; apiKey sk_live_admin_9f3ac21e77 |
@@ -204,13 +206,25 @@ curl -H "Cookie: <admin-token>" --data-urlencode 'target=x; cat /opt/scripts/net
 
 **Stored XSS (C14)**
 - *Bản chất:* review lưu DB nguyên văn, render raw ở `/product/:id` VÀ `/admin/reviews` — trang mà **xss-bot (admin giả lập)** visit mỗi 30s. Nạn nhân là admin, không phải bạn.
+- *Sơ đồ flow (đọc kỹ để khỏi nhầm vai trò từng thành phần):*
+  ```
+  Học viên trồng <script> vào REVIEW SẢN PHẨM (/product/<id>/review)
+        ↓ lưu RAW vào MySQL (không sanitize)
+  BOT ADMIN (duy nhất 1 bot) login + vào /admin/reviews mỗi 30s để "kiểm duyệt"
+        ↓ script CHẠY TRONG BROWSER CỦA ADMIN — attacker ≠ victim
+  Script đọc moderation key FLAG{c14} ngay trên trang (chỉ admin thấy)
+        ↓ POST /api/notes
+  GÓP Ý (/notes) = KÊNH NHẬN EXFIL — công khai, KHÔNG có bot ghé,
+  học viên tự mở ra đọc "đồ cướp". (/notes cũng là stored-XSS sink
+  nhìn thấy bởi mọi người — xem mục 4b số 3 về instance dùng chung.)
+  ```
 - *Phát hiện:* form review không sanitize (thử `<b>test</b>` in đậm thật); missions hint nhắc bot đọc review định kỳ.
 - *Payload đã verify (exfil moderation key về /notes):*
   ```html
   <script>fetch("/api/notes",{method:"POST",headers:{"Content-Type":"application/json"},
   body:JSON.stringify({text:"EXFIL:"+document.body.innerText.match(/FLAG\{[^}]+\}/)[0]})})</script>
   ```
-  → chờ ≤35s bot visit → `/notes` hiện `EXFIL:FLAG{c14}`. (Đã verify bot chạy 3 vòng exfil 3 lần.)
+  → chờ tối đa ~40s (chu kỳ bot 30s + 8s giữ trang) → `/notes` hiện `EXFIL:FLAG{c14}`. Lưu ý field API là `text` (không phải `content`) — lỗi phổ biến khi test tay. Smoke test tự động hóa chuỗi này (`WITH_BOT=1 ./smoke-test.sh`, chờ 55s).
 - *Fix đúng:* escape khi render, sanitize-html khi lưu, CSP `script-src 'self'`, cookie admin `httpOnly` (đã có) + SameSite.
 
 **CSRF (C16)**

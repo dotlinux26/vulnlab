@@ -23,6 +23,20 @@ Web e-commerce giả lập chứa **16 lỗ hổng OWASP** dùng làm capstone: 
 - **Network:** `lab_17_edge` (chỉ web, có published port) + `lab_17_net` (`internal: true` — không route ra Internet). Mongo/MySQL/flag-service/bot **không thể chạm từ host hay ngoài**.
 - **Hardening:** web chạy user `node` (RCE không lên root), `cap_drop: ALL`, `no-new-privileges`, `read_only` rootfs + tmpfs. Bot bị cô lập mạng hoàn toàn.
 
+## Trang /objectives (student-facing)
+
+Danh sách 16 mục tiêu trung tính (mô tả kết quả, không nói kỹ thuật) + form nộp evidence token. Nộp đúng `FLAG{cN}` → card "✓ OBJECTIVE COMPLETED" kèm checklist "You demonstrated..." và gợi ý ghi journal. Song ngữ vi/en theo cookie `lang`. Stateless — chỉ validate, không lưu tiến độ.
+
+## Smoke test
+
+```bash
+./smoke-test.sh                    # 18 check nhanh (~15s)
+WITH_BOT=1 ./smoke-test.sh         # + C14 stored-XSS qua bot (~60s tổng)
+./smoke-test.sh https://shop.example  # trỏ host khác
+```
+
+Exit code 0 khi tất cả PASS. Chạy sau MỌI thay đổi src trước khi commit.
+
 ## Sandbox posture (đã verify)
 
 | Kiểm tra | Kết quả |
