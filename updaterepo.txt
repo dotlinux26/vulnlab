@@ -1,0 +1,1 @@
+cd ~/vulnghedahauilab && git pull && pm2 restart all && pm2 save && pm2 startup

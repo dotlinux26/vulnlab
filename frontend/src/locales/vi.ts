@@ -276,6 +276,12 @@ const vi: Record<string, any> = {
   "landing.certVerify": "Xác minh chứng chỉ",
   "landing.copyright": "© 2026 VULNLAB. All rights reserved.",
 
+  "nav.notifications": "Thông báo",
+  "nav.markAllRead": "Đánh dấu tất cả đã đọc",
+  "nav.showUnreadOnly": "Chỉ hiển thị chưa đọc",
+  "nav.noNotifications": "Không có thông báo nào",
+  "nav.loadMore": "Tải thêm",
+
   "admin.title": "ADMIN PANEL",
   "admin.labs": "Thêm Lab Mới",
   "admin.lessons": "Quản lý bài học",

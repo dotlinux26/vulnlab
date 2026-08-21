@@ -294,3 +294,53 @@ export const uploadLessonCommentImage = async (id: string, file: File) => {
     }
     return res.json();
 };
+
+export const resetLab = async (lessonId: string): Promise<{ status: string; retryAfter?: number; timeoutSeconds?: number; message?: string }> => {
+    const res = await fetch(`/api/learning/${lessonId}/lab/reset`, {
+        ...fetchOptions,
+        method: 'POST',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        const err: any = new Error(data.message || 'Failed to reset lab');
+        err.status = res.status;
+        err.data = data;
+        throw err;
+    }
+    return data;
+};
+
+export interface Notification {
+    id: number;
+    userId: string;
+    type: 'comment_reply' | 'lesson_comment';
+    referenceId: number;
+    lessonId: string | null;
+    message: string;
+    read: boolean;
+    createdAt: string;
+}
+
+export interface NotificationsResponse {
+    items: Notification[];
+    hasMore: boolean;
+    total: number;
+    unreadCount: number;
+}
+
+export const fetchNotifications = async (limit = 20, offset = 0, unreadOnly = false): Promise<NotificationsResponse> => {
+    const query = new URLSearchParams({ limit: limit.toString(), offset: offset.toString(), unread: unreadOnly.toString() });
+    const res = await fetch(`/api/notifications?${query}`, { ...fetchOptions, method: 'GET' });
+    if (!res.ok) throw new Error('Failed to fetch notifications');
+    return res.json();
+};
+
+export const markNotificationRead = async (id: number): Promise<void> => {
+    const res = await fetch(`/api/notifications/${id}/read`, { ...fetchOptions, method: 'POST' });
+    if (!res.ok) throw new Error('Failed to mark notification as read');
+};
+
+export const markAllNotificationsRead = async (): Promise<void> => {
+    const res = await fetch('/api/notifications/read-all', { ...fetchOptions, method: 'POST' });
+    if (!res.ok) throw new Error('Failed to mark all notifications as read');
+};

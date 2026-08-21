@@ -188,6 +188,9 @@ export class LabState extends Model {
   declare resetStartedAt: Date | null;
   declare resetDeadlineAt: Date | null;
   declare userId: string | null;
+  declare lastResetAt: Date | null;
+  declare cooldownUntil: Date | null;
+  declare resetError: string | null;
 }
 
 LabState.init({
@@ -198,6 +201,9 @@ LabState.init({
   resetStartedAt: { type: DataTypes.DATE, allowNull: true },
   resetDeadlineAt: { type: DataTypes.DATE, allowNull: true },
   userId: { type: DataTypes.STRING, allowNull: true },
+  lastResetAt: { type: DataTypes.DATE, allowNull: true },
+  cooldownUntil: { type: DataTypes.DATE, allowNull: true },
+  resetError: { type: DataTypes.TEXT, allowNull: true },
 }, { sequelize, modelName: 'lab_state', timestamps: true });
 
 export class LessonProgress extends Model {
@@ -339,6 +345,33 @@ LessonComment.init({
   timestamp: { type: DataTypes.BIGINT, allowNull: false },
 }, { sequelize, modelName: 'lesson_comment' });
 
+// Notification model
+export class Notification extends Model {
+  declare id: number;
+  declare userId: string;
+  declare type: string; // 'comment_reply', 'lesson_comment'
+  declare referenceId: number; // commentId or lessonId
+  declare lessonId: string | null;
+  declare message: string;
+  declare read: boolean;
+  declare createdAt: Date;
+}
+
+Notification.init({
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  userId: { type: DataTypes.STRING, allowNull: false },
+  type: { type: DataTypes.STRING, allowNull: false },
+  referenceId: { type: DataTypes.INTEGER, allowNull: false },
+  lessonId: { type: DataTypes.STRING, allowNull: true },
+  message: { type: DataTypes.TEXT, allowNull: false },
+  read: { type: DataTypes.BOOLEAN, defaultValue: false },
+  createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+}, { sequelize, modelName: 'notification', timestamps: true });
+
+// Relationships
+User.hasMany(Notification, { foreignKey: 'userId' });
+Notification.belongsTo(User, { foreignKey: 'userId' });
+
 const addColumnIfMissing = async (table: string, column: string, def: string) => {
   try {
     await sequelize.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${def}`);
@@ -361,6 +394,9 @@ export const initDb = async () => {
     await addColumnIfMissing('lab_states', 'resetStartedAt', 'TEXT');
     await addColumnIfMissing('lab_states', 'resetDeadlineAt', 'TEXT');
     await addColumnIfMissing('lab_states', 'userId', 'TEXT');
+    await addColumnIfMissing('lab_states', 'lastResetAt', 'TEXT');
+    await addColumnIfMissing('lab_states', 'cooldownUntil', 'TEXT');
+    await addColumnIfMissing('lab_states', 'resetError', 'TEXT');
     await sequelize.sync();
     await addColumnIfMissing('labs', 'title_en', 'STRING');
     await addColumnIfMissing('labs', 'description_en', 'TEXT');
@@ -368,6 +404,8 @@ export const initDb = async () => {
     await addColumnIfMissing('lessons', 'description_en', 'TEXT');
     await addColumnIfMissing('lessons', 'content_en', 'TEXT');
     await addColumnIfMissing('learning_paths', 'status', 'TEXT DEFAULT \'updating\'');
+    // Notification table created via sync()
+    await sequelize.sync();
   } catch (e) {
     console.error("[!] initDb error (non-fatal):", e);
   }

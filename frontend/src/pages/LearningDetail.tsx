@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Loader2, ArrowLeft, BookOpen, CheckCircle, Circle, Lock, ArrowRight, Trophy, MapPin, Terminal, Clock, AlertCircle, PlayCircle, Power } from "lucide-react";
+import { Loader2, ArrowLeft, BookOpen, CheckCircle, Circle, Lock, ArrowRight, Trophy, MapPin, Terminal, Clock, AlertCircle, PlayCircle, Power, RotateCcw } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Navbar from "@/components/Navbar";
 import ShootingStars from "@/components/ShootingStars";
-import { fetchLesson, fetchLessonProgress, updateLessonProgress, fetchLessonPathContext, type Lesson, type LessonPathContext } from "@/services/api";
+import { fetchLesson, fetchLessonProgress, updateLessonProgress, fetchLessonPathContext, resetLab, type Lesson, type LessonPathContext } from "@/services/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LessonQA from "@/components/LessonQA";
 import LessonComments from "@/components/LessonComments";
@@ -50,7 +50,7 @@ const LearningDetail = () => {
   const { lang, setLang, t } = useLanguage();
   const userName = localStorage.getItem("user_name") || "Học viên";
 
-  const [labStatus, setLabStatus] = useState<"AVAILABLE" | "BUSY" | "RESETTING" | "ERROR" | null>(null);
+  const [labStatus, setLabStatus] = useState<"AVAILABLE" | "BUSY" | "RESETTING" | "ERROR" | "COOLDOWN" | null>(null);
   const [labRemaining, setLabRemaining] = useState<number>(0);
   const [labPolling, setLabPolling] = useState(false);
   const [labAccessUrl, setLabAccessUrl] = useState<string | null>(null);
@@ -128,6 +128,35 @@ const LearningDetail = () => {
       }
     } catch (e) {
       console.error("Lab end error:", e);
+    }
+  };
+
+  const handleLabReset = async () => {
+    if (!lesson?.id || !lesson.labEnabled) return;
+    const confirmMsg = contentLang === "en" 
+      ? "Reset this lab? All progress will be lost." 
+      : "Reset lab này? Mọi tiến độ sẽ mất.";
+    if (!confirm(confirmMsg)) return;
+    
+    setLabPolling(true);
+    try {
+      const data = await resetLab(lesson.id);
+      if (data.status === 'resetting') {
+        setLabStatus("RESETTING");
+        const deadline = Date.now() + (data.timeoutSeconds || 60) * 1000;
+        const poll = setInterval(async () => {
+          await pollLabStatus();
+          if (Date.now() > deadline) clearInterval(poll);
+        }, 3000);
+      } else if (data.status === 'cooldown') {
+        alert(data.message || 'Lab reset on cooldown');
+      }
+    } catch (e: any) {
+      if (e.status === 429) alert(e.data?.message || 'Cooldown active');
+      else if (e.status === 409) alert(e.data?.message || 'Lab busy');
+      else console.error("Lab reset error:", e);
+    } finally {
+      setLabPolling(false);
     }
   };
 
@@ -321,6 +350,12 @@ const LearningDetail = () => {
                         {contentLang === "en" ? "Failed to Start" : "Khởi Động Thất Bại"}
                       </span>
                     )}
+                    {labStatus === "COOLDOWN" && (
+                      <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400">
+                        <Clock size={12} />
+                        {contentLang === "en" ? "Cooldown" : "Chờ đợi"} {Math.floor(labRemaining / 60)}:{String(labRemaining % 60).padStart(2, "0")}
+                      </span>
+                    )}
                     {labStatus === null && (
                       <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-border text-muted-foreground">
                         <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -370,6 +405,14 @@ const LearningDetail = () => {
                           <Power size={18} />
                           {contentLang === "en" ? "End Lab Session" : "Kết Thúc Phòng Lab"}
                         </button>
+                        <button
+                          onClick={handleLabReset}
+                          disabled={labPolling}
+                          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-yellow-400/40 text-yellow-400 font-semibold hover:bg-yellow-400/10 transition-colors disabled:opacity-50"
+                        >
+                          <RotateCcw size={18} />
+                          {contentLang === "en" ? "Reset Lab" : "Reset Lab"}
+                        </button>
                       </>
                     )}
                     {labStatus === "ERROR" && (
@@ -380,6 +423,12 @@ const LearningDetail = () => {
                       >
                         <AlertCircle size={18} />
                         {contentLang === "en" ? "Retry" : "Thử Lại"}
+                      </button>
+                    )}
+                    {labStatus === "COOLDOWN" && (
+                      <button disabled className="flex items-center gap-2 px-4 py-2 rounded-lg border border-yellow-400/40 text-yellow-400 font-semibold cursor-not-allowed">
+                        <Clock size={18} />
+                        {contentLang === "en" ? "Cooldown" : "Đang chờ"} {Math.floor(labRemaining / 60)}:{String(labRemaining % 60).padStart(2, "0")}
                       </button>
                     )}
                   </div>

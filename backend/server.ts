@@ -4,7 +4,7 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { OAuth2Client } from 'google-auth-library';
-import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress, LessonQuestion, LessonAnswerLog, LessonComment, LearningPath, PathLesson, PathProgress, LabState } from './src/db';
+import { initDb, User, Lab, Submission, Certificate, Lesson, LessonProgress, LessonQuestion, LessonAnswerLog, LessonComment, LearningPath, PathLesson, PathProgress, LabState, Notification } from './src/db';
 import { sanitizeComment, linkify, extractImageUrl, isImageUrl } from './src/commentFilter';
 import crypto from 'crypto'; // Dùng để gen mã Hash
 import dotenv from 'dotenv';
@@ -13,7 +13,7 @@ import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import helmet from 'helmet';
-import { Sequelize } from 'sequelize';
+import { Sequelize, Op } from 'sequelize';
 
 dotenv.config();
 
@@ -31,6 +31,18 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
   process.exit(1);
 }
 const CERT_SALT = process.env.CERT_SALT || 'default_salt_if_missing';
+
+const LABS_BASE_PATH = process.env.LABS_BASE_PATH 
+  || path.resolve(__dirname, '..', '..');
+
+function resolveLabPath(composePath: string): string {
+  const root = path.resolve(LABS_BASE_PATH);
+  const requested = path.resolve(root, composePath);
+  if (!requested.startsWith(root + path.sep)) {
+    throw new Error('Invalid lab path: traversal attempt');
+  }
+  return requested;
+}
 
 const tokenBlocklist = new Set<string>();
 
@@ -262,119 +274,68 @@ async function startServer() {
         }
     };
 
-    // Trigger lab reset using docker compose
-    const triggerLabReset = async (lessonId: string, composePath: string | null, resetTimeout: number, userId?: string | null) => {
+    // Trigger lab reset by invoking the lab's own reset.sh (canonical source of truth)
+    const triggerLabReset = async (lessonId: string, composePath: string | null, userId?: string | null) => {
       if (!composePath) {
         console.error(`[Lab Reset] No compose path for ${lessonId}`);
         const labState = await LabState.findByPk(lessonId);
-        if (labState) await labState.update({ status: 'ERROR' });
+        if (labState) await labState.update({ status: 'ERROR', resetError: 'Missing composePath' });
         return;
       }
+
+      let labPath: string;
+      try {
+        labPath = resolveLabPath(composePath);
+      } catch (e: any) {
+        console.error(`[Lab Reset] Invalid path for ${lessonId}:`, e.message);
+        const labState = await LabState.findByPk(lessonId);
+        if (labState) await labState.update({ status: 'ERROR', resetError: e.message });
+        return;
+      }
+
+      const resetScript = path.join(labPath, 'reset.sh');
+      if (!fs.existsSync(resetScript)) {
+        console.error(`[Lab Reset] reset.sh not found at ${resetScript}`);
+        const labState = await LabState.findByPk(lessonId);
+        if (labState) await labState.update({ status: 'ERROR', resetError: 'reset.sh missing' });
+        return;
+      }
+
+      console.log(`[Lab Reset] Starting reset for ${lessonId} via reset.sh`);
+      console.log(`[Lab Reset] Lab path: ${labPath}`);
 
       const { spawn } = require('child_process');
-      const fs = require('fs');
-      const path = require('path');
+      const child = spawn('bash', [resetScript], {
+        cwd: labPath,
+        env: { ...process.env, LAB_ID: lessonId },
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
 
-      const dockerPath = '/usr/bin/docker';
+      let stdout = '', stderr = '';
+      child.stdout.on('data', d => stdout += d.toString());
+      child.stderr.on('data', d => stderr += d.toString());
 
-      // Validate before running
-      if (!fs.existsSync(dockerPath)) {
-        console.error(`[Lab Reset] Docker binary not found at ${dockerPath}`);
-        const labState = await LabState.findByPk(lessonId);
-        if (labState) await labState.update({ status: 'ERROR' });
-        return;
-      }
+      const exitCode = await new Promise<number>(resolve => child.on('close', resolve));
 
-      const resolvedLabPath = path.resolve(process.cwd(), '..', composePath);
-      if (!fs.existsSync(resolvedLabPath)) {
-        console.error(`[Lab Reset] Lab path does not exist: ${resolvedLabPath}`);
-        const labState = await LabState.findByPk(lessonId);
-        if (labState) await labState.update({ status: 'ERROR' });
-        return;
-      }
+      const labState = await LabState.findByPk(lessonId);
+      const lesson = await Lesson.findByPk(lessonId);
 
-      const composeFile = path.join(resolvedLabPath, 'docker-compose.yml');
-      if (!fs.existsSync(composeFile)) {
-        console.error(`[Lab Reset] docker-compose.yml not found at ${composeFile}`);
-        const labState = await LabState.findByPk(lessonId);
-        if (labState) await labState.update({ status: 'ERROR' });
-        return;
-      }
-
-      console.log(`[Lab Reset] Starting reset for ${lessonId}`);
-      console.log(`[Lab Reset] Lab path: ${resolvedLabPath}`);
-      console.log(`[Lab Reset] Docker: ${dockerPath}`);
-
-      const runDocker = (args: string[], options: any = {}) => {
-        return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
-          const child = spawn('/usr/bin/docker', args, {
-            ...options,
-            cwd: resolvedLabPath,
-            env: process.env,
-            shell: false,
-            stdio: ['ignore', 'pipe', 'pipe'],
-          });
-
-          let stdout = '';
-          let stderr = '';
-
-          child.stdout.on('data', (data: Buffer) => { stdout += data.toString(); });
-          child.stderr.on('data', (data: Buffer) => { stderr += data.toString(); });
-
-          child.on('error', reject);
-
-          child.on('close', (code: number) => {
-            if (code === 0) resolve({ stdout, stderr });
-            else reject(new Error(`docker ${args.join(' ')} exited with ${code}\n${stderr}`));
-          });
+      if (exitCode === 0) {
+        const cooldownUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+        await labState?.update({
+          status: 'BUSY',
+          userId,
+          sessionStartedAt: new Date(),
+          sessionExpiresAt: new Date(Date.now() + (lesson?.labDuration || 900) * 1000),
+          lastResetAt: new Date(),
+          cooldownUntil,
+          resetError: null
         });
-      };
-
-      try {
-        console.log(`[Lab Reset] Starting reset for ${lessonId} at ${resolvedLabPath}`);
-
-        // docker compose down -v
-        await runDocker(['compose', 'down', '-v']);
-        console.log(`[Lab Reset] ${lessonId} down -v completed`);
-
-        // docker compose up -d
-        await runDocker(['compose', 'up', '-d']);
-        console.log(`[Lab Reset] ${lessonId} up -d completed`);
-
-        // Wait for containers to be ready, then health check
-        const labState = await LabState.findByPk(lessonId);
-        const lesson = await Lesson.findByPk(lessonId);
-        if (!lesson || !lesson.labUrl) return;
-
-        const deadline = Date.now() + resetTimeout * 1000;
-        let healthy = false;
-
-        while (Date.now() < deadline) {
-          await new Promise(r => setTimeout(r, 3000));
-          try {
-            const response = await fetch(lesson.labUrl, { method: 'GET', signal: AbortSignal.timeout(5000) });
-            if (response.ok) {
-              healthy = true;
-              break;
-            }
-          } catch (e) {
-            // Not ready yet
-          }
-        }
-
-        if (labState) {
-          if (healthy) {
-            await labState.update({ status: 'BUSY', userId: userId || labState.userId, sessionStartedAt: new Date(), sessionExpiresAt: new Date(Date.now() + (lesson.labDuration || 900) * 1000) });
-            console.log(`[Lab Reset] ${lessonId} READY -> BUSY (owner ${userId || labState.userId})`);
-          } else {
-            await labState.update({ status: 'ERROR' });
-            console.log(`[Lab Reset] ${lessonId} TIMEOUT -> ERROR`);
-          }
-        }
-      } catch (error: any) {
-        console.error(`[Lab Reset] ${lessonId} failed:`, error);
-        const labState = await LabState.findByPk(lessonId);
-        if (labState) await labState.update({ status: 'ERROR' });
+        console.log(`[Lab Reset] ${lessonId} RESET OK -> BUSY (owner ${userId}) cooldown until ${cooldownUntil.toISOString()}`);
+      } else {
+        const errMsg = stderr.slice(0, 2000);
+        await labState?.update({ status: 'ERROR', resetError: errMsg });
+        console.error(`[Lab Reset] ${lessonId} FAILED (exit ${exitCode}): ${errMsg}`);
       }
     };
 
@@ -973,7 +934,7 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         }
 
         // Trigger reset immediately (in background), keeping the claimer
-        triggerLabReset(lesson.id, lesson.labComposePath, lesson.labResetTimeout, req.user.id).catch(err => {
+        triggerLabReset(lesson.id, lesson.labComposePath, req.user.id).catch(err => {
           console.error(`Reset failed for ${lesson.id}:`, err);
         });
 
@@ -1056,6 +1017,95 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         return res.json({ status: 'AVAILABLE' });
       } catch (error) {
         console.error('Lab end error:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+      }
+    });
+
+    // POST /api/learning/:slug/lab/reset - Owner can reset their lab (with cooldown)
+    const resetLimiter = rateLimit({
+      windowMs: 60 * 1000,
+      max: 2,
+      message: { success: false, message: 'Quá nhiều yêu cầu reset, vui lòng đợi.' }
+    });
+
+    app.post('/api/learning/:slug/lab/reset', authenticate, resetLimiter, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const lesson = await Lesson.findOne({ where: { id: req.params.slug } });
+        if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+        if (!lesson.labEnabled) return res.status(400).json({ error: 'LAB_DISABLED' });
+        if (!lesson.labComposePath) return res.status(400).json({ error: 'LAB_COMPOSE_PATH_NOT_CONFIGURED' });
+
+        const labState = await LabState.findOrCreate({ 
+          where: { lessonId: lesson.id }, 
+          defaults: { status: 'AVAILABLE' } 
+        })[0];
+
+        const now = new Date();
+        const COOLDOWN_MS = 15 * 60 * 1000;
+
+        // Atomic claim: only AVAILABLE/ERROR can be claimed; BUSY only by owner
+        const [affected] = await LabState.update(
+          { status: 'RESETTING', resetStartedAt: now, userId: req.user.id },
+          { 
+            where: { 
+              lessonId: lesson.id,
+              status: { [Op.in]: ['AVAILABLE', 'ERROR'] }
+            }
+          }
+        );
+
+        if (affected === 0) {
+          const current = await LabState.findByPk(lesson.id);
+          if (current?.status === 'RESETTING') 
+            return res.status(409).json({ status: 'resetting' });
+          if (current?.status === 'BUSY' && current.userId !== req.user.id && req.user.role !== 'admin') {
+            const remaining = current.sessionExpiresAt 
+              ? Math.max(0, Math.ceil((new Date(current.sessionExpiresAt).getTime() - now.getTime()) / 1000))
+              : 0;
+            return res.status(409).json({ error: 'LAB_BUSY', remainingSeconds: remaining });
+          }
+          if (current?.cooldownUntil && new Date(current.cooldownUntil) > now) {
+            const retryAfter = Math.ceil((new Date(current.cooldownUntil).getTime() - now.getTime()) / 1000);
+            return res.status(429).json({ status: 'cooldown', retryAfter });
+          }
+        }
+
+        triggerLabReset(lesson.id, lesson.labComposePath, req.user.id).catch(err => {
+          console.error(`Reset failed for ${lesson.id}:`, err);
+        });
+
+        return res.status(202).json({ 
+          status: 'resetting', 
+          timeoutSeconds: lesson.labResetTimeout || 60 
+        });
+      } catch (error) {
+        console.error('Lab reset error:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+      }
+    });
+
+    // POST /api/admin/lessons/:id/lab/reset - Admin force reset (bypass cooldown/ownership)
+    app.post('/api/admin/lessons/:id/lab/reset', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const lesson = await Lesson.findByPk(req.params.id);
+        if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+        if (!lesson.labComposePath) return res.status(400).json({ error: 'LAB_COMPOSE_PATH_NOT_CONFIGURED' });
+
+        const labState = await LabState.findOrCreate({ 
+          where: { lessonId: lesson.id }, 
+          defaults: { status: 'AVAILABLE' } 
+        })[0];
+
+        // Admin: force claim regardless of state
+        await labState.update({ status: 'RESETTING', resetStartedAt: new Date(), userId: req.user.id });
+
+        triggerLabReset(lesson.id, lesson.labComposePath, req.user.id).catch(err => 
+          console.error(`Admin reset failed for ${lesson.id}:`, err)
+        );
+
+        return res.status(202).json({ status: 'resetting' });
+      } catch (error) {
+        console.error('Admin lab reset error:', error);
         res.status(500).json({ error: 'Lỗi server' });
       }
     });
@@ -1334,6 +1384,22 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
     // =========================================================
     // Lesson Comments APIs
     // =========================================================
+    // Helper: build nested reply tree recursively
+    const buildReplyTree = async (lessonId: string, parentIds: number[]): Promise<any[]> => {
+      if (!parentIds.length) return [];
+      const children = await LessonComment.findAll({
+        where: { lessonId, parentId: parentIds },
+        order: [['timestamp', 'ASC'], ['id', 'ASC']]
+      });
+      const result = [];
+      for (const child of children) {
+        const json = child.toJSON();
+        json.replies = await buildReplyTree(lessonId, [child.id]);
+        result.push(json);
+      }
+      return result;
+    };
+
     app.get('/api/lessons/:id/comments', authenticate, async (req: Request, res: Response) => {
       try {
         const limit = Math.min(Number(req.query.limit) || 10, 20);
@@ -1348,27 +1414,16 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
           offset,
           limit
         });
+
         const topIds = topComments.map((c: any) => c.id);
 
-        let replies: LessonComment[] = [];
-        if (topIds.length) {
-          replies = await LessonComment.findAll({
-            where: { lessonId, parentId: topIds },
-            order: [['timestamp', 'ASC'], ['id', 'ASC']]
-          });
+        // Build full nested reply tree for each top comment
+        const items = [];
+        for (const top of topComments) {
+          const json = top.toJSON();
+          json.replies = await buildReplyTree(lessonId, [top.id]);
+          items.push(json);
         }
-
-        const replyMap: Record<number, any[]> = {};
-        replies.forEach((r: any) => {
-          const p = r.parentId;
-          if (!replyMap[p]) replyMap[p] = [];
-          replyMap[p].push(r.toJSON());
-        });
-
-        const items = topComments.map((c: any) => ({
-          ...c.toJSON(),
-          replies: replyMap[c.id] || []
-        }));
 
         res.json({ items, hasMore: offset + topComments.length < totalTop, total: totalTop });
       } catch (error) {
@@ -1428,6 +1483,42 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
           imageUrl: finalImageUrl,
           timestamp: now
         });
+
+        // Create notifications
+        try {
+          if (parentId) {
+            // Reply to a comment - notify the parent comment author
+            const parentComment = await LessonComment.findByPk(parentId);
+            if (parentComment && parentComment.userId !== req.user.id) {
+              await Notification.create({
+                userId: parentComment.userId,
+                type: 'comment_reply',
+                referenceId: comment.id,
+                lessonId: req.params.id,
+                message: `${req.user.name || 'Học viên'} đã trả lời bình luận của bạn`
+              });
+            }
+          } else {
+            // New top-level comment - notify users who completed this lesson
+            const completedUsers = await LessonProgress.findAll({
+              where: { lessonId: req.params.id, status: 'completed' },
+              attributes: ['userId']
+            });
+            const uniqueUsers = [...new Set(completedUsers.map(p => p.userId).filter(uid => uid !== req.user.id))];
+            if (uniqueUsers.length > 0) {
+              await Notification.bulkCreate(uniqueUsers.map(uid => ({
+                userId: uid,
+                type: 'lesson_comment',
+                referenceId: comment.id,
+                lessonId: req.params.id,
+                message: `${req.user.name || 'Học viên'} đã bình luận vào bài học bạn đã hoàn thành`
+              })));
+            }
+          }
+        } catch (notifErr) {
+          console.error('Notification creation error:', notifErr);
+        }
+
         res.json({ success: true, comment: { ...comment.toJSON(), replies: [] } });
       } catch (error) {
         console.error('[-] Lỗi tạo bình luận:', error);
@@ -1482,6 +1573,57 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         res.json(comments);
       } catch (error) {
         res.status(500).json({ success: false, message: 'Lỗi server' });
+      }
+    });
+
+    // =========================================================
+    // Notification APIs
+    // =========================================================
+    // GET /api/notifications - Get user notifications
+    app.get('/api/notifications', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const limit = Math.min(Number(req.query.limit) || 20, 50);
+        const offset = Math.max(Number(req.query.offset) || 0, 0);
+        const unreadOnly = req.query.unread === 'true';
+
+        const where: any = { userId: req.user.id };
+        if (unreadOnly) where.read = false;
+
+        const notifications = await Notification.findAll({
+          where,
+          order: [['createdAt', 'DESC']],
+          limit,
+          offset
+        });
+
+        const total = await Notification.count({ where });
+        const unreadCount = await Notification.count({ where: { userId: req.user.id, read: false } });
+
+        res.json({ items: notifications, hasMore: offset + notifications.length < total, total, unreadCount });
+      } catch (error) {
+        res.status(500).json({ error: 'Lỗi tải thông báo' });
+      }
+    });
+
+    // POST /api/notifications/:id/read - Mark notification as read
+    app.post('/api/notifications/:id/read', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const notification = await Notification.findOne({ where: { id: req.params.id, userId: req.user.id } });
+        if (!notification) return res.status(404).json({ error: 'Không tìm thấy thông báo' });
+        await notification.update({ read: true });
+        res.json({ success: true });
+      } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+      }
+    });
+
+    // POST /api/notifications/read-all - Mark all as read
+    app.post('/api/notifications/read-all', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        await Notification.update({ read: true }, { where: { userId: req.user.id, read: false } });
+        res.json({ success: true });
+      } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
       }
     });
 

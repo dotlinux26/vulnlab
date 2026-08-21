@@ -276,6 +276,12 @@ const en: Record<string, any> = {
   "landing.certVerify": "Verify certificate",
   "landing.copyright": "© 2026 VULNLAB. All rights reserved.",
 
+  "nav.notifications": "Notifications",
+  "nav.markAllRead": "Mark all as read",
+  "nav.showUnreadOnly": "Show unread only",
+  "nav.noNotifications": "No notifications",
+  "nav.loadMore": "Load more",
+
   "admin.title": "ADMIN PANEL",
   "admin.labs": "Add New Lab",
   "admin.lessons": "Manage Lessons",
