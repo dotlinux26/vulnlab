@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { MessageSquare, Send, ImagePlus, Reply, Loader2, X, ChevronDown, Trash2 } from "lucide-react";
+import { MessageSquare, Send, ImagePlus, Reply, Loader2, X, ChevronDown, Trash2, RotateCcw } from "lucide-react";
 import { fetchLessonComments, postLessonComment, uploadLessonCommentImage, type LessonComment } from "@/services/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -33,6 +33,20 @@ const LessonComments = ({ lessonId }: LessonCommentsProps) => {
   const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadFirst = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchLessonComments(lessonId, 0, PAGE_SIZE);
+      setComments(data.items);
+      setHasMore(data.hasMore);
+      setOffset(PAGE_SIZE);
+    } catch {
+      setComments([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReload = async () => {
     setIsLoading(true);
     try {
       const data = await fetchLessonComments(lessonId, 0, PAGE_SIZE);
@@ -224,13 +238,23 @@ const LessonComments = ({ lessonId }: LessonCommentsProps) => {
 
   return (
     <div className="glass-card rounded-xl p-6 md:p-8">
-      <h2 className="text-lg font-bold text-foreground mb-1 flex items-center gap-2">
-        <MessageSquare size={20} className="text-primary" />
-        {t("lesson.comments.title")}
-        {comments.length > 0 && (
-          <span className="text-xs font-normal text-muted-foreground">({comments.length})</span>
-        )}
-      </h2>
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+          <MessageSquare size={20} className="text-primary" />
+          {t("lesson.comments.title")}
+          {comments.length > 0 && (
+            <span className="text-xs font-normal text-muted-foreground">({comments.length})</span>
+          )}
+        </h2>
+        <button
+          onClick={handleReload}
+          disabled={isLoading}
+          className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground disabled:opacity-50"
+          title={t("lesson.comments.reload")}
+        >
+          <RotateCcw size={18} className={isLoading ? "animate-spin" : ""} />
+        </button>
+      </div>
       <p className="text-xs text-muted-foreground mb-6">{t("lesson.comments.subtitle")}</p>
 
       {/* Composer */}

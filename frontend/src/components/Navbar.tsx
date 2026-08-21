@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Settings, LogOut, Moon, Sun, Menu, X, FileText, LayoutDashboard, Trophy, MessageCircle, Zap, BookOpen, Languages } from "lucide-react";
+import { User, Settings, LogOut, Moon, Sun, Menu, X, FileText, LayoutDashboard, Trophy, MessageCircle, Zap, BookOpen, Languages, Bell, Loader2, Check } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { fetchNotifications, markNotificationRead, markAllNotificationsRead, type Notification } from "@/services/api";
 
 interface NavbarProps {
   isLoggedIn?: boolean;
@@ -26,21 +27,50 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [fetchedAvatar, setFetchedAvatar] = useState("");
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifLoading, setNotifLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
   const { isDark, toggle } = useTheme();
   const { lang, toggleLang, t } = useLanguage();
   const navigate = useNavigate();
 
+  // Fetch notifications on mount and when dropdown opens
+  const loadNotifications = async (unreadOnly = false) => {
+    if (notifLoading) return;
+    setNotifLoading(true);
+    try {
+      const data = await fetchNotifications(10, 0, unreadOnly);
+      setNotifications(data.items);
+      setUnreadCount(data.unreadCount);
+    } catch {
+      // ignore
+    } finally {
+      setNotifLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn) loadNotifications();
+  }, [isLoggedIn]);
+
+  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Load avatar
   useEffect(() => {
     const stored = localStorage.getItem("user_picture");
     if (stored) { setFetchedAvatar(stored); return; }
@@ -60,6 +90,22 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
     localStorage.clear();
     document.cookie = "session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     navigate("/");
+  };
+
+  const handleMarkRead = async (id: number) => {
+    try {
+      await markNotificationRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch {}
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch {}
   };
 
   const avatarUrl = userAvatar || fetchedAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=a855f7&color=fff&rounded=true`;
@@ -103,7 +149,95 @@ const Navbar = ({ isLoggedIn = false, userName = "Học viên", userAvatar }: Na
           </button>
 
           {isLoggedIn ? (
-            <div className="relative" ref={dropdownRef}>
+            <div className="flex items-center gap-4">
+              {/* Notification Bell */}
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={() => { setNotifOpen(!notifOpen); if (notifOpen) loadNotifications(); }}
+                  className="relative p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+                  title={t("nav.notifications")}
+                >
+                  <Bell size={20} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {notifOpen && (
+                  <div className="absolute right-0 top-12 w-80 glass-card rounded-lg border shadow-xl overflow-hidden"
+                    style={{ animation: "scale-in 0.2s ease-out" }}>
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                      <h3 className="font-semibold text-foreground">{t("nav.notifications")}</h3>
+                      <div className="flex items-center gap-2">
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={handleMarkAllRead}
+                            className="text-xs text-primary hover:underline"
+                          >
+                            {t("nav.markAllRead")}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => { setNotifOpen(false); loadNotifications(true); }}
+                          className="text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          {t("nav.showUnreadOnly")}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifLoading ? (
+                        <div className="p-4 flex justify-center">
+                          <Loader2 size={20} className="animate-spin text-primary" />
+                        </div>
+                      ) : notifications.length === 0 ? (
+                        <div className="p-4 text-center text-muted-foreground text-sm">
+                          {t("nav.noNotifications")}
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="divide-y divide-border">
+                            {notifications.map((notif) => (
+                              <button
+                                key={notif.id}
+                                onClick={() => handleMarkRead(notif.id)}
+                                className={`w-full p-3 text-left hover:bg-accent transition-colors ${!notif.read ? 'bg-accent/30' : ''}`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${!notif.read ? 'bg-primary' : 'bg-muted-foreground/30'}`} />
+                                  <div className="flex-1 min-w-0 text-sm">
+                                    <p className={`text-foreground ${!notif.read ? 'font-medium' : ''}`}>{notif.message}</p>
+                                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                                      {new Date(notif.createdAt).toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', {
+                                        hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit'
+                                      })}
+                                    </p>
+                                  </div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                          {notifications.length > 0 && (
+                            <div className="border-t border-border p-2 text-center">
+                              <button
+                                onClick={() => loadNotifications(false)}
+                                className="text-xs text-primary hover:underline w-full py-1"
+                              >
+                                {t("nav.loadMore")}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* User Avatar Dropdown */}
+              <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-primary/50 transition-all"
