@@ -98,8 +98,8 @@ services:
     container_name: cybershop-xss-bot
     environment:
       - WEB_URL=http://web:3000
-      - BOT_ADMIN_EMAIL=admin@cybershop.vn
-      - BOT_ADMIN_PASS=Admin#1337
+      - BOT_EMAIL=moderator@cybershop.vn
+      - BOT_PASS=ModBot#2024
     # Bot phai co Internet egress de hoc vien tap exfil XSS qua webhook.site
     # (payload stored-XSS chay trong browser bot -> gui ra collector ben ngoai)
     read_only: true

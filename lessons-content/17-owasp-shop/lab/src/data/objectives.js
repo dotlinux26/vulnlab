@@ -242,8 +242,8 @@ const OBJECTIVES = [
       en: "Make another user's browser run your script",
     },
     demo: {
-      vi: ['Lưu input được người khác render', 'Exfil cookie/DOM của nạn nhân về collector của kẻ tấn công'],
-      en: ['Persisted input rendered by other users', 'Exfiltrated victim cookie/DOM to an attacker-controlled collector'],
+      vi: ['Lưu input được người khác render', 'Đánh cắp cookie phiên nạn nhân và giả danh họ (session hijacking)'],
+      en: ['Persisted input rendered by other users', 'Stole victim session cookies and impersonated them (session hijacking)'],
     },
     learned: { vi: 'Stored XSS với impact nạn nhân thật', en: 'Stored XSS with real victim impact' },
     next: {

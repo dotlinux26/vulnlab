@@ -18,11 +18,14 @@ router.post('/login', async (req, res) => {
     if (!user) return res.status(401).render('login', { error: 'Invalid credentials' });
 
     const token = sign({ id: user.email, name: user.name, role: user.role });
-    res.cookie('token', token, { httpOnly: true });
+    // Admin session: hardened with HttpOnly (teaching point — XSS cannot read it).
+    // Moderator session: legacy console requires JS-readable cookie → NO HttpOnly
+    // (C14 target: stolen token = full session hijacking of the bot account).
+    const httpOnly = user.role !== 'moderator';
+    res.cookie('token', token, { httpOnly });
     // Legacy moderation console caches the key in a cookie for "quick access".
-    // NOT httpOnly (C14 teaching point: sloppy companion cookie leaks to XSS
-    // even though the session token itself is protected).
-    if (user.role === 'admin') {
+    // NOT httpOnly either — sloppy companion cookie leaks to XSS.
+    if (user.role === 'admin' || user.role === 'moderator') {
       res.cookie('moderation_key', readFlag('c14'), { httpOnly: false });
     }
     if (req.accepts('json') && (req.is('json') || typeof req.body.email === 'object')) {

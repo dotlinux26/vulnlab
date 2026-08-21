@@ -56,6 +56,13 @@ async function seedMongo() {
       password: 'demo123',
     },
     {
+      // Service account used by the review-moderation bot (xss-bot).
+      // Its session is the C14 hijacking target: role moderator, legacy
+      // non-HttpOnly cookie (see routes/auth.js).
+      email: 'moderator@cybershop.vn', name: 'Mod Bot', role: 'moderator',
+      password: 'ModBot#2024',
+    },
+    {
       email: 'john@cybershop.vn', name: 'John Tran', role: 'customer',
       password: 'jordan23', // rockyou: yes — crackable after SQLi dump
     },

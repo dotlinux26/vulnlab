@@ -50,11 +50,13 @@ router.post('/admin/tools/diag', requireAuth, (req, res) => {
   });
 });
 
-// Stored XSS target page — visited automatically by xss-bot with an admin session
+// Stored XSS target page — visited automatically by xss-bot with a MODERATOR session.
+// Moderators (bot's role) may access this page — that's what makes the stolen
+// bot token useful for an attacker (session hijacking → read moderation data).
 router.get('/admin/reviews', requireAuth, async (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).render('403');
+  if (!['admin', 'moderator'].includes(req.user.role)) return res.status(403).render('403');
   const reviews = await getMysql().query(
-    'SELECT product_id, author, text, created_at FROM reviews ORDER BY created_at DESC LIMIT 50'
+    'SELECT product_id, author, text, created_at FROM reviews ORDER BY created_at DESC LIMIT 500'
   ).then(([r]) => r);
   res.render('admin/reviews', { reviews, moderationKey: readFlag('c14') });
 });
