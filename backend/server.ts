@@ -1110,13 +1110,21 @@ app.get('/api/verify/:hash', async (req: Request, res: Response) => {
         if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
         if (!lesson.labComposePath) return res.status(400).json({ error: 'LAB_COMPOSE_PATH_NOT_CONFIGURED' });
 
-        const labState = await LabState.findOrCreate({ 
+        const [labState] = await LabState.findOrCreate({ 
           where: { lessonId: lesson.id }, 
           defaults: { status: 'AVAILABLE' } 
-        })[0];
+        });
+
+        if (!labState) {
+          console.error(`[Admin Reset] LabState not created for lesson ${lesson.id}`);
+          return res.status(500).json({ error: 'Failed to create lab state' });
+        }
+
+        console.log(`[Admin Reset] LabState found/created for ${lesson.id}, status: ${labState.status}`);
 
         // Admin: force claim regardless of state
         await labState.update({ status: 'RESETTING', resetStartedAt: new Date(), userId: req.user.id });
+        console.log(`[Admin Reset] LabState updated to RESETTING for ${lesson.id}`);
 
         triggerLabReset(lesson.id, lesson.labComposePath, req.user.id).catch(err => 
           console.error(`Admin reset failed for ${lesson.id}:`, err)
